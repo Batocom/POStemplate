@@ -1,12 +1,15 @@
-const StockMovementsSchema = {
-  table: "stock_movements",
+function getStockMovementsSchema() {
+  return {
+    table: "stock_movements",
+    columns: [
+      "id",
+      "product_id",
+      "type",
+      "quantity",
+      "reference_id",
+      "created_at"
+    ]
+  };
+}
 
-  columns: [
-    "id",
-    "product_id",
-    "type",
-    "quantity",
-    "reference_id",
-    "created_at"
-  ]
-};
+module.exports = { getStockMovementsSchema };

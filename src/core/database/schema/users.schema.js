@@ -1,13 +1,16 @@
-const UsersSchema = {
-  table: "users",
+function getUsersSchema() {
+  return {
+    table: "users",
+    columns: [
+      "id",
+      "name",
+      "email",
+      "password_hash",
+      "role",
+      "created_at",
+      "updated_at"
+    ]
+  };
+}
 
-  columns: [
-    "id",
-    "name",
-    "email",
-    "password_hash",
-    "role",
-    "created_at",
-    "updated_at"
-  ]
-};
+module.exports = { getUsersSchema };

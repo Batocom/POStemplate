@@ -1,7 +1,13 @@
+const { getUsersSchema } = require('./users.schema');
+const { getProductsSchema } = require('./products.schema');
+const { getSalesSchema } = require('./sales.schema');
+const { getSaleItemsSchema } = require('./sale_items.schema');
+const { getStockMovementsSchema } = require('./stock_movements.schema');
+
 const SchemaRegistry = [
-  UsersSchema,
-  ProductsSchema,
-  SalesSchema,
-  SaleItemsSchema,
-  StockMovementsSchema
+  getUsersSchema(),
+  getProductsSchema(),
+  getSalesSchema(),
+  getSaleItemsSchema(),
+  getStockMovementsSchema()
 ];
