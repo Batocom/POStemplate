@@ -36,15 +36,14 @@ function renderAppShell(content) {
 <script>
 
 function renderProductsPage() {
-
-  const template = document.getElementById(
-    'productsPageTemplate'
-  );
-
-  renderAppShell(template.innerHTML);
-
-  loadProducts();
-
+  const template = document.getElementById('productsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadProducts();
+  } else {
+    console.error('Products template not found');
+    renderAppShell('<div class="text-red-500">Error loading products page</div>');
+  }
 }
 
 async function loadProducts() {

@@ -12,14 +12,16 @@
 </head>
 
 <body class="bg-gray-100">
-
   <div id="app"></div>
 
+  <!-- Load templates first -->
   <?!= HtmlService.createHtmlOutputFromFile('ui/components/sidebar').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/components/topbar').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/login').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/dashboard').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/products').getContent(); ?>
+  
+  <!-- Then load state, api, router, app -->
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/state').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/api').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/router').getContent(); ?>
@@ -29,7 +31,6 @@
   <script>
   console.log('PRODUCTS FILE LOADED');
   </script>
-
 </body>
 
 </html>
