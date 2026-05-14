@@ -36,7 +36,9 @@ function renderAppShell(content) {
 <script>
 
 function renderProductsPage() {
+  console.log('renderProductsPage called');
   const template = document.getElementById('productsPageTemplate');
+  console.log('Template found:', template);
   if (template) {
     renderAppShell(template.innerHTML);
     loadProducts();
@@ -57,6 +59,7 @@ async function loadProducts() {
   try {
 
     const response = await api('GET_PRODUCTS');
+    console.log('API response:', response);
 
     if (!response.success) {
 
