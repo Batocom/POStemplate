@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <base target="_top">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/theme').getContent(); ?>
+
+</head>
+
+<body class="bg-gray-100">
+
+  <div id="app"></div>
+
+ <?!= HtmlService.createHtmlOutputFromFile('ui/components/sidebar').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/components/topbar').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/app/state').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/app/api').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/app/router').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/app/app').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/app/boot').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/pages/login').getContent(); ?>
+ <?!= HtmlService.createHtmlOutputFromFile('ui/pages/dashboard').getContent(); ?>
+
+</body>
+
+</html>

@@ -1,0 +1,5 @@
+function runSeeders() {
+
+  seedUsers();
+
+}

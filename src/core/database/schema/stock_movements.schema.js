@@ -12,4 +12,4 @@ function getStockMovementsSchema() {
   };
 }
 
-module.exports = { getStockMovementsSchema };
+

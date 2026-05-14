@@ -1,0 +1,34 @@
+<script>
+
+function renderAppShell(content) {
+
+  document.getElementById("app").innerHTML = `
+
+    <div class="flex h-screen overflow-hidden">
+
+      <!-- SIDEBAR -->
+      <aside class="w-64 bg-gray-900 text-white hidden md:block">
+
+        ${renderSidebar()}
+
+      </aside>
+
+      <!-- MAIN -->
+      <div class="flex-1 flex flex-col">
+
+        ${renderTopbar()}
+
+        <main class="flex-1 overflow-y-auto p-4">
+
+          ${content}
+
+        </main>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+</script>

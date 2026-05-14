@@ -1,0 +1,88 @@
+<script>
+
+function renderLoginPage() {
+
+  document.getElementById("app").innerHTML = `
+
+    <div class="min-h-screen flex items-center justify-center bg-gray-100">
+
+      <div class="bg-white p-8 rounded-xl shadow w-full max-w-md">
+
+        <h1 class="text-3xl font-bold mb-6 text-center">
+          Batocom POS
+        </h1>
+
+        <form id="loginForm" class="space-y-4">
+
+          <input
+            type="email"
+            id="email"
+            placeholder="Email"
+            class="w-full border p-3 rounded"
+          />
+
+          <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            class="w-full border p-3 rounded"
+          />
+
+          <button
+            type="submit"
+            class="w-full bg-blue-600 text-white p-3 rounded"
+          >
+            Login
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  `;
+
+  document
+    .getElementById("loginForm")
+    .addEventListener("submit", loginHandler);
+
+}
+
+async function loginHandler(e) {
+
+  e.preventDefault();
+
+  const email =
+    document.getElementById("email").value;
+
+  const password =
+    document.getElementById("password").value;
+
+  try {
+
+    const result = await API.request("LOGIN", {
+      email,
+      password
+    });
+
+    State.token = result.token;
+
+    State.user = result.user;
+
+    localStorage.setItem(
+      "token",
+      result.token
+    );
+
+    Router.go("dashboard");
+
+  } catch(err) {
+
+    alert(err.message);
+
+  }
+
+}
+
+</script>
