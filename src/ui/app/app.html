@@ -32,3 +32,145 @@ function renderAppShell(content) {
 }
 
 </script>
+
+<script>
+
+function renderProductsPage() {
+
+  const template = document.getElementById(
+    'productsPageTemplate'
+  );
+
+  renderAppShell(template.innerHTML);
+
+  loadProducts();
+
+}
+
+async function loadProducts() {
+
+  const container = document.getElementById(
+    'productsTableContainer'
+  );
+
+  container.innerHTML = 'Loading...';
+
+  try {
+
+    const response = await api('GET_PRODUCTS');
+
+    if (!response.success) {
+
+      container.innerHTML = `
+        <div class="text-red-500">
+          Failed to load products
+        </div>
+      `;
+
+      return;
+
+    }
+
+    renderProductsTable(response.data);
+
+  } catch (error) {
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="text-red-500">
+        Something went wrong
+      </div>
+    `;
+
+  }
+
+}
+
+function renderProductsTable(products) {
+
+  const container = document.getElementById(
+    'productsTableContainer'
+  );
+
+  if (!products.length) {
+
+    container.innerHTML = `
+      <div class="text-gray-500">
+        No products found
+      </div>
+    `;
+
+    return;
+
+  }
+
+  container.innerHTML = `
+    <table class="w-full text-left">
+
+      <thead>
+
+        <tr class="border-b">
+
+          <th class="py-2">Name</th>
+          <th class="py-2">Stock</th>
+          <th class="py-2">Sell Price</th>
+          <th class="py-2">Actions</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        ${products.map(product => `
+
+          <tr class="border-b">
+
+            <td class="py-2">
+              ${product.name}
+            </td>
+
+            <td class="py-2">
+              ${product.stock}
+            </td>
+
+            <td class="py-2">
+              KES ${product.sell_price}
+            </td>
+
+            <td class="py-2">
+
+              <button
+                class="text-blue-600"
+                onclick="editProduct('${product.id}')"
+              >
+                Edit
+              </button>
+
+            </td>
+
+          </tr>
+
+        `).join('')}
+
+      </tbody>
+
+    </table>
+  `;
+
+}
+
+function editProduct(id) {
+
+  alert('Edit product: ' + id);
+
+}
+
+function openCreateProductModal() {
+
+  alert('Create Product Modal Coming Next');
+
+}
+
+</script>
