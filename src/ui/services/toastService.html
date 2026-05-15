@@ -1,0 +1,97 @@
+<script>
+/**
+ * ToastService - Reusable notification system
+ */
+const Toast = (function() {
+  const DURATION = 3000;
+  const ANIMATION_DURATION = 300;
+  
+  const COLORS = {
+    success: '#10b981',
+    error: '#ef4444',
+    warning: '#f59e0b',
+    info: '#3b82f6'
+  };
+  
+  const ICONS = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ℹ'
+  };
+  
+  function removeExisting() {
+    const existing = document.getElementById('toast-container');
+    if (existing) existing.remove();
+  }
+  
+  function createToast(message, type) {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      animation: toastSlideIn ${ANIMATION_DURATION}ms ease-out;
+    `;
+    
+    const bgColor = COLORS[type] || COLORS.info;
+    const icon = ICONS[type] || ICONS.info;
+    
+    container.innerHTML = `
+      <div style="
+        background: ${bgColor}; 
+        color: white; 
+        padding: 12px 24px; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+      ">
+        <span style="font-size: 18px; font-weight: bold;">${icon}</span>
+        <span>${message}</span>
+      </div>
+    `;
+    return container;
+  }
+  
+  function ensureAnimations() {
+    if (document.getElementById('toast-animations')) return;
+    const style = document.createElement('style');
+    style.id = 'toast-animations';
+    style.textContent = `
+      @keyframes toastSlideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes toastSlideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  function show(message, type = 'info') {
+    ensureAnimations();
+    removeExisting();
+    const toast = createToast(message, type);
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = `toastSlideOut ${ANIMATION_DURATION}ms ease-in`;
+      setTimeout(() => toast.remove(), ANIMATION_DURATION);
+    }, DURATION);
+  }
+  
+  return {
+    success: function(message) { show(message, 'success'); },
+    error: function(message) { show(message, 'error'); },
+    warning: function(message) { show(message, 'warning'); },
+    info: function(message) { show(message, 'info'); }
+  };
+})();
+</script>
