@@ -58,10 +58,10 @@ async function loadProducts() {
 
   try {
 
-   const response = await api('GET_PRODUCTS');
-    console.log('API response:', response);
+   const products = await api('GET_PRODUCTS');
+    console.log('Products:', products);
 
-    if (!response.success) {
+    if (!products || products.length === undefined) {
 
       container.innerHTML = `
         <div class="text-red-500">
@@ -73,7 +73,7 @@ async function loadProducts() {
 
     }
 
-    renderProductsTable(response.data);
+    renderProductsTable(products);
 
   } catch (error) {
 
