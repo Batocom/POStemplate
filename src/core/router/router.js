@@ -17,10 +17,14 @@ function handleRequest(action, payload) {
   switch(action) {
 
     case "GET_PRODUCTS":
-      Logger.log("GET_PRODUCTS called with token: " + payload.token);
-      const products = ProductService.getAll(payload.token);
-      Logger.log("GET_PRODUCTS result count: " + (products ? products.length : 0));
-      return { success: true, data: products };
+
+  Logger.log("DBInstance check: " + typeof DBInstance);
+
+  const products = ProductService.getAll(payload.token);
+
+  Logger.log("PRODUCTS RAW: " + JSON.stringify(products));
+
+  return { success: true, data: products };
 
     case "ADD_PRODUCT":
       requireRole(payload.token, "ADMIN");
