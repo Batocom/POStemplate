@@ -265,6 +265,156 @@ Examples:
 - ModalService - popup management
 - TableService - data rendering
 
+## UI Services Reference
+
+### ToastService (`src/ui/services/toastService.html`)
+
+A centralized notification system for displaying temporary messages.
+
+**API:**
+```javascript
+Toast.success(message)   // Green success toast
+Toast.error(message)     // Red error toast
+Toast.warning(message)   // Yellow warning toast
+Toast.info(message)      // Blue info toast
+```
+
+**Usage:**
+```javascript
+// After successful operation
+Toast.success('Product created successfully');
+
+// After failed operation
+Toast.error('Failed to delete product');
+
+// For warnings
+Toast.warning('Stock is running low');
+
+// For informational messages
+Toast.info('Processing your request...');
+```
+
+**Behavior:**
+- Toasts auto-dismiss after 3 seconds
+- Only one toast visible at a time (new toast replaces existing)
+- Slide-in/slide-out animations
+- Positioned at top-right corner
+- Color-coded by type
+
+### ModalService (`src/ui/services/modalService.html`)
+
+A centralized popup/modal system for displaying dialogs, forms, confirmations, and loading states.
+
+**API:**
+```javascript
+Modal.open(options)                    // Open a custom modal
+Modal.close()                          // Close the current modal
+Modal.confirm(message)                 // Show confirm dialog, returns Promise<boolean>
+Modal.alert(message)                   // Show alert dialog
+Modal.loading(message)                 // Show loading spinner
+Modal.setLoading(state)                // Toggle loading state in current modal
+```
+
+**`Modal.open()` Options:**
+```javascript
+Modal.open({
+  title: 'Modal Title',                // Header text
+  content: '<p>HTML content</p>',      // Body content (HTML string)
+  size: 'md',                          // sm | md | lg | xl | full
+  closable: true,                      // Show close button
+  closeOnEscape: true,                 // Close on Escape key
+  closeOnOutsideClick: true,           // Close on overlay click
+  onClose: function() { ... }          // Callback when modal closes
+})
+```
+
+**Usage Examples:**
+
+```javascript
+// 1. Open a form modal
+Modal.open({
+  title: 'Add Product',
+  content: document.getElementById('formTemplate').innerHTML,
+  size: 'lg'
+});
+
+// 2. Confirm dialog (async)
+const confirmed = await Modal.confirm('Are you sure you want to delete this product?');
+if (confirmed) {
+  // proceed with deletion
+}
+
+// 3. Alert dialog
+Modal.alert('Product saved successfully');
+
+// 4. Loading state
+Modal.loading('Processing your order...');
+
+// 5. Update loading state
+Modal.setLoading(true);   // Show spinner
+Modal.setLoading(false);  // Hide spinner
+
+// 6. Close modal programmatically
+Modal.close();
+```
+
+**Backward Compatibility:**
+The following legacy functions are still available for existing code:
+```javascript
+openModal(content)   // Equivalent to Modal.open({ content, size: 'lg' })
+closeModal()         // Equivalent to Modal.close()
+```
+
+**Modal Sizes:**
+| Size | CSS Class | Use Case |
+|------|-----------|----------|
+| `sm` | `max-w-sm` | Confirmations, alerts |
+| `md` | `max-w-lg` | Default, simple forms |
+| `lg` | `max-w-2xl` | Complex forms, data entry |
+| `xl` | `max-w-4xl` | Large content, tables |
+| `full` | `max-w-full mx-4` | Full-width content |
+
+**Architecture Rules:**
+1. All modals must use `ModalService` — never create custom modal HTML
+2. Modal content should be defined in `<template>` tags in dedicated files
+3. Modal controllers should be in `ui/modules/<module>/` directory
+4. Never duplicate modal HTML across pages
+5. Use `Modal.confirm()` instead of native `confirm()` for consistency
+6. Use `Modal.alert()` instead of native `alert()` for consistency
+
+**File Organization:**
+```
+ui/
+├── services/
+│   ├── toastService.html      # Toast notifications
+│   └── modalService.html      # Modal/popup system
+├── modules/
+│   └── products/
+│       ├── products.controller.html   # Product modal logic
+│       └── products.modal.html        # Product modal templates
+└── components/
+    └── modal.html             # Legacy stub (backward compat only)
+```
+
+**Loading Order (in index.html):**
+```
+1. state.html          # State management
+2. api.html            # API communication
+3. router.html         # Page routing
+4. sidebar.html        # UI components
+5. topbar.html         # UI components
+6. modal.html          # Legacy stub
+7. toastService.html   # Services
+8. modalService.html   # Services (AFTER toastService)
+9. login.html          # Pages
+10. dashboard.html     # Pages
+11. products.html      # Pages
+12. products.modal.html # Module templates
+13. products.controller.html # Module controllers
+14. app.html           # App shell
+15. boot.html          # Bootstrap
+```
+
 ### Styles
 Centralized theming system.
 
