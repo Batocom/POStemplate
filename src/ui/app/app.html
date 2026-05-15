@@ -61,16 +61,22 @@ async function loadProducts() {
    const products = await api('GET_PRODUCTS');
     console.log('Products:', products);
 
-    if (!products || products.length === undefined) {
-
+    if (!products) {
       container.innerHTML = `
         <div class="text-red-500">
           Failed to load products
         </div>
       `;
-
       return;
+    }
 
+    if (!Array.isArray(products)) {
+      container.innerHTML = `
+        <div class="text-red-500">
+          Invalid products data
+        </div>
+      `;
+      return;
     }
 
     renderProductsTable(products);
