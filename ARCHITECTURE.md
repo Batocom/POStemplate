@@ -66,69 +66,90 @@ Handles:
 - frontend interactions
 
 ## Directory Structure
-
- src
-    ├── appsscript.json
-    ├── Code.js
-    ├── core
-    │   ├── auth
-    │   │   └── authService.js
-    │   ├── database
-    │   │   ├── db.js
-    │   │   ├── migrations
-    │   │   │   ├── migrationHelpers.js
-    │   │   │   ├── migrationRunner.js
-    │   │   │   └── migrationTracker.js
-    │   │   ├── relations
-    │   │   │   └── relations.js
-    │   │   ├── schema
-    │   │   │   ├── migrations.schema.js
-    │   │   │   ├── products.schema.js
-    │   │   │   ├── sale_items.schema.js
-    │   │   │   ├── sales.schema.js
-    │   │   │   ├── schemaRegistry.js
-    │   │   │   ├── stock_movements.schema.js
-    │   │   │   ├── units.schema.js
-    │   │   │   └── users.schema.js
-    │   │   └── seeders
-    │   │       ├── seedRunner.js
-    │   │       └── usersSeeder.js
-    │   ├── middleware
-    │   │   └── authMiddleware.js
-    │   ├── router
-    │   │   └── router.js
-    │   ├── session
-    │   │   └── sessionManager.js
-    │   └── tests
-    │       ├── productTest.js
-    │       └── salesTest.js
-    ├── modules
-    │   ├── products
-    │   │   ├── productService.js
-    │   │   ├── productValidator.js
-    │   │   └── stockService.js
-    │   ├── sales
-    │   │   ├── receiptService.js
-    │   │   └──  salesService.js
-    │   └── units
-    │       └──  unitService.js
-    └── ui
-        ├── app
-        │   ├── api.html
-        │   ├── app.html
-        │   ├── boot.html
-        │   ├── index.html
-        │   ├── router.html
-        │   └── state.html
-        ├── components
-        │   ├── sidebar.html
-        │   └── topbar.html
-        ├── pages
-        │   ├── dashboard.html
-        │   ├── login.html
-        │   └── products.html
-        └── styles
-            └── theme.html
+|   appsscript.json
+|   Code.js
+|
++---core
+|   +---auth
+|   |       authService.js
+|   |
+|   +---database
+|   |   |   db.js
+|   |   |
+|   |   +---migrations
+|   |   |       migrationHelpers.js
+|   |   |       migrationRunner.js
+|   |   |       migrationTracker.js
+|   |   |
+|   |   +---relations
+|   |   |       relations.js
+|   |   |
+|   |   +---schema
+|   |   |       migrations.schema.js
+|   |   |       products.schema.js
+|   |   |       sales.schema.js
+|   |   |       sale_items.schema.js
+|   |   |       schemaRegistry.js
+|   |   |       stock_movements.schema.js
+|   |   |       units.schema.js
+|   |   |       users.schema.js
+|   |   |
+|   |   \---seeders
+|   |           seedRunner.js
+|   |           usersSeeder.js
+|   |
+|   +---middleware
+|   |       authMiddleware.js
+|   |
+|   +---router
+|   |       router.js
+|   |
+|   +---session
+|   |       sessionManager.js
+|   |
+|   \---tests
+|           productTest.js
+|           salesTest.js
+|
++---modules
+|   +---products
+|   |       productService.js
+|   |       productValidator.js
+|   |       stockService.js
+|   |
+|   +---sales
+|   |        salesService.js
+|   |       receiptService.js
+|   |
+|   \---units
+|            unitService.js
+|
+\---ui
+    +---app
+    |       api.html
+    |       app.html
+    |       boot.html
+    |       index.html
+    |       router.html
+    |       state.html
+    |
+    +---components
+    |       modal.html
+    |       sidebar.html
+    |       topbar.html
+    |
+    +---modules
+    |   \---products
+    |           products.controller.html
+    |           products.modal.html
+    |
+    +---pages
+    |       dashboard.html
+    |       login.html
+    |       products.html
+    |
+    \---styles
+            theme.html
 
 ## Runtime Flow
 
