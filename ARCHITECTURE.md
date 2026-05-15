@@ -305,6 +305,150 @@ Toast.info('Processing your request...');
 
 A centralized popup/modal system for displaying dialogs, forms, confirmations, and loading states.
 
+### TableService (`src/ui/services/tableService.html`)
+
+A reusable data table engine for displaying, sorting, searching, and paginating tabular data.
+
+**API:**
+```javascript
+Table.render(containerId, options)     // Render a table in a container
+Table.refresh(containerId, newData)    // Update table data
+Table.destroy(containerId)             // Remove table instance
+Table.getSelectedIds(containerId)      // Get currently selected row IDs
+```
+
+**`Table.render()` Options:**
+```javascript
+Table.render('containerId', {
+  columns: [
+    { key: 'name', label: 'Product', sortable: true },
+    { key: 'price', label: 'Price', sortable: true,
+      render: function(val, row) { return '$' + val; }
+    }
+  ],
+  data: [
+    { id: '1', name: 'Product A', price: 10.99 },
+    { id: '2', name: 'Product B', price: 24.99 }
+  ],
+  actions: [
+    { label: 'Edit', class: 'text-blue-600', onClick: function(row) { ... } },
+    { label: 'Delete', class: 'text-red-600', onClick: function(row) { ... } }
+  ],
+  selectable: true,
+  onSelectionChange: function(selectedIds) { ... },
+  pageSize: 10,
+  searchable: true,
+  emptyMessage: 'No data found',
+  onSort: function(key, direction) { ... }
+})
+```
+
+**Column Options:**
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `key` | string | required | Data field name (supports dot notation) |
+| `label` | string | required | Column header text |
+| `sortable` | boolean | true | Enable sorting on this column |
+| `render` | function | null | Custom render function `(value, row) => HTML` |
+| `width` | string | null | Tailwind width class (e.g., '32') |
+
+**Features:**
+- Column sorting (click header to toggle asc/desc)
+- Client-side search/filter across all columns
+- Pagination with configurable page size
+- Bulk select with Select All checkbox
+- Custom cell rendering via `render` function
+- Action buttons per row
+- Empty state message
+- Selection change callback
+
+**Usage Examples:**
+
+```javascript
+// 1. Basic table
+Table.render('myTable', {
+  columns: [
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' }
+  ],
+  data: users
+});
+
+// 2. Table with custom rendering
+Table.render('productsTable', {
+  columns: [
+    { key: 'name', label: 'Product' },
+    { key: 'stock', label: 'Stock',
+      render: function(val) {
+        if (val > 10) return '<span class="text-green-600">' + val + '</span>';
+        if (val > 0) return '<span class="text-yellow-600">' + val + '</span>';
+        return '<span class="text-red-600">Out of Stock</span>';
+      }
+    }
+  ],
+  data: products,
+  actions: [
+    { label: 'Edit', onClick: function(row) { editProduct(row.id); } }
+  ],
+  selectable: true,
+  searchable: true,
+  pageSize: 20
+});
+
+// 3. Refresh table data
+Table.refresh('productsTable', newProducts);
+
+// 4. Get selected IDs
+const selected = Table.getSelectedIds('productsTable');
+
+// 5. Destroy table
+Table.destroy('productsTable');
+```
+
+**Architecture Rules:**
+1. All data tables must use `TableService` — never create custom table HTML
+2. Column definitions should be in the page controller, not in templates
+3. Use `render` functions for formatting, not inline HTML
+4. Always provide an `id` field in data for selection to work
+5. Use `Table.refresh()` instead of re-rendering for data updates
+6. Destroy tables when navigating away from a page
+
+**File Organization:**
+```
+ui/
+├── services/
+│   ├── toastService.html      # Toast notifications
+│   ├── modalService.html      # Modal/popup system
+│   └── tableService.html      # Data table engine
+├── components/
+│   ├── modal.html             # Legacy stub
+│   └── table.html             # Table component stub
+└── modules/
+    └── products/
+        ├── products.controller.html
+        └── products.modal.html
+```
+
+**Loading Order (in index.html):**
+```
+1. state.html          # State management
+2. api.html            # API communication
+3. router.html         # Page routing
+4. sidebar.html        # UI components
+5. topbar.html         # UI components
+6. modal.html          # Legacy stub
+7. toastService.html   # Services
+8. modalService.html   # Services
+9. tableService.html   # Services (AFTER modalService)
+10. login.html         # Pages
+11. dashboard.html     # Pages
+12. products.html      # Pages
+13. products.modal.html # Module templates
+14. products.controller.html # Module controllers
+15. app.html           # App shell
+16. boot.html          # Bootstrap
+```
+
 **API:**
 ```javascript
 Modal.open(options)                    // Open a custom modal
