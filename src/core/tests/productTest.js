@@ -30,3 +30,17 @@ function testProductModule() {
 
   Logger.log(products);
 }
+
+function testFetchProducts() {
+  const token = login("admin@local.app", "admin123").token;
+  
+  Logger.log("TOKEN: " + token);
+  
+  try {
+    const products = ProductService.getAll(token);
+    Logger.log("PRODUCTS COUNT: " + (products ? products.length : 0));
+    Logger.log("PRODUCTS DATA: " + JSON.stringify(products));
+  } catch (e) {
+    Logger.log("ERROR: " + e.message);
+  }
+}
