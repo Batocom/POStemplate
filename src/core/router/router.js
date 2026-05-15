@@ -1,4 +1,5 @@
 function handleRequest(action, payload) {
+  Logger.log("handleRequest called with action: " + action);
   const token = payload.token;
 
   // Allow LOGIN without authentication
@@ -16,7 +17,10 @@ function handleRequest(action, payload) {
   switch(action) {
 
     case "GET_PRODUCTS":
-      return ProductService.getAll(payload.token);
+      Logger.log("GET_PRODUCTS called with token: " + payload.token);
+      const products = ProductService.getAll(payload.token);
+      Logger.log("GET_PRODUCTS result count: " + (products ? products.length : 0));
+      return products;
 
     case "ADD_PRODUCT":
       requireRole(payload.token, "ADMIN");
