@@ -36,6 +36,7 @@ async function submitCreateProduct(e) {
 
   const payload = {
     name: document.getElementById("productName").value,
+    buy_price: Number(document.getElementById("buyPrice").value),
     sell_price: Number(document.getElementById("sellPrice").value),
     stock: Number(document.getElementById("stockQty").value),
     unit_id: document.getElementById("unitSelect").value
