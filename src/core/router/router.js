@@ -61,6 +61,13 @@ function handleRequest(action, payload) {
         payload.saleId
       );
 
+    case "TEST_FETCH":
+      Logger.log("TEST_FETCH called");
+      const testProducts = ProductService.getAll(payload.token);
+      Logger.log("TEST_FETCH products count: " + (testProducts ? testProducts.length : 0));
+      Logger.log("TEST_FETCH raw: " + JSON.stringify(testProducts));
+      return JSON.stringify(testProducts);
+
     default:
       throw new Error("Unknown action");
   }
