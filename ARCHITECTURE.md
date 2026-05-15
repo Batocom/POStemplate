@@ -291,6 +291,69 @@ Errors should:
 try/catch conventions
 logging rules
 
+## API Communication Standard
+
+All communication between frontend and backend
+must follow this pattern:
+
+### Server Side (router.js)
+All `handleRequest` cases must return
+`JSON.stringify()` wrapped responses:
+
+```javascript
+case "GET_PRODUCTS":
+  const data = Service.getAll(token);
+  return JSON.stringify({ success: true, data });
+```
+
+### Client Side (api.html)
+The `api()` function returns raw response.
+Each consumer must parse the JSON string:
+
+```javascript
+const raw = await api('GET_PRODUCTS');
+const response = typeof raw === 'string'
+  ? JSON.parse(raw)
+  : raw;
+
+if (!response.success) {
+  // handle error
+}
+
+const data = response.data;
+```
+
+### Rationale
+Google Apps Script's `google.script.run`
+cannot reliably serialize complex objects
+(arrays of objects, nested structures).
+Returning JSON strings ensures data integrity
+across the client-server boundary.
+
+### Error Responses
+Errors should follow the same pattern:
+
+```javascript
+return JSON.stringify({
+  success: false,
+  error: "Error message"
+});
+```
+
+### Client Error Handling
+```javascript
+if (!response.success) {
+  throw new Error(response.error);
+}
+```
+
+This standard ensures:
+- reliable data transfer
+- consistent error handling
+- scalable communication
+- easy debugging
+- migration safety
+
 ## Testing Strategy
 
 The system supports:

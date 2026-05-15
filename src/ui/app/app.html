@@ -59,10 +59,8 @@ async function loadProducts() {
   try {
 
     const raw = await api('GET_PRODUCTS');
-    console.log('Products raw response:', raw);
 
     const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    console.log('Products parsed response:', response);
 
     if (!response || !response.success) {
       container.innerHTML = `
@@ -186,30 +184,5 @@ function openCreateProductModal() {
 
 }
 
-async function testApiFetch() {
-  console.log('TEST: Starting API fetch test');
-  
-  try {
-    const result = await api('TEST_FETCH');
-    console.log('TEST: Raw result:', result);
-    console.log('TEST: Type of result:', typeof result);
-    
-    if (typeof result === 'string') {
-      try {
-        const parsed = JSON.parse(result);
-        console.log('TEST: Parsed result:', parsed);
-        console.log('TEST: Is array:', Array.isArray(parsed));
-        console.log('TEST: Length:', parsed.length);
-      } catch (e) {
-        console.log('TEST: Not JSON string, raw value:', result);
-      }
-    }
-    
-    alert('Test complete. Check console logs.');
-  } catch (error) {
-    console.error('TEST: Error:', error);
-    alert('Test failed: ' + error.message);
-  }
-}
 
 </script>
