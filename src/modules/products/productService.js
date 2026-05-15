@@ -15,6 +15,7 @@ const ProductService = {
       buy_price: data.buy_price || 0,
       sell_price: data.sell_price,
       stock: data.stock || 0,
+      unit_id: data.unit_id || "",
       category_id: data.category_id || "",
       created_at: new Date(),
       updated_at: new Date()

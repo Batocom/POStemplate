@@ -20,6 +20,7 @@
     </div>
   </div>
 </template>
-<script>
-console.log('products.html template loaded');
-</script>
+
+<!-- Include product modal template -->
+<?!= HtmlService.createHtmlOutputFromFile('ui/modules/products/products.modal').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('ui/modules/products/products.controller').getContent(); ?>

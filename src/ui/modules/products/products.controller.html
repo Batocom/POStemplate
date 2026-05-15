@@ -1,0 +1,96 @@
+<script>
+
+async function openCreateProductModal() {
+  const template = document.getElementById("createProductModalTemplate");
+  openModal(template.innerHTML);
+  await loadUnitsDropdown();
+}
+
+async function loadUnitsDropdown() {
+  const raw = await api("GET_UNITS");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("unitSelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No units available</option>';
+    return;
+  }
+
+  select.innerHTML = response.data.map(unit => `
+    <option value="${unit.id}">
+      ${unit.name} (${unit.symbol})
+    </option>
+  `).join("");
+}
+
+async function submitCreateProduct(e) {
+  e.preventDefault();
+
+  const payload = {
+    name: document.getElementById("productName").value,
+    sell_price: Number(document.getElementById("sellPrice").value),
+    stock: Number(document.getElementById("stockQty").value),
+    unit_id: document.getElementById("unitSelect").value
+  };
+
+  const raw = await api("CREATE_PRODUCT", { data: payload });
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response.success) {
+    alert(response.error || "Failed to create product");
+    return;
+  }
+
+  closeModal();
+  await loadProducts();
+}
+
+</script>
+<script>
+
+async function openCreateProductModal() {
+  const template = document.getElementById("createProductModalTemplate");
+  openModal(template.innerHTML);
+  await loadUnitsDropdown();
+}
+
+async function loadUnitsDropdown() {
+  const raw = await api("GET_UNITS");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("unitSelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No units available</option>';
+    return;
+  }
+
+  select.innerHTML = response.data.map(unit => `
+    <option value="${unit.id}">
+      ${unit.name} (${unit.symbol})
+    </option>
+  `).join("");
+}
+
+async function submitCreateProduct(e) {
+  e.preventDefault();
+
+  const payload = {
+    name: document.getElementById("productName").value,
+    sell_price: Number(document.getElementById("sellPrice").value),
+    stock: Number(document.getElementById("stockQty").value),
+    unit_id: document.getElementById("unitSelect").value
+  };
+
+  const raw = await api("CREATE_PRODUCT", { data: payload });
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response.success) {
+    alert(response.error || "Failed to create product");
+    return;
+  }
+
+  closeModal();
+  await loadProducts();
+}
+
+</script>

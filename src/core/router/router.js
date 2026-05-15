@@ -61,6 +61,18 @@ function handleRequest(action, payload) {
         payload.saleId
       );
 
+    case "GET_UNITS":
+      return JSON.stringify({
+        success: true,
+        data: UnitService.getAll(payload.token)
+      });
+
+    case "DELETE_PRODUCT":
+      requireRole(payload.token, "ADMIN");
+      return JSON.stringify({
+        success: true,
+        data: DBInstance.table("products").delete("id", payload.productId)
+      });
 
     default:
       throw new Error("Unknown action");
