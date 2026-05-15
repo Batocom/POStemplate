@@ -6,7 +6,8 @@ class DB {
   }
 
   table(name) {
-    const sheet = this.ss.getSheetByName(name);
+    const sheets = this.ss.getSheets();
+    const sheet = sheets.find(s => s.getName().toLowerCase() === name.toLowerCase());
 
     if (!sheet) {
       throw new Error(`Sheet '${name}' does not exist`);
