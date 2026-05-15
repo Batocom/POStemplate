@@ -199,10 +199,10 @@ async function bulkDeleteProducts() {
       const raw = await api('DELETE_PRODUCT', { productId: id });
       const response = typeof raw === "string" ? JSON.parse(raw) : raw;
       if (!response.success) {
-        showToast(`Failed to delete product ${id}: ${response.error || 'Unknown error'}`, 'error');
+        Toast.error(`Failed to delete product ${id}: ${response.error || 'Unknown error'}`);
       }
     }
-    showToast(`Deleted ${ids.length} product(s)`, 'success');
+    Toast.success(`Deleted ${ids.length} product(s)`);
     await loadProducts();
   } catch (err) {
     showToast('Error during bulk delete: ' + err.message, 'error');
@@ -212,35 +212,6 @@ async function bulkDeleteProducts() {
       btn.textContent = 'Delete Selected';
     }
   }
-}
-
-function showToast(message, type = 'info') {
-  const existing = document.getElementById('toast-container');
-  if (existing) existing.remove();
-
-  const container = document.createElement('div');
-  container.id = 'toast-container';
-  container.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    animation: slideIn 0.3s ease-out;
-  `;
-
-  const bgColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
-  container.innerHTML = `
-    <div style="background: ${bgColor}; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-      ${message}
-    </div>
-  `;
-
-  document.body.appendChild(container);
-
-  setTimeout(() => {
-    container.style.animation = 'slideOut 0.3s ease-in';
-    setTimeout(() => container.remove(), 300);
-  }, 3000);
 }
 
 function editProduct(id) {

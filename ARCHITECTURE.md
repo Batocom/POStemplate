@@ -148,6 +148,9 @@ Handles:
     |       login.html
     |       products.html
     |
+    +---services
+    |       toastService.html
+    |
     \---styles
             theme.html
 
@@ -242,6 +245,7 @@ The UI layer is divided into:
 - pages
 - components
 - styles
+- services
 - app boot logic
 
 ### Pages
@@ -249,6 +253,17 @@ Represent full screens.
 
 ### Components
 Reusable UI sections.
+
+### Services
+Reusable infrastructure components that provide:
+- consistent APIs
+- centralized logic
+- cross-module functionality
+
+Examples:
+- ToastService - notification system
+- ModalService - popup management
+- TableService - data rendering
 
 ### Styles
 Centralized theming system.
@@ -259,6 +274,7 @@ The UI layer is divided into:
 - pages
 - components
 - styles
+- services
 - app boot logic
 
 ### Pages
@@ -266,6 +282,17 @@ Represent full screens.
 
 ### Components
 Reusable UI sections.
+
+### Services
+Reusable infrastructure components that provide:
+- consistent APIs
+- centralized logic
+- cross-module functionality
+
+Examples:
+- ToastService - notification system
+- ModalService - popup management
+- TableService - data rendering
 
 ### Styles
 Centralized theming system.

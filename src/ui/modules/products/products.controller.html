@@ -47,15 +47,15 @@ async function submitCreateProduct(e) {
     const response = typeof raw === "string" ? JSON.parse(raw) : raw;
 
     if (!response || !response.success) {
-      showToast(response?.error || "Failed to create product", 'error');
+      Toast.error(response?.error || "Failed to create product");
       return;
     }
 
     closeModal();
-    showToast('Product created successfully', 'success');
+    Toast.success('Product created successfully');
     await loadProducts();
   } catch (err) {
-    showToast('Error: ' + err.message, 'error');
+    Toast.error('Error: ' + err.message);
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
