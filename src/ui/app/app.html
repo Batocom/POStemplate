@@ -58,10 +58,10 @@ async function loadProducts() {
 
   try {
 
-   const products = await api('GET_PRODUCTS');
-    console.log('Products:', products);
+    const response = await api('GET_PRODUCTS');
+    console.log('Products response:', response);
 
-    if (!products) {
+    if (!response || !response.success) {
       container.innerHTML = `
         <div class="text-red-500">
           Failed to load products
@@ -69,6 +69,8 @@ async function loadProducts() {
       `;
       return;
     }
+
+    const products = response.data;
 
     if (!Array.isArray(products)) {
       container.innerHTML = `
