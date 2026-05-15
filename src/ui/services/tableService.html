@@ -61,16 +61,11 @@ const Table = (function() {
   function renderTable(state) {
     const { columns, data, actions, selectable, pageSize, currentPage, searchQuery, sortKey, sortDirection, emptyMessage, tableId } = state;
     
-    // Filter data
+    // Filter data using SearchService
     let filtered = data;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = data.filter(row => {
-        return columns.some(col => {
-          const val = getValue(row, col.key);
-          return val && String(val).toLowerCase().includes(q);
-        });
-      });
+      const searchFields = columns.map(col => col.key);
+      filtered = Search.filter(data, searchQuery, searchFields);
     }
     
     // Sort data
