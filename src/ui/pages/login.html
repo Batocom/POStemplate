@@ -58,7 +58,7 @@ async function loginHandler(e) {
 
   try {
 
-    const result = await API.request("LOGIN", {
+    const result = await api("LOGIN", {
       email,
       password
     });
