@@ -738,7 +738,10 @@ closeModal()         // Equivalent to Modal.close()
 ui/
 ├── services/
 │   ├── toastService.html      # Toast notifications
-│   └── modalService.html      # Modal/popup system
+│   ├── modalService.html      # Modal/popup system
+│   ├── searchService.html     # Search/filter engine
+│   ├── editService.html       # Edit modal engine
+│   └── tableService.html      # Data table engine
 ├── modules/
 │   └── products/
 │       ├── products.controller.html   # Product modal logic
@@ -757,13 +760,16 @@ ui/
 6. modal.html          # Legacy stub
 7. toastService.html   # Services
 8. modalService.html   # Services (AFTER toastService)
-9. login.html          # Pages
-10. dashboard.html     # Pages
-11. products.html      # Pages
-12. products.modal.html # Module templates
-13. products.controller.html # Module controllers
-14. app.html           # App shell
-15. boot.html          # Bootstrap
+9. searchService.html  # Services (utility, before editService)
+10. editService.html   # Services (edit modal engine)
+11. tableService.html  # Services (AFTER editService)
+12. login.html         # Pages
+13. dashboard.html     # Pages
+14. products.html      # Pages
+15. products.modal.html # Module templates
+16. products.controller.html # Module controllers
+17. app.html           # App shell
+18. boot.html          # Bootstrap
 ```
 
 ### Styles
