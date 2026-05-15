@@ -1,18 +1,4 @@
 <script>
-
-function openModal(content) {
-  const modalRoot = document.getElementById("modalRoot");
-  modalRoot.innerHTML = `
-    <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl w-full max-w-lg p-6">
-        ${content}
-      </div>
-    </div>
-  `;
-}
-
-function closeModal() {
-  document.getElementById("modalRoot").innerHTML = "";
-}
-
+// Legacy support - kept for backward compatibility
+// All modal functionality moved to ui/services/modalService.html
 </script>

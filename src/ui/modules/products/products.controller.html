@@ -2,7 +2,11 @@
 
 async function openCreateProductModal() {
   const template = document.getElementById("createProductModalTemplate");
-  openModal(template.innerHTML);
+  Modal.open({
+    title: "Add Product",
+    content: template.innerHTML,
+    size: "lg"
+  });
   await loadUnitsDropdown();
 }
 
