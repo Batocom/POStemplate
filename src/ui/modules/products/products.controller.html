@@ -27,9 +27,12 @@ async function submitCreateProduct(e) {
   e.preventDefault();
 
   const submitBtn = e.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Saving...';
+  
+  // Guard against null submitBtn
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
 
   const payload = {
     name: document.getElementById("productName").value,
@@ -53,8 +56,10 @@ async function submitCreateProduct(e) {
   } catch (err) {
     showToast('Error: ' + err.message, 'error');
   } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Product';
+    }
   }
 }
 
