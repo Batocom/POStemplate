@@ -45,8 +45,8 @@ async function submitCreateProduct(e) {
     const raw = await api("CREATE_PRODUCT", { data: payload });
     const response = typeof raw === "string" ? JSON.parse(raw) : raw;
 
-    if (!response.success) {
-      showToast(response.error || "Failed to create product", 'error');
+    if (!response || !response.success) {
+      showToast(response?.error || "Failed to create product", 'error');
       return;
     }
 

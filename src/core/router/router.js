@@ -32,7 +32,8 @@ function handleRequest(action, payload) {
 
     case "CREATE_PRODUCT":
       requireRole(payload.token, "ADMIN");
-      return ProductService.create(payload.token, payload.data);
+      const productResult = ProductService.create(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: productResult });
 
     case "STOCK_IN":
       requireRole(payload.token, "ADMIN");

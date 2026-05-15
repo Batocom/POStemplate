@@ -4,10 +4,7 @@ const ProductService = {
 
     const session = requireRole(token, "ADMIN");
 
-    if (!data.name || !data.sell_price) {
-      throw new Error("Invalid product data");
-    }
-     ProductValidator.validateNewProduct(data);
+    ProductValidator.validateNewProduct(data);
     return DBInstance.table("products").insert({
       id: Utilities.getUuid(),
       name: data.name,
