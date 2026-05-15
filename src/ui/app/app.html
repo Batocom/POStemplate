@@ -85,7 +85,13 @@ async function loadProducts() {
       return;
     }
 
-    renderProductsTable(products);
+    // Check if table already exists, refresh it instead of re-rendering
+    const innerContainer = document.getElementById('productsTableInner');
+    if (innerContainer && products.length > 0) {
+      Table.refresh('productsTableInner', products);
+    } else {
+      renderProductsTable(products);
+    }
 
   } catch (error) {
 
@@ -111,7 +117,19 @@ function renderProductsTable(products) {
     return;
   }
 
-  Table.render('productsTableContainer', {
+  // Add bulk delete button above the table
+  const bulkHtml = `
+    <div class="mb-4">
+      <button id="bulkDeleteBtn" onclick="bulkDeleteProducts()" class="bg-red-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled>
+        Delete Selected
+      </button>
+    </div>
+  `;
+
+  // Insert bulk button before table
+  container.innerHTML = bulkHtml + '<div id="productsTableInner"></div>';
+
+  Table.render('productsTableInner', {
     columns: [
       { key: 'name', label: 'Product', sortable: true },
       { key: 'unit_id', label: 'Unit', sortable: true,
@@ -160,25 +178,13 @@ function renderProductsTable(products) {
   });
 }
 
-function toggleSelectAll(checked) {
-  document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = checked);
-  updateBulkDeleteButton();
-}
-
-function updateBulkDeleteButton() {
-  const checked = document.querySelectorAll('.product-checkbox:checked').length;
-  const btn = document.getElementById('bulkDeleteBtn');
-  if (btn) {
-    btn.disabled = checked === 0;
-  }
-}
-
 async function bulkDeleteProducts() {
-  const checked = document.querySelectorAll('.product-checkbox:checked');
-  if (checked.length === 0) return;
-  if (!confirm(`Delete ${checked.length} product(s)?`)) return;
+  const selectedIds = Table.getSelectedIds('productsTableInner');
+  if (selectedIds.length === 0) return;
 
-  const ids = Array.from(checked).map(cb => cb.value);
+  const confirmed = await Modal.confirm('Delete ' + selectedIds.length + ' product(s)?');
+  if (!confirmed) return;
+
   const btn = document.getElementById('bulkDeleteBtn');
   if (btn) {
     btn.disabled = true;
@@ -186,14 +192,14 @@ async function bulkDeleteProducts() {
   }
 
   try {
-    for (const id of ids) {
+    for (const id of selectedIds) {
       const raw = await api('DELETE_PRODUCT', { productId: id });
       const response = typeof raw === "string" ? JSON.parse(raw) : raw;
       if (!response.success) {
-        Toast.error(`Failed to delete product ${id}: ${response.error || 'Unknown error'}`);
+        Toast.error('Failed to delete product ' + id + ': ' + (response.error || 'Unknown error'));
       }
     }
-    Toast.success(`Deleted ${ids.length} product(s)`);
+    Toast.success('Deleted ' + selectedIds.length + ' product(s)');
     await loadProducts();
   } catch (err) {
     Toast.error('Error during bulk delete: ' + err.message);
@@ -207,7 +213,7 @@ async function bulkDeleteProducts() {
 
 function editProduct(id) {
 
-  alert('Edit product: ' + id);
+  Modal.alert('Edit product: ' + id + ' — feature coming soon');
 
 }
 
