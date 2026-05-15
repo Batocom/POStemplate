@@ -305,6 +305,78 @@ Toast.info('Processing your request...');
 
 A centralized popup/modal system for displaying dialogs, forms, confirmations, and loading states.
 
+### SearchService (`src/ui/services/searchService.html`)
+
+A standalone client-side search/filter engine that can be used independently of tables, dropdowns, lists, or any UI component.
+
+**API:**
+```javascript
+Search.filter(data, query, fields, options)     // Filter array of objects
+Search.highlight(text, query)                    // Wrap matches in <mark> tags
+Search.matches(text, query)                      // Boolean check if text matches
+Search.score(text, query)                        // Return match score (0-1)
+Search.suggest(data, query, field, limit)        // Get autocomplete suggestions
+```
+
+**`Search.filter()` Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `data` | Array | required | Array of objects to filter |
+| `query` | string | required | Search query string |
+| `fields` | Array\|string | required | Field(s) to search (supports dot notation) |
+| `options.threshold` | number | 0 | Minimum score to include (0-1) |
+| `options.sortByScore` | boolean | false | Sort results by relevance |
+
+**Usage Examples:**
+
+```javascript
+// 1. Basic search across multiple fields
+const results = Search.filter(users, 'john', ['name', 'email']);
+
+// 2. Search with nested fields
+const results = Search.filter(products, 'laptop', ['title', 'category.name']);
+
+// 3. Search with relevance sorting
+const results = Search.filter(items, 'abc', 'name', {
+  sortByScore: true,
+  threshold: 0.2
+});
+
+// 4. Highlight matches in text
+const html = Search.highlight('John Doe', 'john');
+// Returns: '<mark>John</mark> Doe'
+
+// 5. Check if text matches
+if (Search.matches(product.name, 'laptop')) {
+  // do something
+}
+
+// 6. Get autocomplete suggestions
+const suggestions = Search.suggest(products, 'lap', 'name', 5);
+// Returns: ['Laptop', 'Laptop Bag']
+
+// 7. Score a match (0-1)
+const relevance = Search.score('John Doe', 'john');
+// Returns: 0.8 (starts with)
+```
+
+**Scoring Rules:**
+| Score | Condition |
+|-------|-----------|
+| 1.0 | Exact match |
+| 0.8 | Starts with query |
+| 0.6 | Contains query as whole word |
+| 0.4 | Contains query |
+| 0.0 | No match |
+
+**Architecture Rules:**
+1. Use `Search.filter()` instead of manual `Array.filter()` for search functionality
+2. Use `Search.highlight()` to show matches in UI
+3. Use `Search.suggest()` for autocomplete/typeahead features
+4. Always specify fields explicitly — never search all fields blindly
+5. Use dot notation for nested fields (e.g., `category.name`)
+6. The `TableService` uses `Search.filter()` internally — no need to duplicate search logic
+
 ### TableService (`src/ui/services/tableService.html`)
 
 A reusable data table engine for displaying, sorting, searching, and paginating tabular data.
@@ -419,6 +491,7 @@ ui/
 ├── services/
 │   ├── toastService.html      # Toast notifications
 │   ├── modalService.html      # Modal/popup system
+│   ├── searchService.html     # Search/filter engine
 │   └── tableService.html      # Data table engine
 ├── components/
 │   ├── modal.html             # Legacy stub
@@ -439,8 +512,9 @@ ui/
 6. modal.html          # Legacy stub
 7. toastService.html   # Services
 8. modalService.html   # Services
-9. tableService.html   # Services (AFTER modalService)
-10. login.html         # Pages
+9. searchService.html  # Services (utility, before tableService)
+10. tableService.html  # Services (AFTER searchService)
+11. login.html         # Pages
 11. dashboard.html     # Pages
 12. products.html      # Pages
 13. products.modal.html # Module templates
