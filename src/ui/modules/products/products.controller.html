@@ -69,37 +69,38 @@ async function submitCreateProduct(e) {
 }
 
 async function openEditProductModal(productId) {
-  // Fetch all products to find the one to edit
-  const raw = await api("GET_PRODUCTS");
-  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
-
-  if (!response || !response.success) {
-    Toast.error("Failed to load product data");
-    return;
-  }
-
-  const product = response.data.find(p => p.id === productId);
-  if (!product) {
-    Toast.error("Product not found");
-    return;
-  }
-
-  const template = document.getElementById("editProductModalTemplate");
-  Modal.open({
-    title: "Edit Product",
-    content: template.innerHTML,
-    size: "lg"
+  await Edit.open({
+    title: 'Edit Product',
+    templateId: 'editProductModalTemplate',
+    fetchApi: 'GET_PRODUCTS',
+    updateApi: 'UPDATE_PRODUCT',
+    entityId: productId,
+    findInResponse: function(data, id) {
+      return data.find(p => p.id === id);
+    },
+    populate: function(product) {
+      document.getElementById('editProductId').value = product.id;
+      document.getElementById('editProductName').value = product.name || '';
+      document.getElementById('editSellPrice').value = product.sell_price || 0;
+      document.getElementById('editBuyPrice').value = product.buy_price || 0;
+      document.getElementById('editStockQty').value = product.stock || 0;
+      loadEditUnitsDropdown(product.unit_id);
+    },
+    getPayload: function() {
+      return {
+        id: document.getElementById('editProductId').value,
+        name: document.getElementById('editProductName').value,
+        sell_price: Number(document.getElementById('editSellPrice').value),
+        buy_price: Number(document.getElementById('editBuyPrice').value),
+        stock: Number(document.getElementById('editStockQty').value),
+        unit_id: document.getElementById('editUnitSelect').value
+      };
+    },
+    onSuccess: function() {
+      Toast.success('Product updated successfully');
+      loadProducts();
+    }
   });
-
-  // Populate form fields
-  document.getElementById("editProductId").value = product.id;
-  document.getElementById("editProductName").value = product.name || "";
-  document.getElementById("editSellPrice").value = product.sell_price || 0;
-  document.getElementById("editBuyPrice").value = product.buy_price || 0;
-  document.getElementById("editStockQty").value = product.stock || 0;
-
-  // Load units and select the current one
-  await loadEditUnitsDropdown(product.unit_id);
 }
 
 async function loadEditUnitsDropdown(selectedUnitId) {

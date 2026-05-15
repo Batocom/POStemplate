@@ -305,6 +305,137 @@ Toast.info('Processing your request...');
 
 A centralized popup/modal system for displaying dialogs, forms, confirmations, and loading states.
 
+### EditService (`src/ui/services/editService.html`)
+
+A reusable edit modal engine that works for any entity (products, users, customers, etc.).
+
+**API:**
+```javascript
+Edit.open(config)     // Open an edit modal for any entity
+Edit.submit(event)    // Submit the edit form (use as onsubmit handler)
+```
+
+**`Edit.open()` Config:**
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `title` | string | no | Modal title (default: 'Edit') |
+| `templateId` | string | yes | ID of the `<template>` element |
+| `fetchApi` | string | yes | API action to fetch data |
+| `updateApi` | string | yes | API action to update data |
+| `entityId` | string | yes | ID of the entity to edit |
+| `findInResponse` | function | yes | `(data, id) => entity` — find entity in API response |
+| `populate` | function | yes | `(entity) => void` — populate form fields |
+| `getPayload` | function | yes | `() => object` — get update payload from form |
+| `onSuccess` | function | no | `(data) => void` — callback after successful update |
+| `onError` | function | no | `(err) => void` — callback on error |
+| `size` | string | no | Modal size: sm, md, lg, xl, full (default: lg) |
+
+**Usage Examples:**
+
+```javascript
+// 1. Edit product
+Edit.open({
+  title: 'Edit Product',
+  templateId: 'editProductModalTemplate',
+  fetchApi: 'GET_PRODUCTS',
+  updateApi: 'UPDATE_PRODUCT',
+  entityId: productId,
+  findInResponse: function(data, id) {
+    return data.find(p => p.id === id);
+  },
+  populate: function(product) {
+    document.getElementById('editProductId').value = product.id;
+    document.getElementById('editProductName').value = product.name || '';
+    document.getElementById('editSellPrice').value = product.sell_price || 0;
+    document.getElementById('editBuyPrice').value = product.buy_price || 0;
+    document.getElementById('editStockQty').value = product.stock || 0;
+    loadEditUnitsDropdown(product.unit_id);
+  },
+  getPayload: function() {
+    return {
+      id: document.getElementById('editProductId').value,
+      name: document.getElementById('editProductName').value,
+      sell_price: Number(document.getElementById('editSellPrice').value),
+      buy_price: Number(document.getElementById('editBuyPrice').value),
+      stock: Number(document.getElementById('editStockQty').value),
+      unit_id: document.getElementById('editUnitSelect').value
+    };
+  },
+  onSuccess: function() {
+    Toast.success('Product updated successfully');
+    loadProducts();
+  }
+});
+
+// 2. Edit user (future)
+Edit.open({
+  title: 'Edit User',
+  templateId: 'editUserModalTemplate',
+  fetchApi: 'GET_USERS',
+  updateApi: 'UPDATE_USER',
+  entityId: userId,
+  findInResponse: function(data, id) {
+    return data.find(u => u.id === id);
+  },
+  populate: function(user) {
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUserName').value = user.name || '';
+    document.getElementById('editUserEmail').value = user.email || '';
+  },
+  getPayload: function() {
+    return {
+      id: document.getElementById('editUserId').value,
+      name: document.getElementById('editUserName').value,
+      email: document.getElementById('editUserEmail').value
+    };
+  },
+  onSuccess: function() {
+    Toast.success('User updated successfully');
+    loadUsers();
+  }
+});
+
+// 3. Edit customer (future)
+Edit.open({
+  title: 'Edit Customer',
+  templateId: 'editCustomerModalTemplate',
+  fetchApi: 'GET_CUSTOMERS',
+  updateApi: 'UPDATE_CUSTOMER',
+  entityId: customerId,
+  findInResponse: function(data, id) {
+    return data.find(c => c.id === id);
+  },
+  populate: function(customer) {
+    document.getElementById('editCustomerId').value = customer.id;
+    document.getElementById('editCustomerName').value = customer.name || '';
+    document.getElementById('editCustomerPhone').value = customer.phone || '';
+  },
+  getPayload: function() {
+    return {
+      id: document.getElementById('editCustomerId').value,
+      name: document.getElementById('editCustomerName').value,
+      phone: document.getElementById('editCustomerPhone').value
+    };
+  },
+  onSuccess: function() {
+    Toast.success('Customer updated successfully');
+    loadCustomers();
+  }
+});
+```
+
+**Template Requirements:**
+- The template must have an `id` matching `templateId`
+- The form must use `onsubmit="Edit.submit(event)"`
+- Form fields should use unique IDs (e.g., `editProductName`, `editUserId`)
+
+**Architecture Rules:**
+1. All edit modals must use `EditService` — never create custom edit logic
+2. Templates go in `ui/modules/<module>/<module>.modal.html`
+3. Controller functions call `Edit.open()` with the config
+4. The form's `onsubmit` must be `Edit.submit(event)`
+5. Always provide `onSuccess` to refresh the table after update
+
 ### SearchService (`src/ui/services/searchService.html`)
 
 A standalone client-side search/filter engine that can be used independently of tables, dropdowns, lists, or any UI component.
@@ -492,6 +623,7 @@ ui/
 │   ├── toastService.html      # Toast notifications
 │   ├── modalService.html      # Modal/popup system
 │   ├── searchService.html     # Search/filter engine
+│   ├── editService.html       # Edit modal engine
 │   └── tableService.html      # Data table engine
 ├── components/
 │   ├── modal.html             # Legacy stub
@@ -512,8 +644,9 @@ ui/
 6. modal.html          # Legacy stub
 7. toastService.html   # Services
 8. modalService.html   # Services
-9. searchService.html  # Services (utility, before tableService)
-10. tableService.html  # Services (AFTER searchService)
+9. searchService.html  # Services (utility, before editService)
+10. editService.html   # Services (edit modal engine)
+11. tableService.html  # Services (AFTER editService)
 11. login.html         # Pages
 11. dashboard.html     # Pages
 12. products.html      # Pages

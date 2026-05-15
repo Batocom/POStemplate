@@ -95,3 +95,207 @@ const Toast = (function() {
   };
 })();
 </script>
+<script>
+/**
+ * EditService - Reusable edit modal engine
+ * 
+ * API:
+ *   Edit.open(config)     // Open an edit modal for any entity
+ * 
+ * Config:
+ *   {
+ *     title: 'Edit Product',           // Modal title
+ *     templateId: 'editProductModalTemplate',  // Template ID
+ *     fetchApi: 'GET_PRODUCTS',        // API to fetch all data
+ *     updateApi: 'UPDATE_PRODUCT',     // API to update
+ *     entityId: 'abc-123',             // ID of entity to edit
+ *     findInResponse: function(data, id) { ... },  // How to find entity in response
+ *     populate: function(entity) { ... },           // Populate form fields
+ *     getPayload: function() { ... },               // Get update payload from form
+ *     onSuccess: function() { ... },                // Callback after update
+ *     onError: function(err) { ... }                // Callback on error
+ *   }
+ * 
+ * Usage Examples:
+ * 
+ *   // Edit product
+ *   Edit.open({
+ *     title: 'Edit Product',
+ *     templateId: 'editProductModalTemplate',
+ *     fetchApi: 'GET_PRODUCTS',
+ *     updateApi: 'UPDATE_PRODUCT',
+ *     entityId: productId,
+ *     findInResponse: function(data, id) {
+ *       return data.find(p => p.id === id);
+ *     },
+ *     populate: function(product) {
+ *       document.getElementById('editProductId').value = product.id;
+ *       document.getElementById('editProductName').value = product.name || '';
+ *       document.getElementById('editSellPrice').value = product.sell_price || 0;
+ *       document.getElementById('editBuyPrice').value = product.buy_price || 0;
+ *       document.getElementById('editStockQty').value = product.stock || 0;
+ *       loadEditUnitsDropdown(product.unit_id);
+ *     },
+ *     getPayload: function() {
+ *       return {
+ *         id: document.getElementById('editProductId').value,
+ *         name: document.getElementById('editProductName').value,
+ *         sell_price: Number(document.getElementById('editSellPrice').value),
+ *         buy_price: Number(document.getElementById('editBuyPrice').value),
+ *         stock: Number(document.getElementById('editStockQty').value),
+ *         unit_id: document.getElementById('editUnitSelect').value
+ *       };
+ *     },
+ *     onSuccess: function() {
+ *       Toast.success('Product updated successfully');
+ *       loadProducts();
+ *     }
+ *   });
+ * 
+ *   // Edit user (future)
+ *   Edit.open({
+ *     title: 'Edit User',
+ *     templateId: 'editUserModalTemplate',
+ *     fetchApi: 'GET_USERS',
+ *     updateApi: 'UPDATE_USER',
+ *     entityId: userId,
+ *     findInResponse: function(data, id) {
+ *       return data.find(u => u.id === id);
+ *     },
+ *     populate: function(user) {
+ *       document.getElementById('editUserId').value = user.id;
+ *       document.getElementById('editUserName').value = user.name || '';
+ *       document.getElementById('editUserEmail').value = user.email || '';
+ *     },
+ *     getPayload: function() {
+ *       return {
+ *         id: document.getElementById('editUserId').value,
+ *         name: document.getElementById('editUserName').value,
+ *         email: document.getElementById('editUserEmail').value
+ *       };
+ *     },
+ *     onSuccess: function() {
+ *       Toast.success('User updated successfully');
+ *       loadUsers();
+ *     }
+ *   });
+ */
+const Edit = (function() {
+
+  /**
+   * Open an edit modal for any entity
+   * 
+   * @param {Object} config - Configuration object
+   */
+  async function open(config) {
+    // Validate config
+    if (!config.templateId) throw new Error('EditService: templateId is required');
+    if (!config.fetchApi) throw new Error('EditService: fetchApi is required');
+    if (!config.updateApi) throw new Error('EditService: updateApi is required');
+    if (!config.entityId) throw new Error('EditService: entityId is required');
+    if (!config.findInResponse) throw new Error('EditService: findInResponse is required');
+    if (!config.populate) throw new Error('EditService: populate is required');
+    if (!config.getPayload) throw new Error('EditService: getPayload is required');
+
+    // Open modal with template
+    const template = document.getElementById(config.templateId);
+    if (!template) {
+      Toast.error('Template not found: ' + config.templateId);
+      return;
+    }
+
+    Modal.open({
+      title: config.title || 'Edit',
+      content: template.innerHTML,
+      size: config.size || 'lg'
+    });
+
+    // Fetch data
+    try {
+      const raw = await api(config.fetchApi);
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+      if (!response || !response.success) {
+        Toast.error('Failed to load data');
+        Modal.close();
+        return;
+      }
+
+      // Find the entity
+      const entity = config.findInResponse(response.data, config.entityId);
+      if (!entity) {
+        Toast.error('Entity not found');
+        Modal.close();
+        return;
+      }
+
+      // Populate form fields
+      config.populate(entity);
+
+      // Store config for submit handler
+      window.__editConfig = config;
+
+    } catch (err) {
+      Toast.error('Error loading data: ' + err.message);
+      Modal.close();
+    }
+  }
+
+  /**
+   * Submit the edit form
+   * Called by the form's onsubmit handler
+   */
+  async function submit(e) {
+    e.preventDefault();
+
+    const config = window.__editConfig;
+    if (!config) {
+      Toast.error('Edit configuration not found');
+      return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Updating...';
+    }
+
+    try {
+      const payload = config.getPayload();
+      const raw = await api(config.updateApi, { data: payload });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+      if (!response || !response.success) {
+        Toast.error(response?.error || 'Failed to update');
+        return;
+      }
+
+      Modal.close();
+
+      if (config.onSuccess) {
+        config.onSuccess(response.data);
+      } else {
+        Toast.success('Updated successfully');
+      }
+
+    } catch (err) {
+      if (config.onError) {
+        config.onError(err);
+      } else {
+        Toast.error('Error: ' + err.message);
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update';
+      }
+      delete window.__editConfig;
+    }
+  }
+
+  return {
+    open: open,
+    submit: submit
+  };
+})();
+</script>
