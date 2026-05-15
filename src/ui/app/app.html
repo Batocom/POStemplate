@@ -1,7 +1,4 @@
 <script>
-</script>
-
-<script>
 
 function renderAppShell(content) {
 
@@ -33,10 +30,6 @@ function renderAppShell(content) {
 
   `;
 }
-
-</script>
-
-<script>
 
 function renderProductsPage() {
   console.log('renderProductsPage called');
@@ -212,9 +205,7 @@ async function bulkDeleteProducts() {
 }
 
 function editProduct(id) {
-
-  Modal.alert('Edit product: ' + id + ' — feature coming soon');
-
+  openEditProductModal(id);
 }
 
 async function deleteProduct(id) {
@@ -232,7 +223,4 @@ async function deleteProduct(id) {
   Toast.success('Product deleted successfully');
   await loadProducts();
 }
-
-
-
 </script>
