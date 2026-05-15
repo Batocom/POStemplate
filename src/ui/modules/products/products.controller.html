@@ -68,4 +68,96 @@ async function submitCreateProduct(e) {
   }
 }
 
+async function openEditProductModal(productId) {
+  // Fetch all products to find the one to edit
+  const raw = await api("GET_PRODUCTS");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response || !response.success) {
+    Toast.error("Failed to load product data");
+    return;
+  }
+
+  const product = response.data.find(p => p.id === productId);
+  if (!product) {
+    Toast.error("Product not found");
+    return;
+  }
+
+  const template = document.getElementById("editProductModalTemplate");
+  Modal.open({
+    title: "Edit Product",
+    content: template.innerHTML,
+    size: "lg"
+  });
+
+  // Populate form fields
+  document.getElementById("editProductId").value = product.id;
+  document.getElementById("editProductName").value = product.name || "";
+  document.getElementById("editSellPrice").value = product.sell_price || 0;
+  document.getElementById("editBuyPrice").value = product.buy_price || 0;
+  document.getElementById("editStockQty").value = product.stock || 0;
+
+  // Load units and select the current one
+  await loadEditUnitsDropdown(product.unit_id);
+}
+
+async function loadEditUnitsDropdown(selectedUnitId) {
+  const raw = await api("GET_UNITS");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("editUnitSelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No units available</option>';
+    return;
+  }
+
+  select.innerHTML = response.data.map(unit => `
+    <option value="${unit.id}" ${unit.id === selectedUnitId ? 'selected' : ''}>
+      ${unit.name} (${unit.symbol})
+    </option>
+  `).join("");
+}
+
+async function submitEditProduct(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Updating...';
+  }
+
+  const payload = {
+    id: document.getElementById("editProductId").value,
+    name: document.getElementById("editProductName").value,
+    buy_price: Number(document.getElementById("editBuyPrice").value),
+    sell_price: Number(document.getElementById("editSellPrice").value),
+    stock: Number(document.getElementById("editStockQty").value),
+    unit_id: document.getElementById("editUnitSelect").value
+  };
+
+  try {
+    const raw = await api("UPDATE_PRODUCT", { data: payload });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      Toast.error(response?.error || "Failed to update product");
+      return;
+    }
+
+    closeModal();
+    Toast.success('Product updated successfully');
+    await loadProducts();
+  } catch (err) {
+    Toast.error('Error: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Update Product';
+    }
+  }
+}
+
 </script>

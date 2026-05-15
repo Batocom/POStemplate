@@ -36,3 +36,46 @@
     </button>
   </form>
 </template>
+
+<template id="editProductModalTemplate">
+  <form class="space-y-4" onsubmit="submitEditProduct(event)">
+    <input
+      id="editProductId"
+      type="hidden"
+    />
+    <input
+      id="editProductName"
+      type="text"
+      placeholder="Product name"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editSellPrice"
+      type="number"
+      placeholder="Sell price"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editBuyPrice"
+      type="number"
+      placeholder="Buy price"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editStockQty"
+      type="number"
+      placeholder="Stock quantity"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <select id="editUnitSelect" class="w-full border p-3 rounded">
+      <option value="">Loading units...</option>
+    </select>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
+      Update Product
+    </button>
+  </form>
+</template>

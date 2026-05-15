@@ -68,6 +68,11 @@ function handleRequest(action, payload) {
         data: UnitService.getAll(payload.token)
       });
 
+    case "UPDATE_PRODUCT":
+      requireRole(payload.token, "ADMIN");
+      const updateResult = ProductService.update(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: updateResult });
+
     case "DELETE_PRODUCT":
       requireRole(payload.token, "ADMIN");
       return JSON.stringify({
