@@ -22,8 +22,9 @@
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/products').getContent(); ?>
   
   <!-- Then load state, api, router, app -->
+   <?!= HtmlService.createHtmlOutputFromFile('ui/app/api').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/state').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/app/api').getContent(); ?>
+  
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/router').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/app').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/boot').getContent(); ?>

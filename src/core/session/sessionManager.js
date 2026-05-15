@@ -18,6 +18,7 @@ const SessionManager = {
 
     return token;
   },
+  
 
   getSession(token) {
     const data = CacheService.getScriptCache().get(token);

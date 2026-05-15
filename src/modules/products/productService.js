@@ -29,5 +29,17 @@ const ProductService = {
   getById(token, id) {
     requireAuth(token);
     return DBInstance.table("products").where("id", id);
+  },
+  getAll() {
+
+    const products = DB
+      .table('products')
+      .getAll();
+
+    return {
+      success: true,
+      data: products
+    };
+
   }
 };

@@ -1,4 +1,11 @@
 function handleRequest(action, payload) {
+  const token = payload.token;
+
+  if (!token) {
+    throw new Error("Unauthorized");
+  }
+
+  requireAuth(token);
 
   switch(action) {
 
@@ -47,6 +54,8 @@ case "PRINT_RECEIPT":
   return ReceiptService.generate(
     payload.saleId
   );
+  case 'GET_PRODUCTS':
+  return ProductService.getAll();
 
     default:
       throw new Error("Unknown action");

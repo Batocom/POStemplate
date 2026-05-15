@@ -53,11 +53,8 @@ async function loginHandler(e) {
 
   e.preventDefault();
 
-  const email =
-    document.getElementById("email").value;
-
-  const password =
-    document.getElementById("password").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
   try {
 
@@ -66,21 +63,18 @@ async function loginHandler(e) {
       password
     });
 
+    // store in memory
     State.token = result.token;
-
     State.user = result.user;
 
-    localStorage.setItem(
-      "token",
-      result.token
-    );
+    // store in browser (IMPORTANT)
+    localStorage.setItem("token", result.token);
+    sessionStorage.setItem("token", result.token);
 
     Router.go("dashboard");
 
-  } catch(err) {
-
+  } catch (err) {
     alert(err.message);
-
   }
 
 }
