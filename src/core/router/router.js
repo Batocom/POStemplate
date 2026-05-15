@@ -24,7 +24,7 @@ function handleRequest(action, payload) {
 
   Logger.log("PRODUCTS RAW: " + JSON.stringify(products));
 
-  return { success: true, data: products };
+  return JSON.stringify({ success: true, data: products });
 
     case "ADD_PRODUCT":
       requireRole(payload.token, "ADMIN");

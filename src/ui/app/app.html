@@ -58,8 +58,11 @@ async function loadProducts() {
 
   try {
 
-    const response = await api('GET_PRODUCTS');
-    console.log('Products response:', response);
+    const raw = await api('GET_PRODUCTS');
+    console.log('Products raw response:', raw);
+
+    const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    console.log('Products parsed response:', response);
 
     if (!response || !response.success) {
       container.innerHTML = `
