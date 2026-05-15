@@ -178,20 +178,6 @@ async function deleteProduct(id) {
   await loadProducts();
 }
 
-async function deleteProduct(id) {
-  if (!confirm('Are you sure you want to delete this product?')) return;
-
-  const raw = await api('DELETE_PRODUCT', { productId: id });
-  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
-
-  if (!response.success) {
-    alert(response.error || "Failed to delete product");
-    return;
-  }
-
-  await loadProducts();
-}
-
 
 
 </script>
