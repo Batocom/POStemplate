@@ -1,6 +1,12 @@
 function handleRequest(action, payload) {
   const token = payload.token;
 
+  // Allow LOGIN without authentication
+  if (action === "LOGIN") {
+    return login(payload.email, payload.password);
+  }
+
+  // All other actions require authentication
   if (!token) {
     throw new Error("Unauthorized");
   }
@@ -8,9 +14,6 @@ function handleRequest(action, payload) {
   requireAuth(token);
 
   switch(action) {
-
-    case "LOGIN":
-      return login(payload.email, payload.password);
 
     case "GET_PRODUCTS":
       return ProductService.getAll(payload.token);
