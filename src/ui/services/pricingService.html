@@ -143,3 +143,94 @@ const PricingService = {
   }
 };
 </script>
+<script>
+/**
+ * PricingService — All price calculations and formatting
+ *
+ * Responsibilities:
+ * - Recalculate cart totals (subtotal, tax, discount, total)
+ * - Format currency values (KES)
+ * - Calculate change
+ *
+ * Does NOT:
+ * - Touch DOM
+ * - Render HTML
+ * - Call modals
+ */
+const PricingService = {
+
+  /**
+   * Recalculate all totals from CartState.items
+   */
+  recalculate() {
+    const items = CartState.items;
+
+    let subtotal = 0;
+    let discount = 0; // placeholder for future discount logic
+    let tax = 0;
+    let total = 0;
+    let itemCount = 0;
+
+    items.forEach(item => {
+      const lineTotal = item.price * item.quantity;
+      subtotal += lineTotal;
+      itemCount += item.quantity;
+    });
+
+    // Tax: 8% of subtotal
+    tax = subtotal * 0.08;
+
+    // Discount: currently 0 (placeholder)
+    discount = 0;
+
+    // Total = subtotal + tax - discount
+    total = subtotal + tax - discount;
+
+    // Update CartState.summary
+    CartState.summary.subtotal = subtotal;
+    CartState.summary.tax = tax;
+    CartState.summary.discount = discount;
+    CartState.summary.total = total;
+    CartState.summary.itemCount = itemCount;
+
+    // Update payment balance/change
+    CartState.payment.balance = total - CartState.payment.amountPaid;
+    CartState.payment.change = CartState.payment.amountPaid >= total
+      ? CartState.payment.amountPaid - total
+      : 0;
+
+    // Emit event so UI can re-render
+    EventBus.emit("totalsUpdated");
+  },
+
+  /**
+   * Format a number as KES currency
+   * @param {number} amount
+   * @returns {string} e.g. "KES 1,234.56"
+   */
+  formatCurrency(amount) {
+    const num = Number(amount) || 0;
+    const formatted = num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    return `KES ${formatted}`;
+  },
+
+  /**
+   * Calculate change given amount paid
+   * @param {number} amountPaid
+   * @returns {number}
+   */
+  calculateChange(amountPaid) {
+    const total = CartState.summary.total;
+    amountPaid = Number(amountPaid) || 0;
+
+    if (amountPaid >= total) {
+      return amountPaid - total;
+    }
+
+    return 0;
+  }
+};
+</script>
