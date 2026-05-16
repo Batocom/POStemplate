@@ -1148,11 +1148,18 @@ const PaymentModal = {
     }
     
     try {
+      const amountPaid = CartState.payment.method === "cash" 
+        ? Number(document.getElementById("payment-amount").value) || 0
+        : CartState.summary.total;
+      
+      // Validate payment amount
+      if (amountPaid < CartState.summary.total) {
+        throw new Error(`Insufficient payment. Total is ${PricingService.formatCurrency(CartState.summary.total)}, but received ${PricingService.formatCurrency(amountPaid)}`);
+      }
+      
       const paymentData = {
         method: CartState.payment.method,
-        amountPaid: CartState.payment.method === "cash" 
-          ? Number(document.getElementById("payment-amount").value) || 0
-          : CartState.summary.total
+        amountPaid: amountPaid
       };
       
       await CheckoutService.process(paymentData);
