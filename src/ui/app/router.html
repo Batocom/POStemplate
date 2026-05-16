@@ -54,12 +54,13 @@ const Router = {
 };
 
 function renderSalesPage() {
-  const app = document.getElementById("app");
-  const template = document.getElementById("salesPageTemplate");
-  
-  if (app && template) {
-    app.innerHTML = template.innerHTML;
-    SalesController.init();
+  const template = document.getElementById('salesPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadSales();
+  } else {
+    console.error('Sales template not found');
+    renderAppShell('<div class="text-red-500">Error loading sales page</div>');
   }
 }
 

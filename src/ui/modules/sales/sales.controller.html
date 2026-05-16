@@ -5,23 +5,11 @@
 const SalesController = {
   
   async init() {
-    await SalesPage.init();
+    await loadSales();
   },
   
   async refresh() {
-    await SalesPage.loadSales();
-  },
-  
-  async viewReceipt(saleId) {
-    await SalesPage.viewReceipt(saleId);
-  },
-  
-  applyFilters() {
-    SalesPage.applyFilters();
-  },
-  
-  resetFilters() {
-    SalesPage.resetFilters();
+    await loadSales();
   }
 };
 </script>

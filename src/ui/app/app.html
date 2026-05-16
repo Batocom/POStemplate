@@ -82,6 +82,120 @@ function renderStockMovementsPage() {
 
 // renderSalesPage is defined in router.html
 
+async function loadSales() {
+  const container = document.getElementById('salesTableContainer');
+  if (!container) return;
+
+  container.innerHTML = 'Loading...';
+
+  try {
+    const raw = await api('GET_SALES');
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = '<div class="text-red-500">Failed to load sales</div>';
+      return;
+    }
+
+    const sales = response.data;
+
+    if (!Array.isArray(sales)) {
+      container.innerHTML = '<div class="text-red-500">Invalid sales data</div>';
+      return;
+    }
+
+    if (!sales.length) {
+      container.innerHTML = '<div class="text-gray-500">No sales found</div>';
+      return;
+    }
+
+    // Sort by date descending
+    sales.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    container.innerHTML = '<div id="salesTableInner"></div>';
+
+    Table.render('salesTableInner', {
+      columns: [
+        { key: 'invoice_no', label: 'Invoice', sortable: true,
+          render: function(val) { return '<strong>' + val + '</strong>'; }
+        },
+        { key: 'customer_name', label: 'Customer', sortable: true },
+        { key: 'total_amount', label: 'Total', sortable: true,
+          render: function(val) { return 'KES ' + Number(val).toFixed(2); }
+        },
+        { key: 'payment_method', label: 'Payment', sortable: true,
+          render: function(val) {
+            const colors = {
+              'cash': 'text-green-600',
+              'card': 'text-blue-600',
+              'transfer': 'text-purple-600'
+            };
+            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + val + '</span>';
+          }
+        },
+        { key: 'created_at', label: 'Date', sortable: true,
+          render: function(val) { return new Date(val).toLocaleDateString(); }
+        }
+      ],
+      data: sales,
+      actions: [
+        { label: 'Receipt', class: 'text-blue-600', onClick: function(row) { viewSaleReceipt(row.id); } }
+      ],
+      pageSize: 10,
+      searchable: true,
+      emptyMessage: 'No sales found'
+    });
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+  }
+}
+
+async function viewSaleReceipt(saleId) {
+  try {
+    Modal.loading("Loading sale details...");
+    
+    const raw = await api("GET_SALE_BY_ID", { saleId });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+    
+    if (response.success) {
+      const { sale, items } = response.data;
+      
+      // Populate modal with sale details
+      document.getElementById("modal-invoice").textContent = sale.invoice_no;
+      document.getElementById("modal-customer").textContent = sale.customer_name;
+      document.getElementById("modal-date").textContent = new Date(sale.created_at).toLocaleDateString();
+      document.getElementById("modal-payment").textContent = sale.payment_method;
+      document.getElementById("modal-total").textContent = "KES " + Number(sale.total_amount).toFixed(2);
+      
+      // Render items
+      const itemsBody = document.getElementById("modal-items-body");
+      itemsBody.innerHTML = items.map(function(item) {
+        return '<tr>' +
+          '<td>' + item.product_id + '</td>' +
+          '<td>' + item.quantity + '</td>' +
+          '<td>KES ' + Number(item.price).toFixed(2) + '</td>' +
+          '<td>KES ' + Number(item.subtotal).toFixed(2) + '</td>' +
+        '</tr>';
+      }).join("");
+      
+      Modal.close();
+      Modal.open({
+        title: "Sale - " + sale.invoice_no,
+        content: document.getElementById("salesModalContent").innerHTML,
+        size: "lg"
+      });
+    } else {
+      Modal.close();
+      Toast.error(response.error || "Failed to load sale details");
+    }
+  } catch (error) {
+    Modal.close();
+    Toast.error("Failed to load sale details: " + error.message);
+  }
+}
+
 function renderUnitsPage() {
   const template = document.getElementById('unitsPageTemplate');
   if (template) {
