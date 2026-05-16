@@ -112,6 +112,10 @@ Handles:
 |           salesTest.js
 |
 +---modules
+|   +---categories
+|   |       categoryService.js
+|   |       categoryValidator.js
+|   |
 |   +---products
 |   |       productService.js
 |   |       productValidator.js
@@ -120,6 +124,10 @@ Handles:
 |   +---sales
 |   |        salesService.js
 |   |       receiptService.js
+|   |
+|   +---stock
+|   |       stockMovementService.js
+|   |       stockMovementValidator.js
 |   |
 |   \---units
 |            unitService.js
@@ -139,14 +147,20 @@ Handles:
     |       topbar.html
     |
     +---modules
+    |   +---categories
+    |   |       categories.controller.html
+    |   |       categories.modal.html
+    |   |
     |   \---products
     |           products.controller.html
     |           products.modal.html
     |
     +---pages
+    |       categories.html
     |       dashboard.html
     |       login.html
     |       products.html
+    |       stockMovements.html
     |
     +---services
     |       toastService.html
