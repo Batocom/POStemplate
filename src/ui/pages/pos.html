@@ -76,24 +76,24 @@
       <div class="totals-panel">
         <div class="totals-row">
           <span class="totals-label">Subtotal</span>
-          <span id="subtotal" class="totals-value">$0.00</span>
+          <span id="subtotal" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-row">
           <span class="totals-label">Tax (8%)</span>
-          <span id="tax" class="totals-value">$0.00</span>
+          <span id="tax" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-row">
           <span class="totals-label">Discount</span>
-          <span id="discount" class="totals-value">$0.00</span>
+          <span id="discount" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-divider"></div>
         <div class="totals-row totals-grand">
           <span class="totals-label font-bold">Total</span>
-          <span id="total" class="totals-value totals-amount">$0.00</span>
+          <span id="total" class="totals-value totals-amount">KES 0.00</span>
         </div>
         <div class="totals-row totals-change" id="change-row" style="display:none;">
           <span class="totals-label">Change</span>
-          <span id="change" class="totals-value totals-change-amount">$0.00</span>
+          <span id="change" class="totals-value totals-change-amount">KES 0.00</span>
         </div>
       </div>
       
@@ -102,7 +102,7 @@
         <button class="bg-blue-600 text-white px-6 py-3 rounded w-full text-lg font-bold" 
                 onclick="PaymentModal.init(); Modal.open({ title: 'Complete Payment', content: document.getElementById('paymentModalContent').innerHTML, size: 'md' });"
                 id="checkout-btn" disabled>
-          Checkout ($0.00)
+          Checkout (KES 0.00)
         </button>
       </div>
     </div>
@@ -114,7 +114,7 @@
       <!-- Total Display -->
       <div class="payment-total-display">
         <div class="payment-total-label">Total Due</div>
-        <div class="payment-total-amount" id="payment-total">$0.00</div>
+        <div class="payment-total-amount" id="payment-total">KES 0.00</div>
       </div>
       
       <!-- Payment Method -->
@@ -137,7 +137,7 @@
       <div class="payment-amount" id="cash-input-section">
         <label class="payment-amount-label">Amount Received</label>
         <div class="payment-amount-input-wrapper">
-          <span class="currency-symbol">$</span>
+          <span class="currency-symbol">KES</span>
           <input type="number" 
                  id="payment-amount" 
                  class="payment-amount-input" 
@@ -151,7 +151,7 @@
       <!-- Change Display -->
       <div class="payment-change" id="change-display" style="display:none;">
         <div class="change-label">Change Due</div>
-        <div class="change-amount" id="change-amount">$0.00</div>
+        <div class="change-amount" id="change-amount">KES 0.00</div>
       </div>
       
       <!-- Summary -->
@@ -162,7 +162,7 @@
         </div>
         <div class="summary-row">
           <span>Total</span>
-          <span id="payment-summary-total">$0.00</span>
+          <span id="payment-summary-total">KES 0.00</span>
         </div>
       </div>
       
@@ -794,9 +794,9 @@ const POSPage = {
     grid.innerHTML = products.map(product => `
       <div class="product-card" 
            onclick="CartService.add({id: '${product.id}', name: '${product.name.replace(/'/g, "\\'")}', barcode: '${product.barcode || ''}', sell_price: ${product.sell_price || 0}, buy_price: ${product.buy_price || 0}, stock: ${product.stock || 0}})"
-           title="${product.name} - $${Number(product.sell_price).toFixed(2)}">
+           title="${product.name} - KES ${Number(product.sell_price).toFixed(2)}">
         <div class="product-name">${product.name}</div>
-        <div class="product-price">$${Number(product.sell_price).toFixed(2)}</div>
+        <div class="product-price">KES ${Number(product.sell_price).toFixed(2)}</div>
         <div class="product-stock">Stock: ${product.stock || 0}</div>
         ${product.barcode ? `<div class="product-barcode">${product.barcode}</div>` : ''}
       </div>
@@ -816,7 +816,7 @@ const POSPage = {
       btn.textContent = `Checkout (${PricingService.formatCurrency(CartState.summary.total)})`;
     } else {
       btn.disabled = true;
-      btn.textContent = "Checkout ($0.00)";
+      btn.textContent = "Checkout (KES 0.00)";
     }
   },
   
@@ -886,7 +886,7 @@ const ProductSearch = {
               <div class="result-name">${product.name}</div>
               <div class="result-stock">Stock: ${product.stock || 0}</div>
             </div>
-            <div class="result-price">$${Number(product.sell_price).toFixed(2)}</div>
+            <div class="result-price">KES ${Number(product.sell_price).toFixed(2)}</div>
           </div>
         `).join("");
         results.style.display = "block";
