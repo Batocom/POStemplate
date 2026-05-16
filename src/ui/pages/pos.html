@@ -86,6 +86,10 @@
           <span class="totals-label">Discount</span>
           <span id="discount" class="totals-value">KES 0.00</span>
         </div>
+        <div class="totals-row">
+          <span class="totals-label">Profit</span>
+          <span id="profit" class="totals-value">KES 0.00</span>
+        </div>
         <div class="totals-divider"></div>
         <div class="totals-row totals-grand">
           <span class="totals-label font-bold">Total</span>
@@ -1028,6 +1032,7 @@ const TotalsPanel = {
     const subtotalEl = document.getElementById("subtotal");
     const taxEl = document.getElementById("tax");
     const discountEl = document.getElementById("discount");
+    const profitEl = document.getElementById("profit");
     const totalEl = document.getElementById("total");
     const changeEl = document.getElementById("change");
     const changeRow = document.getElementById("change-row");
@@ -1035,6 +1040,7 @@ const TotalsPanel = {
     if (subtotalEl) subtotalEl.textContent = PricingService.formatCurrency(summary.subtotal);
     if (taxEl) taxEl.textContent = PricingService.formatCurrency(summary.tax);
     if (discountEl) discountEl.textContent = PricingService.formatCurrency(summary.discount);
+    if (profitEl) profitEl.textContent = PricingService.formatCurrency(summary.profit);
     if (totalEl) totalEl.textContent = PricingService.formatCurrency(summary.total);
     
     // Show change if payment entered

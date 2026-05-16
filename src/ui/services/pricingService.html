@@ -24,12 +24,17 @@ const PricingService = {
     let discount = 0; // placeholder for future discount logic
     let tax = 0;
     let total = 0;
+    let profit = 0;
     let itemCount = 0;
 
     items.forEach(item => {
       const lineTotal = item.price * item.quantity;
       subtotal += lineTotal;
       itemCount += item.quantity;
+
+      // Profit per line = (sell_price - buy_price) * quantity
+      const lineProfit = (item.price - item.buyPrice) * item.quantity;
+      profit += lineProfit;
     });
 
     // Tax: 8% of subtotal
@@ -46,6 +51,7 @@ const PricingService = {
     CartState.summary.tax = tax;
     CartState.summary.discount = discount;
     CartState.summary.total = total;
+    CartState.summary.profit = profit;
     CartState.summary.itemCount = itemCount;
 
     // Update payment balance/change
