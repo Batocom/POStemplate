@@ -12,7 +12,11 @@ const Relations = {
     hasMany: ["stock_movements"]
   },
    products: {
-    belongsTo: ["units"]
+    belongsTo: ["units", "categories"]
+  },
+
+  categories: {
+    hasMany: ["products"]
   },
 
   units: {
