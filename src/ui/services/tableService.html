@@ -191,53 +191,51 @@ const Table = (function() {
       });
       html += '</tbody></table></div>';
       
-      // Pagination
-      if (totalPages > 1) {
-        html += '<div class="flex items-center justify-between mt-4 pt-4 border-t">';
-        html += `<div class="text-sm text-gray-500">Showing ${start + 1}-${Math.min(start + pageSize, totalItems)} of ${totalItems}</div>`;
-        html += '<div class="flex items-center gap-2">';
-      
-        // Page size selector
-        html += `<select class="border rounded px-2 py-1 text-sm bg-white" onchange="Table._handlePageSize('${tableId}', this.value)">
-          <option value="5" ${pageSize === 5 ? 'selected' : ''}>5 / page</option>
-          <option value="10" ${pageSize === 10 ? 'selected' : ''}>10 / page</option>
-          <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 / page</option>
-          <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 / page</option>
-          <option value="100" ${pageSize === 100 ? 'selected' : ''}>100 / page</option>
-        </select>`;
-      
-        // Previous button
-        html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage <= 1 ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
-          onclick="Table._handlePage('${tableId}', ${safePage - 1})" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>`;
-      
-        // Page numbers
-        const maxVisible = 5;
-        let startPage = Math.max(1, safePage - Math.floor(maxVisible / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-        if (endPage - startPage < maxVisible - 1) {
-          startPage = Math.max(1, endPage - maxVisible + 1);
-        }
-      
-        if (startPage > 1) {
-          html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', 1)">1</button>`;
-          if (startPage > 2) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
-        }
-      
-        for (let i = startPage; i <= endPage; i++) {
-          html += `<button class="px-3 py-1 rounded border text-sm font-medium ${i === safePage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-100'}" 
-            onclick="Table._handlePage('${tableId}', ${i})">${i}</button>`;
-        }
-      
-        if (endPage < totalPages) {
-          if (endPage < totalPages - 1) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
-          html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', ${totalPages})">${totalPages}</button>`;
-        }
-      
-        // Next button
-        html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage >= totalPages ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
-          onclick="Table._handlePage('${tableId}', ${safePage + 1})" ${safePage >= totalPages ? 'disabled' : ''}>Next</button>`;
-        html += '</div></div>';
+      // Pagination - always show
+      html += '<div class="flex items-center justify-between mt-4 pt-4 border-t">';
+      html += `<div class="text-sm text-gray-500">Showing ${start + 1}-${Math.min(start + pageSize, totalItems)} of ${totalItems}</div>`;
+      html += '<div class="flex items-center gap-2">';
+    
+      // Page size selector
+      html += `<select class="border rounded px-2 py-1 text-sm bg-white" onchange="Table._handlePageSize('${tableId}', this.value)">
+        <option value="5" ${pageSize === 5 ? 'selected' : ''}>5 / page</option>
+        <option value="10" ${pageSize === 10 ? 'selected' : ''}>10 / page</option>
+        <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 / page</option>
+        <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 / page</option>
+        <option value="100" ${pageSize === 100 ? 'selected' : ''}>100 / page</option>
+      </select>`;
+    
+      // Previous button
+      html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage <= 1 ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
+        onclick="Table._handlePage('${tableId}', ${safePage - 1})" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>`;
+    
+      // Page numbers
+      const maxVisible = 5;
+      let startPage = Math.max(1, safePage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
       }
+    
+      if (startPage > 1) {
+        html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', 1)">1</button>`;
+        if (startPage > 2) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
+      }
+    
+      for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="px-3 py-1 rounded border text-sm font-medium ${i === safePage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-100'}" 
+          onclick="Table._handlePage('${tableId}', ${i})">${i}</button>`;
+      }
+    
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
+        html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', ${totalPages})">${totalPages}</button>`;
+      }
+    
+      // Next button
+      html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage >= totalPages ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
+        onclick="Table._handlePage('${tableId}', ${safePage + 1})" ${safePage >= totalPages ? 'disabled' : ''}>Next</button>`;
+      html += '</div></div>';
     }
     
     return html;
