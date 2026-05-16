@@ -139,3 +139,144 @@ const Edit = (function() {
   };
 })();
 </script>
+<script>
+/**
+ * EditService - Reusable edit modal engine
+ * 
+ * API:
+ *   Edit.open(config)     // Open an edit modal for any entity
+ *   Edit.submit(event)    // Submit the edit form
+ * 
+ * Config:
+ *   {
+ *     title: 'Edit Product',           // Modal title
+ *     templateId: 'editProductModalTemplate',  // Template ID
+ *     fetchApi: 'GET_PRODUCTS',        // API to fetch all data
+ *     updateApi: 'UPDATE_PRODUCT',     // API to update
+ *     entityId: 'abc-123',             // ID of entity to edit
+ *     findInResponse: function(data, id) { ... },  // How to find entity in response
+ *     populate: function(entity) { ... },           // Populate form fields
+ *     getPayload: function() { ... },               // Get update payload from form
+ *     onSuccess: function() { ... },                // Callback after update
+ *     onError: function(err) { ... }                // Callback on error
+ *   }
+ */
+const Edit = (function() {
+
+  /**
+   * Open an edit modal for any entity
+   * 
+   * @param {Object} config - Configuration object
+   */
+  async function open(config) {
+    // Validate config
+    if (!config.templateId) throw new Error('EditService: templateId is required');
+    if (!config.fetchApi) throw new Error('EditService: fetchApi is required');
+    if (!config.updateApi) throw new Error('EditService: updateApi is required');
+    if (!config.entityId) throw new Error('EditService: entityId is required');
+    if (!config.findInResponse) throw new Error('EditService: findInResponse is required');
+    if (!config.populate) throw new Error('EditService: populate is required');
+    if (!config.getPayload) throw new Error('EditService: getPayload is required');
+
+    // Open modal with template
+    const template = document.getElementById(config.templateId);
+    if (!template) {
+      Toast.error('Template not found: ' + config.templateId);
+      return;
+    }
+
+    Modal.open({
+      title: config.title || 'Edit',
+      content: template.innerHTML,
+      size: config.size || 'lg'
+    });
+
+    // Fetch data
+    try {
+      const raw = await api(config.fetchApi);
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+      if (!response || !response.success) {
+        Toast.error('Failed to load data');
+        Modal.close();
+        return;
+      }
+
+      // Find the entity
+      const entity = config.findInResponse(response.data, config.entityId);
+      if (!entity) {
+        Toast.error('Entity not found');
+        Modal.close();
+        return;
+      }
+
+      // Populate form fields
+      config.populate(entity);
+
+      // Store config for submit handler
+      window.__editConfig = config;
+
+    } catch (err) {
+      Toast.error('Error loading data: ' + err.message);
+      Modal.close();
+    }
+  }
+
+  /**
+   * Submit the edit form
+   * Called by the form's onsubmit handler
+   */
+  async function submit(e) {
+    e.preventDefault();
+
+    const config = window.__editConfig;
+    if (!config) {
+      Toast.error('Edit configuration not found');
+      return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Updating...';
+    }
+
+    try {
+      const payload = config.getPayload();
+      const raw = await api(config.updateApi, { data: payload });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+      if (!response || !response.success) {
+        Toast.error(response?.error || 'Failed to update');
+        return;
+      }
+
+      Modal.close();
+
+      if (config.onSuccess) {
+        config.onSuccess(response.data);
+      } else {
+        Toast.success('Updated successfully');
+      }
+
+    } catch (err) {
+      if (config.onError) {
+        config.onError(err);
+      } else {
+        Toast.error('Error: ' + err.message);
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update';
+      }
+      delete window.__editConfig;
+    }
+  }
+
+  return {
+    open: open,
+    submit: submit
+  };
+})();
+</script>
