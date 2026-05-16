@@ -141,6 +141,12 @@ function handleRequest(action, payload) {
         data: StockMovementService.getSummary(payload.token, payload.filters || {})
       });
 
+    case "GET_DASHBOARD_DATA":
+      return JSON.stringify({
+        success: true,
+        data: SalesService.getDashboardData(payload.token)
+      });
+
     case "GET_SALES":
       return JSON.stringify({
         success: true,
