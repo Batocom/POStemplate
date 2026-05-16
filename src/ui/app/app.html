@@ -140,6 +140,75 @@ async function loadProducts() {
 
 }
 
+async function loadStockMovements() {
+  const container = document.getElementById('stockMovementsTableContainer');
+  if (!container) return;
+
+  container.innerHTML = 'Loading...';
+
+  try {
+    const raw = await api('GET_STOCK_MOVEMENTS');
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = '<div class="text-red-500">Failed to load stock movements</div>';
+      return;
+    }
+
+    const movements = response.data;
+
+    if (!Array.isArray(movements)) {
+      container.innerHTML = '<div class="text-red-500">Invalid stock movements data</div>';
+      return;
+    }
+
+    if (!movements.length) {
+      container.innerHTML = '<div class="text-gray-500">No stock movements found</div>';
+      return;
+    }
+
+    container.innerHTML = '<div id="stockMovementsTableInner"></div>';
+
+    Table.render('stockMovementsTableInner', {
+      columns: [
+        { key: 'product_id', label: 'Product ID', sortable: true },
+        { key: 'type', label: 'Type', sortable: true,
+          render: function(val) {
+            const colors = {
+              'SALE': 'text-red-600',
+              'PURCHASE': 'text-green-600',
+              'ADJUSTMENT': 'text-blue-600',
+              'RETURN': 'text-yellow-600',
+              'DAMAGE': 'text-red-800',
+              'TRANSFER': 'text-purple-600',
+              'MANUAL_IN': 'text-green-800',
+              'MANUAL_OUT': 'text-orange-600'
+            };
+            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + val + '</span>';
+          }
+        },
+        { key: 'quantity', label: 'Quantity', sortable: true,
+          render: function(val) { return Number(val); }
+        },
+        { key: 'reference_id', label: 'Reference', sortable: true,
+          render: function(val) { return val || '-'; }
+        },
+        { key: 'created_at', label: 'Date', sortable: true,
+          render: function(val) { return new Date(val).toLocaleString(); }
+        }
+      ],
+      data: movements,
+      pageSize: 10,
+      searchable: true,
+      emptyMessage: 'No stock movements found'
+    });
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+  }
+}
+
 function renderProductsTable(products) {
   const container = document.getElementById('productsTableContainer');
 
