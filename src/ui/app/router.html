@@ -53,4 +53,14 @@ const Router = {
 
 };
 
+function renderSalesPage() {
+  const app = document.getElementById("app");
+  const template = document.getElementById("salesPageTemplate");
+  
+  if (app && template) {
+    app.innerHTML = template.innerHTML;
+    SalesController.init();
+  }
+}
+
 </script>

@@ -141,6 +141,20 @@ function handleRequest(action, payload) {
         data: StockMovementService.getSummary(payload.token, payload.filters || {})
       });
 
+    case "GET_SALES":
+      return JSON.stringify({
+        success: true,
+        data: SalesService.getAll(payload.token)
+      });
+
+    case "GET_SALE_BY_ID":
+      const sale = SalesService.getById(payload.token, payload.saleId);
+      const items = SalesService.getItemsBySaleId(payload.token, payload.saleId);
+      return JSON.stringify({
+        success: true,
+        data: { sale, items }
+      });
+
     default:
       throw new Error("Unknown action");
   }

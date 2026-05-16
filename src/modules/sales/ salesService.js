@@ -83,5 +83,21 @@ const SalesService = {
       totalAmount,
       totalProfit
     };
+  },
+
+  getAll(token) {
+    requireAuth(token);
+    return DBInstance.table("sales").findAll();
+  },
+
+  getById(token, id) {
+    requireAuth(token);
+    const results = DBInstance.table("sales").where("id", id);
+    return results.length > 0 ? results[0] : null;
+  },
+
+  getItemsBySaleId(token, saleId) {
+    requireAuth(token);
+    return DBInstance.table("sale_items").where("sale_id", saleId);
   }
 };
