@@ -720,12 +720,16 @@ ui/
 10. editService.html   # Services (edit modal engine)
 11. tableService.html  # Services (AFTER editService)
 11. login.html         # Pages
-11. dashboard.html     # Pages
-12. products.html      # Pages
-13. products.modal.html # Module templates
-14. products.controller.html # Module controllers
-15. app.html           # App shell
-16. boot.html          # Bootstrap
+12. dashboard.html     # Pages
+13. products.html      # Pages
+14. categories.html    # Pages
+15. stockMovements.html # Pages
+16. products.modal.html # Module templates
+17. products.controller.html # Module controllers
+18. categories.modal.html # Module templates
+19. categories.controller.html # Module controllers
+20. app.html           # App shell
+21. boot.html          # Bootstrap
 ```
 
 **API:**
@@ -843,35 +847,6 @@ ui/
 17. app.html           # App shell
 18. boot.html          # Bootstrap
 ```
-
-### Styles
-Centralized theming system.
-
-## UI Architecture
-
-The UI layer is divided into:
-- pages
-- components
-- styles
-- services
-- app boot logic
-
-### Pages
-Represent full screens.
-
-### Components
-Reusable UI sections.
-
-### Services
-Reusable infrastructure components that provide:
-- consistent APIs
-- centralized logic
-- cross-module functionality
-
-Examples:
-- ToastService - notification system
-- ModalService - popup management
-- TableService - data rendering
 
 ### Styles
 Centralized theming system.
