@@ -81,3 +81,65 @@ const PricingService = {
   }
 };
 </script>
+<script>
+/**
+ * PricingService — All price calculations and currency formatting
+ * 
+ * Centralized service for:
+ * - subtotal, tax, discount, total calculations
+ * - currency formatting (KES)
+ * - profit calculations
+ * 
+ * This is the single source of truth for currency display.
+ */
+const PricingService = {
+  
+  /**
+   * Format a number as KES currency
+   * @param {number} amount
+   * @returns {string} e.g. "KES 1,234.56"
+   */
+  formatCurrency(amount) {
+    const num = Number(amount) || 0;
+    return "KES " + num.toLocaleString("en-KE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  },
+  
+  /**
+   * Recalculate all cart totals
+   * Called after any cart change
+   */
+  recalculate() {
+    const items = CartState.items;
+    
+    let subtotal = 0;
+    let itemCount = 0;
+    
+    items.forEach(item => {
+      subtotal += item.total || 0;
+      itemCount += item.quantity || 0;
+    });
+    
+    const taxRate = 0.08; // 8% tax
+    const tax = subtotal * taxRate;
+    const discount = 0; // Placeholder for future discount system
+    const total = subtotal + tax - discount;
+    
+    CartState.summary.subtotal = subtotal;
+    CartState.summary.tax = tax;
+    CartState.summary.discount = discount;
+    CartState.summary.total = total;
+    CartState.summary.itemCount = itemCount;
+    
+    // Update payment balance
+    CartState.payment.balance = total - CartState.payment.amountPaid;
+    CartState.payment.change = CartState.payment.amountPaid > total 
+      ? CartState.payment.amountPaid - total 
+      : 0;
+    
+    EventBus.emit("totalsUpdated");
+  }
+};
+</script>
