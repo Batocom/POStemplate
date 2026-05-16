@@ -294,17 +294,6 @@ const Table = (function() {
       }
     },
     
-    _handlePageSize: function(tableId, size) {
-      const state = instances[tableId];
-      if (!state) return;
-      state.pageSize = parseInt(size, 10);
-      state.currentPage = 1;
-      const container = document.getElementById(tableId);
-      if (container) {
-        container.innerHTML = renderTable(state);
-      }
-    },
-    
     _handleSelect: function(tableId, id, checked) {
       const state = instances[tableId];
       if (!state) return;
