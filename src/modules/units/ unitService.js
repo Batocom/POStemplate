@@ -1,6 +1,5 @@
 const UnitService = {
-
-  getAll(token) {
+ getAll(token) {
     requireAuth(token);
     return DBInstance.table("units").findAll();
   },
