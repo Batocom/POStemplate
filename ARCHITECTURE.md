@@ -214,6 +214,8 @@ Example:
 - products
 - sales
 - units
+- categories
+- stock
 
 Modules should contain:
 - services
@@ -225,6 +227,62 @@ Modules must NOT:
 - manipulate DOM directly
 - access UI state directly
 - bypass validators
+
+### Categories Module
+
+The categories module manages product categories.
+
+**Service API:**
+```javascript
+CategoryService.getAll(token)           // Get all categories
+CategoryService.getById(token, id)      // Get category by ID
+CategoryService.create(token, data)     // Create new category
+CategoryService.update(token, data)     // Update existing category
+CategoryService.delete(token, id)       // Delete category
+```
+
+**Validation Rules:**
+- Name is required (minimum 2 characters)
+- Description is optional
+
+**UI Files:**
+- `ui/pages/categories.html` - Page template
+- `ui/modules/categories/categories.modal.html` - Create/Edit modal templates
+- `ui/modules/categories/categories.controller.html` - Controller logic
+
+### Stock Movements Module
+
+The stock movements module tracks all inventory changes.
+
+**Movement Types:**
+| Type | Description | Effect on Stock |
+|------|-------------|-----------------|
+| SALE | Sold to customer | Decrease |
+| PURCHASE | Purchased from supplier | Increase |
+| ADJUSTMENT | Manual stock adjustment | Configurable |
+| RETURN | Customer return | Increase |
+| DAMAGE | Damaged goods | Decrease |
+| TRANSFER | Transfer between locations | Configurable |
+| MANUAL_IN | Manual stock addition | Increase |
+| MANUAL_OUT | Manual stock removal | Decrease |
+
+**Service API:**
+```javascript
+StockMovementService.getAll(token, filters)           // Get movements with optional filters
+StockMovementService.getByProduct(token, productId)   // Get movements for a product
+StockMovementService.record(token, data)              // Record a new movement
+StockMovementService.getStockHistory(token, productId) // Get running balance history
+StockMovementService.getSummary(token, filters)       // Get movement statistics
+```
+
+**Filters for getAll():**
+- `product_id` - Filter by product
+- `type` - Filter by movement type
+- `start_date` - Filter by start date
+- `end_date` - Filter by end date
+
+**UI Files:**
+- `ui/pages/stockMovements.html` - Page template
 
 ## Service Layer Rules
 

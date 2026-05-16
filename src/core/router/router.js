@@ -80,6 +80,52 @@ function handleRequest(action, payload) {
         data: DBInstance.table("products").delete("id", payload.productId)
       });
 
+    case "GET_CATEGORIES":
+      return JSON.stringify({
+        success: true,
+        data: CategoryService.getAll(payload.token)
+      });
+
+    case "CREATE_CATEGORY":
+      requireRole(payload.token, "ADMIN");
+      const categoryResult = CategoryService.create(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: categoryResult });
+
+    case "UPDATE_CATEGORY":
+      requireRole(payload.token, "ADMIN");
+      const updateCategoryResult = CategoryService.update(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: updateCategoryResult });
+
+    case "DELETE_CATEGORY":
+      requireRole(payload.token, "ADMIN");
+      return JSON.stringify({
+        success: true,
+        data: CategoryService.delete(payload.token, payload.categoryId)
+      });
+
+    case "GET_STOCK_MOVEMENTS":
+      return JSON.stringify({
+        success: true,
+        data: StockMovementService.getAll(payload.token, payload.filters || {})
+      });
+
+    case "GET_PRODUCT_STOCK_HISTORY":
+      return JSON.stringify({
+        success: true,
+        data: StockMovementService.getStockHistory(payload.token, payload.productId)
+      });
+
+    case "RECORD_STOCK_MOVEMENT":
+      requireRole(payload.token, "ADMIN");
+      const movementResult = StockMovementService.record(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: movementResult });
+
+    case "GET_STOCK_SUMMARY":
+      return JSON.stringify({
+        success: true,
+        data: StockMovementService.getSummary(payload.token, payload.filters || {})
+      });
+
     default:
       throw new Error("Unknown action");
   }

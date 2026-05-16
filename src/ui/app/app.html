@@ -44,6 +44,46 @@ function renderProductsPage() {
   }
 }
 
+function renderCategoriesPage() {
+  const template = document.getElementById('categoriesPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadCategories();
+  } else {
+    console.error('Categories template not found');
+    renderAppShell('<div class="text-red-500">Error loading categories page</div>');
+  }
+}
+
+function renderStockMovementsPage() {
+  const template = document.getElementById('stockMovementsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadStockMovements();
+  } else {
+    console.error('Stock movements template not found');
+    renderAppShell('<div class="text-red-500">Error loading stock movements page</div>');
+  }
+}
+
+function renderSalesPage() {
+  renderAppShell(`
+    <div class="text-center py-12">
+      <h2 class="text-2xl font-bold mb-4">POS Sales</h2>
+      <p class="text-gray-500">Sales module coming soon</p>
+    </div>
+  `);
+}
+
+function renderSettingsPage() {
+  renderAppShell(`
+    <div class="text-center py-12">
+      <h2 class="text-2xl font-bold mb-4">Settings</h2>
+      <p class="text-gray-500">Settings module coming soon</p>
+    </div>
+  `);
+}
+
 async function loadProducts() {
 
   const container = document.getElementById(
