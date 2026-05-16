@@ -1,0 +1,27 @@
+<script>
+/**
+ * Sales Controller - Handles sales page logic
+ */
+const SalesController = {
+  
+  async init() {
+    await SalesPage.init();
+  },
+  
+  async refresh() {
+    await SalesPage.loadSales();
+  },
+  
+  async viewReceipt(saleId) {
+    await SalesPage.viewReceipt(saleId);
+  },
+  
+  applyFilters() {
+    SalesPage.applyFilters();
+  },
+  
+  resetFilters() {
+    SalesPage.resetFilters();
+  }
+};
+</script>
