@@ -75,6 +75,28 @@ function renderSalesPage() {
   `);
 }
 
+function renderUnitsPage() {
+  const template = document.getElementById('unitsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadUnits();
+  } else {
+    console.error('Units template not found');
+    renderAppShell('<div class="text-red-500">Error loading units page</div>');
+  }
+}
+
+function renderUnitsPage() {
+  const template = document.getElementById('unitsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadUnits();
+  } else {
+    console.error('Units template not found');
+    renderAppShell('<div class="text-red-500">Error loading units page</div>');
+  }
+}
+
 function renderSettingsPage() {
   renderAppShell(`
     <div class="text-center py-12">

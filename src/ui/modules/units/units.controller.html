@@ -1,0 +1,286 @@
+<script>
+
+async function openCreateUnitModal() {
+  const template = document.getElementById("createUnitModalTemplate");
+  Modal.open({
+    title: "Add Unit",
+    content: template.innerHTML,
+    size: "md"
+  });
+}
+
+async function submitCreateUnit(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  const payload = {
+    name: document.getElementById("unitName").value,
+    symbol: document.getElementById("unitSymbol").value
+  };
+
+  try {
+    const raw = await api("CREATE_UNIT", { data: payload });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      Toast.error(response?.error || "Failed to create unit");
+      return;
+    }
+
+    closeModal();
+    Toast.success('Unit created successfully');
+    await loadUnits();
+  } catch (err) {
+    Toast.error('Error: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Unit';
+    }
+  }
+}
+
+async function openEditUnitModal(unitId) {
+  await Edit.open({
+    title: 'Edit Unit',
+    templateId: 'editUnitModalTemplate',
+    fetchApi: 'GET_UNITS',
+    updateApi: 'UPDATE_UNIT',
+    entityId: unitId,
+    findInResponse: function(data, id) {
+      return data.find(u => u.id === id);
+    },
+    populate: function(unit) {
+      document.getElementById('editUnitId').value = unit.id;
+      document.getElementById('editUnitName').value = unit.name || '';
+      document.getElementById('editUnitSymbol').value = unit.symbol || '';
+    },
+    getPayload: function() {
+      return {
+        id: document.getElementById('editUnitId').value,
+        name: document.getElementById('editUnitName').value,
+        symbol: document.getElementById('editUnitSymbol').value
+      };
+    },
+    onSuccess: function() {
+      Toast.success('Unit updated successfully');
+      loadUnits();
+    }
+  });
+}
+
+async function loadUnits() {
+  const container = document.getElementById('unitsTableContainer');
+  if (!container) return;
+
+  container.innerHTML = 'Loading...';
+
+  try {
+    const raw = await api('GET_UNITS');
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = '<div class="text-red-500">Failed to load units</div>';
+      return;
+    }
+
+    const units = response.data;
+
+    if (!Array.isArray(units)) {
+      container.innerHTML = '<div class="text-red-500">Invalid units data</div>';
+      return;
+    }
+
+    if (!units.length) {
+      container.innerHTML = '<div class="text-gray-500">No units found</div>';
+      return;
+    }
+
+    container.innerHTML = '<div id="unitsTableInner"></div>';
+
+    Table.render('unitsTableInner', {
+      columns: [
+        { key: 'name', label: 'Name', sortable: true },
+        { key: 'symbol', label: 'Symbol', sortable: true }
+      ],
+      data: units,
+      actions: [
+        { label: 'Edit', class: 'text-blue-600', onClick: function(row) { openEditUnitModal(row.id); } },
+        { label: 'Delete', class: 'text-red-600', onClick: function(row) { deleteUnit(row.id); } }
+      ],
+      pageSize: 10,
+      searchable: true,
+      emptyMessage: 'No units found'
+    });
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+  }
+}
+
+async function deleteUnit(id) {
+  const confirmed = await Modal.confirm('Are you sure you want to delete this unit?');
+  if (!confirmed) return;
+
+  const raw = await api('DELETE_UNIT', { unitId: id });
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response.success) {
+    Toast.error(response.error || "Failed to delete unit");
+    return;
+  }
+
+  Toast.success('Unit deleted successfully');
+  await loadUnits();
+}
+
+</script>
+<script>
+
+async function openCreateUnitModal() {
+  const template = document.getElementById("createUnitModalTemplate");
+  Modal.open({
+    title: "Add Unit",
+    content: template.innerHTML,
+    size: "md"
+  });
+}
+
+async function submitCreateUnit(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  const payload = {
+    name: document.getElementById("unitName").value,
+    symbol: document.getElementById("unitSymbol").value
+  };
+
+  try {
+    const raw = await api("CREATE_UNIT", { data: payload });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      Toast.error(response?.error || "Failed to create unit");
+      return;
+    }
+
+    closeModal();
+    Toast.success('Unit created successfully');
+    await loadUnits();
+  } catch (err) {
+    Toast.error('Error: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Unit';
+    }
+  }
+}
+
+async function openEditUnitModal(unitId) {
+  await Edit.open({
+    title: 'Edit Unit',
+    templateId: 'editUnitModalTemplate',
+    fetchApi: 'GET_UNITS',
+    updateApi: 'UPDATE_UNIT',
+    entityId: unitId,
+    findInResponse: function(data, id) {
+      return data.find(u => u.id === id);
+    },
+    populate: function(unit) {
+      document.getElementById('editUnitId').value = unit.id;
+      document.getElementById('editUnitName').value = unit.name || '';
+      document.getElementById('editUnitSymbol').value = unit.symbol || '';
+    },
+    getPayload: function() {
+      return {
+        id: document.getElementById('editUnitId').value,
+        name: document.getElementById('editUnitName').value,
+        symbol: document.getElementById('editUnitSymbol').value
+      };
+    },
+    onSuccess: function() {
+      Toast.success('Unit updated successfully');
+      loadUnits();
+    }
+  });
+}
+
+async function loadUnits() {
+  const container = document.getElementById('unitsTableContainer');
+  if (!container) return;
+
+  container.innerHTML = 'Loading...';
+
+  try {
+    const raw = await api('GET_UNITS');
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = '<div class="text-red-500">Failed to load units</div>';
+      return;
+    }
+
+    const units = response.data;
+
+    if (!Array.isArray(units)) {
+      container.innerHTML = '<div class="text-red-500">Invalid units data</div>';
+      return;
+    }
+
+    if (!units.length) {
+      container.innerHTML = '<div class="text-gray-500">No units found</div>';
+      return;
+    }
+
+    container.innerHTML = '<div id="unitsTableInner"></div>';
+
+    Table.render('unitsTableInner', {
+      columns: [
+        { key: 'name', label: 'Name', sortable: true },
+        { key: 'symbol', label: 'Symbol', sortable: true }
+      ],
+      data: units,
+      actions: [
+        { label: 'Edit', class: 'text-blue-600', onClick: function(row) { openEditUnitModal(row.id); } },
+        { label: 'Delete', class: 'text-red-600', onClick: function(row) { deleteUnit(row.id); } }
+      ],
+      pageSize: 10,
+      searchable: true,
+      emptyMessage: 'No units found'
+    });
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+  }
+}
+
+async function deleteUnit(id) {
+  const confirmed = await Modal.confirm('Are you sure you want to delete this unit?');
+  if (!confirmed) return;
+
+  const raw = await api('DELETE_UNIT', { unitId: id });
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response.success) {
+    Toast.error(response.error || "Failed to delete unit");
+    return;
+  }
+
+  Toast.success('Unit deleted successfully');
+  await loadUnits();
+}
+
+</script>

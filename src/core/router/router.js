@@ -68,6 +68,40 @@ function handleRequest(action, payload) {
         data: UnitService.getAll(payload.token)
       });
 
+    case "CREATE_UNIT":
+      requireRole(payload.token, "ADMIN");
+      const unitResult = UnitService.create(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: unitResult });
+
+    case "UPDATE_UNIT":
+      requireRole(payload.token, "ADMIN");
+      const updateUnitResult = UnitService.update(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: updateUnitResult });
+
+    case "DELETE_UNIT":
+      requireRole(payload.token, "ADMIN");
+      return JSON.stringify({
+        success: true,
+        data: UnitService.delete(payload.token, payload.unitId)
+      });
+
+    case "CREATE_UNIT":
+      requireRole(payload.token, "ADMIN");
+      const unitResult = UnitService.create(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: unitResult });
+
+    case "UPDATE_UNIT":
+      requireRole(payload.token, "ADMIN");
+      const updateUnitResult = UnitService.update(payload.token, payload.data);
+      return JSON.stringify({ success: true, data: updateUnitResult });
+
+    case "DELETE_UNIT":
+      requireRole(payload.token, "ADMIN");
+      return JSON.stringify({
+        success: true,
+        data: UnitService.delete(payload.token, payload.unitId)
+      });
+
     case "UPDATE_PRODUCT":
       requireRole(payload.token, "ADMIN");
       const updateResult = ProductService.update(payload.token, payload.data);
