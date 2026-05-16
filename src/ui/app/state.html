@@ -16,4 +16,43 @@ const State = {
 
 };
 
+/**
+ * EventBus — Simple event system for decoupled communication
+ */
+const EventBus = {
+  _events: {},
+  
+  on(event, callback) {
+    if (!this._events[event]) {
+      this._events[event] = [];
+    }
+    this._events[event].push(callback);
+    
+    // Return unsubscribe function
+    return () => {
+      this._events[event] = this._events[event].filter(cb => cb !== callback);
+    };
+  },
+  
+  emit(event, data) {
+    const callbacks = this._events[event];
+    
+    if (callbacks) {
+      callbacks.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error(`EventBus error in ${event}:`, error);
+        }
+      });
+    }
+  },
+  
+  off(event, callback) {
+    if (this._events[event]) {
+      this._events[event] = this._events[event].filter(cb => cb !== callback);
+    }
+  }
+};
+
 </script>

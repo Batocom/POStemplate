@@ -31,6 +31,20 @@ function renderAppShell(content) {
   `;
 }
 
+function renderPOSPage() {
+  const template = document.getElementById('posPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    // Initialize POS after DOM is rendered
+    setTimeout(() => {
+      POSPage.init();
+    }, 100);
+  } else {
+    console.error('POS template not found');
+    renderAppShell('<div class="text-red-500">Error loading POS page</div>');
+  }
+}
+
 function renderProductsPage() {
   console.log('renderProductsPage called');
   const template = document.getElementById('productsPageTemplate');

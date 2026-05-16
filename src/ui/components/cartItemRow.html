@@ -1,0 +1,42 @@
+<script>
+/**
+ * CartItemRow — Utility for creating cart item HTML
+ * 
+ * This provides a function to generate cart item HTML
+ * for use in CartTable or other components.
+ */
+const CartItemRow = {
+  
+  /**
+   * Generate HTML for a cart item
+   */
+  render(item) {
+    if (!item) return "";
+    
+    return `
+      <div class="cart-item" data-product-id="${item.productId}">
+        <div class="item-info">
+          <div class="item-name">${this._escapeHtml(item.name)}</div>
+          <div class="item-price">${PricingService.formatCurrency(item.price)} each</div>
+        </div>
+        <div class="item-quantity">
+          <button class="qty-btn" onclick="CartService.updateQuantity('${item.productId}', ${item.quantity - 1})">-</button>
+          <span class="qty-value">${item.quantity}</span>
+          <button class="qty-btn" onclick="CartService.updateQuantity('${item.productId}', ${item.quantity + 1})">+</button>
+        </div>
+        <div class="item-total">${PricingService.formatCurrency(item.total)}</div>
+        <button class="item-remove" onclick="CartService.remove('${item.productId}')" title="Remove">&times;</button>
+      </div>
+    `;
+  },
+  
+  /**
+   * Escape HTML to prevent XSS
+   */
+  _escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+};
+</script>

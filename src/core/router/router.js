@@ -16,6 +16,10 @@ function handleRequest(action, payload) {
 
   switch(action) {
 
+    case "VERIFY_SESSION":
+      const session = requireAuth(token);
+      return JSON.stringify({ success: true, data: session });
+
     case "GET_PRODUCTS":
 
   Logger.log("DBInstance check: " + typeof DBInstance);
@@ -52,15 +56,12 @@ function handleRequest(action, payload) {
       );
 
     case "CREATE_SALE":
-      return SalesService.createSale(
-        payload.token,
-        payload
-      );
+      const saleResult = SalesService.createSale(payload.token, payload);
+      return JSON.stringify({ success: true, data: saleResult });
 
     case "PRINT_RECEIPT":
-      return ReceiptService.generate(
-        payload.saleId
-      );
+      const receipt = ReceiptService.generate(payload.saleId);
+      return JSON.stringify({ success: true, data: receipt });
 
     case "GET_UNITS":
       return JSON.stringify({
@@ -92,10 +93,7 @@ function handleRequest(action, payload) {
 
     case "DELETE_PRODUCT":
       requireRole(payload.token, "ADMIN");
-      return JSON.stringify({
-        success: true,
-        data: DBInstance.table("products").delete("id", payload.productId)
-      });
+      return JSON.stringify({ success: true, data: DBInstance.table("products").delete("id", payload.productId) });
 
     case "GET_CATEGORIES":
       return JSON.stringify({

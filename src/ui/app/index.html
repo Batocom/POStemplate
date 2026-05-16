@@ -28,6 +28,19 @@
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/searchService').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/editService').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/tableService').getContent(); ?>
+  
+  <!-- POS Services -->
+  <?!= HtmlService.createHtmlOutputFromFile('ui/state/cartState').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/cartService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/pricingService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/scannerService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/checkoutService').getContent(); ?>
+  
+  <!-- POS Components -->
+  <?!= HtmlService.createHtmlOutputFromFile('ui/components/cartItemRow').getContent(); ?>
+  
+  <!-- Pages -->
+  <?!= HtmlService.createHtmlOutputFromFile('ui/pages/pos').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/login').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/dashboard').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/products').getContent(); ?>

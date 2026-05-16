@@ -1,0 +1,128 @@
+<script>
+/**
+ * CheckoutService — Connects frontend to backend
+ * 
+ * This is where CREATE_SALE gets called.
+ * 
+ * Flow:
+ * 1. Validate cart
+ * 2. Prepare payload
+ * 3. API.request("CREATE_SALE")
+ * 4. Success → receipt → clear cart
+ */
+const CheckoutService = {
+  
+  /**
+   * Process checkout
+   */
+  async process(paymentData) {
+    try {
+      // Validate cart
+      CartService.validate();
+      
+      // Update payment info
+      if (paymentData) {
+        CartState.payment.method = paymentData.method || "cash";
+        CartState.payment.amountPaid = Number(paymentData.amountPaid) || 0;
+      }
+      
+      CartState.status = "paying";
+      EventBus.emit("checkoutStarted");
+      
+      // Prepare payload for backend
+      const payload = this._preparePayload();
+      
+      // Send to backend
+      const raw = await api("CREATE_SALE", payload);
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (!response.success) {
+        throw new Error(response.error || "Checkout failed");
+      }
+      
+      const saleData = response.data;
+      
+      // Show success
+      Toast.success("Sale completed successfully!");
+      
+      // Generate receipt
+      if (saleData && saleData.saleId) {
+        await this._showReceipt(saleData.saleId);
+      }
+      
+      // Clear cart
+      CartService.clear();
+      
+      CartState.status = "completed";
+      EventBus.emit("saleCompleted", saleData);
+      
+      return saleData;
+      
+    } catch (error) {
+      CartState.status = "active";
+      Toast.error(error.message || "Checkout failed");
+      EventBus.emit("checkoutFailed", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Prepare payload for backend
+   */
+  _preparePayload() {
+    const items = CartState.items.map(item => ({
+      product_id: item.productId,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      total: item.total
+    }));
+    
+    return {
+      items: items,
+      subtotal: CartState.summary.subtotal,
+      tax: CartState.summary.tax,
+      discount: CartState.summary.discount,
+      total: CartState.summary.total,
+      payment_method: CartState.payment.method,
+      amount_paid: CartState.payment.amountPaid,
+      customer_id: CartState.customer ? CartState.customer.id : null
+    };
+  },
+  
+  /**
+   * Show receipt
+   */
+  async _showReceipt(saleId) {
+    try {
+      const raw = await api("PRINT_RECEIPT", { saleId });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && response.data) {
+        // Show receipt in modal
+        Modal.open({
+          title: "Receipt",
+          content: `<pre style="font-family: monospace; white-space: pre-wrap;">${response.data}</pre>`,
+          size: "md"
+        });
+      }
+    } catch (error) {
+      console.error("Receipt generation failed:", error);
+    }
+  },
+  
+  /**
+   * Calculate change
+   */
+  calculateChange(amountPaid) {
+    const total = CartState.summary.total;
+    amountPaid = Number(amountPaid) || 0;
+    
+    if (amountPaid >= total) {
+      return amountPaid - total;
+    }
+    
+    return 0;
+  }
+};
+</script>
