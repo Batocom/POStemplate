@@ -161,6 +161,18 @@ function handleRequest(action, payload) {
         data: { sale, items }
       });
 
+    case "GET_TAX_RATE":
+      const taxRate = TaxService.getTaxRate();
+      return JSON.stringify({
+        success: true,
+        data: { rate: taxRate }
+      });
+
+    case "SET_TAX_RATE":
+      requireRole(payload.token, "ADMIN");
+      const result = TaxService.setTaxRate(payload.token, payload.rate);
+      return JSON.stringify({ success: true, data: result });
+
     default:
       throw new Error("Unknown action");
   }

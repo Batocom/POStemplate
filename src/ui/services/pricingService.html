@@ -15,6 +15,48 @@
 const PricingService = {
 
   /**
+   * Cached tax rate to avoid repeated API calls
+   */
+  _taxRate: null,
+  
+  /**
+   * Fetch tax rate from backend
+   * Falls back to 8% if not available
+   */
+  async fetchTaxRate() {
+    try {
+      const raw = await api("GET_TAX_RATE");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && response.data) {
+        this._taxRate = Number(response.data.rate) || 8;
+      } else {
+        this._taxRate = 8;
+      }
+    } catch (error) {
+      console.error("Failed to fetch tax rate, using default 8%:", error);
+      this._taxRate = 8;
+    }
+    
+    return this._taxRate;
+  },
+  
+  /**
+   * Get current tax rate
+   */
+  getTaxRate() {
+    return this._taxRate || 8;
+  },
+  
+  /**
+   * Get tax label for display
+   */
+  getTaxLabel() {
+    const rate = this.getTaxRate();
+    return "Tax (" + rate + "%)";
+  },
+
+  /**
    * Recalculate all totals from CartState.items
    */
   recalculate() {
@@ -37,8 +79,9 @@ const PricingService = {
       profit += lineProfit;
     });
 
-    // Tax: 8% of subtotal
-    tax = subtotal * 0.08;
+    // Tax: dynamic rate from backend
+    const taxRate = this.getTaxRate();
+    tax = subtotal * (taxRate / 100);
 
     // Discount: currently 0 (placeholder)
     discount = 0;

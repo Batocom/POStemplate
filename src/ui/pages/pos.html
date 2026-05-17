@@ -29,19 +29,11 @@
       </div>
       
       <!-- Quick Category Filters -->
-      <div class="category-filters">
-        <button class="category-btn active" onclick="ProductSearch.filterByCategory('all')">
+      <div class="category-filters" id="category-filters">
+        <button class="category-btn active" onclick="ProductSearch.filterByCategory('all', event)">
           All
         </button>
-        <button class="category-btn" onclick="ProductSearch.filterByCategory('Food')">
-          Food
-        </button>
-        <button class="category-btn" onclick="ProductSearch.filterByCategory('Beverages')">
-          Beverages
-        </button>
-        <button class="category-btn" onclick="ProductSearch.filterByCategory('Other')">
-          Other
-        </button>
+        <!-- Categories rendered dynamically by ProductSearch.loadCategories() -->
       </div>
       
       <!-- Product Grid -->
@@ -79,7 +71,7 @@
           <span id="subtotal" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-row">
-          <span class="totals-label">Tax (8%)</span>
+          <span class="totals-label" id="tax-label">Tax</span>
           <span id="tax" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-row">
@@ -1029,6 +1021,18 @@ const POSPage = {
       // Load products
       await ProductSearch.loadProducts();
       
+      // Load categories for dynamic filters
+      await ProductSearch.loadCategories();
+      
+      // Fetch tax rate from backend
+      await PricingService.fetchTaxRate();
+      
+      // Update tax label
+      const taxLabel = document.getElementById("tax-label");
+      if (taxLabel) {
+        taxLabel.textContent = PricingService.getTaxLabel();
+      }
+      
       // Enable scanner
       ScannerService.enable((barcode) => {
         ProductSearch.searchByBarcode(barcode);
@@ -1050,6 +1054,11 @@ const POSPage = {
       EventBus.on("totalsUpdated", () => {
         this.updateCheckoutButton();
         TotalsPanel.render();
+        // Update tax label in case it changed
+        const taxLabel = document.getElementById("tax-label");
+        if (taxLabel) {
+          taxLabel.textContent = PricingService.getTaxLabel();
+        }
       });
       
       EventBus.on("cartCleared", () => {
@@ -1150,6 +1159,7 @@ const POSPage = {
 const ProductSearch = {
   products: [],
   filteredProducts: [],
+  categories: [],
   searchTimeout: null,
   
   /**
@@ -1168,6 +1178,43 @@ const ProductSearch = {
       console.error("Failed to load products:", error);
       Toast.error("Failed to load products");
     }
+  },
+  
+  /**
+   * Load categories from backend for dynamic filters
+   */
+  async loadCategories() {
+    try {
+      const raw = await api("GET_CATEGORIES");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && Array.isArray(response.data)) {
+        this.categories = response.data;
+        this._renderCategoryFilters();
+      }
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+    }
+  },
+  
+  /**
+   * Render category filter buttons dynamically
+   */
+  _renderCategoryFilters() {
+    const container = document.getElementById("category-filters");
+    if (!container) return;
+    
+    // Keep the "All" button
+    let html = '<button class="category-btn active" onclick="ProductSearch.filterByCategory(\'all\', event)">All</button>';
+    
+    // Add dynamic category buttons
+    html += this.categories.map(cat => `
+      <button class="category-btn" onclick="ProductSearch.filterByCategory('${cat.id}', event)">
+        ${cat.name}
+      </button>
+    `).join("");
+    
+    container.innerHTML = html;
   },
   
   /**
@@ -1246,19 +1293,23 @@ const ProductSearch = {
   
   /**
    * Filter products by category
+   * @param {string} categoryId - Category ID or 'all' for all products
+   * @param {Event} evt - Click event
    */
-  filterByCategory(category) {
+  filterByCategory(categoryId, evt) {
     // Update active button
     document.querySelectorAll(".category-btn").forEach(btn => {
       btn.classList.remove("active");
     });
-    event.target.classList.add("active");
+    if (evt && evt.target) {
+      evt.target.classList.add("active");
+    }
     
-    if (category === "all") {
+    if (categoryId === "all") {
       this.filteredProducts = [...this.products];
     } else {
       this.filteredProducts = this.products.filter(p => 
-        p.category && p.category.toLowerCase() === category.toLowerCase()
+        p.category_id === categoryId
       );
     }
     
