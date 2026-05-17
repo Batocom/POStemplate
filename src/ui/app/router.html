@@ -64,4 +64,17 @@ function renderSalesPage() {
   }
 }
 
+function renderSettingsPage() {
+  const template = document.getElementById('settingsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    setTimeout(() => {
+      SettingsController.init();
+    }, 100);
+  } else {
+    console.error('Settings template not found');
+    renderAppShell('<div class="text-red-500">Error loading settings page</div>');
+  }
+}
+
 </script>
