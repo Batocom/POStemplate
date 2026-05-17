@@ -128,6 +128,9 @@ Handles:
 |   |        salesService.js
 |   |       receiptService.js
 |   |
+|   +---settings
+|   |       taxService.js
+|   |
 |   +---stock
 |   |       stockMovementService.js
 |   |       stockMovementValidator.js
@@ -162,6 +165,13 @@ Handles:
     |   |       products.controller.html
     |   |       products.modal.html
     |   |
+    |   +---sales
+    |   |       sales.controller.html
+    |   |       sales.modal.html
+    |   |
+    |   +---settings
+    |   |       settings.controller.html
+    |   |
     |   \---units
     |           units.controller.html
     |           units.modal.html
@@ -172,6 +182,8 @@ Handles:
     |       login.html
     |       pos.html
     |       products.html
+    |       sales.html
+    |       settings.html
     |       stockMovements.html
     |       units.html
     |
@@ -181,6 +193,8 @@ Handles:
     |       editService.html
     |       modalService.html
     |       pricingService.html
+    |       printService.html
+    |       receiptService.html
     |       scannerService.html
     |       searchService.html
     |       tableService.html
