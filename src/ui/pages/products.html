@@ -26,5 +26,10 @@ src\ui\app\app.html
 ````javascript
 <<<<<<< SEARCH
 function editProduct(id) {
-  openEditProductModal(id);
+  if (typeof openEditProductModal === 'function') {
+    openEditProductModal(id);
+  } else {
+    console.error('openEditProductModal is not defined. Ensure products.controller.html is loaded.');
+    Toast.error('Edit functionality not available');
+  }
 }
