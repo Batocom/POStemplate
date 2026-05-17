@@ -115,6 +115,14 @@
   <!-- Payment Modal Content (hidden, used by Modal) -->
   <div id="paymentModalContent" style="display:none;">
     <div class="payment-modal-inner">
+      <!-- Loading Overlay -->
+      <div id="payment-loading-overlay" class="payment-loading-overlay" style="display:none;">
+        <div class="payment-loading-spinner">
+          <div class="spinner"></div>
+          <p>Processing payment...</p>
+        </div>
+      </div>
+      
       <!-- Total Display -->
       <div class="payment-total-display">
         <div class="payment-total-label">Total Due</div>
@@ -124,20 +132,12 @@
       <!-- Payment Method -->
       <div class="payment-methods">
         <label class="payment-method-label">Payment Method</label>
-        <div class="payment-method-options">
-          <button class="payment-method-btn active" data-method="cash" onclick="PaymentModal.setMethod('cash')">
-            Cash
-          </button>
-          <button class="payment-method-btn" data-method="card" onclick="PaymentModal.setMethod('card')">
-            Card
-          </button>
-          <button class="payment-method-btn" data-method="transfer" onclick="PaymentModal.setMethod('transfer')">
-            Transfer
-          </button>
+        <div class="payment-method-options" id="payment-method-options">
+          <!-- Methods rendered dynamically by PaymentModal -->
         </div>
       </div>
       
-      <!-- Amount Input -->
+      <!-- Amount Input (for cash) -->
       <div class="payment-amount" id="cash-input-section">
         <label class="payment-amount-label">Amount Received</label>
         <div class="payment-amount-input-wrapper">
@@ -156,6 +156,24 @@
       <div class="payment-change" id="change-display" style="display:none;">
         <div class="change-label">Change Due</div>
         <div class="change-amount" id="change-amount">KES 0.00</div>
+      </div>
+      
+      <!-- Credit Section (for credit/debtor payments) -->
+      <div class="payment-credit-section" id="credit-section" style="display:none;">
+        <div class="credit-customer">
+          <label class="payment-amount-label">Select Customer</label>
+          <select id="credit-customer-select" class="credit-customer-select" onchange="PaymentModal.onCustomerChange()">
+            <option value="">Loading customers...</option>
+          </select>
+        </div>
+        <div class="credit-balance" id="credit-balance" style="display:none;">
+          <span class="credit-balance-label">Existing Balance:</span>
+          <span class="credit-balance-amount">KES 0.00</span>
+        </div>
+        <div class="credit-note">
+          <label class="payment-amount-label">Notes (optional)</label>
+          <textarea id="credit-notes" class="credit-notes-input" placeholder="Add notes for this credit sale..." rows="2"></textarea>
+        </div>
       </div>
       
       <!-- Summary -->
@@ -688,6 +706,140 @@
     color: #666;
   }
   
+  /* Payment Loading Overlay */
+  .payment-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 12px;
+  }
+  
+  .payment-loading-spinner {
+    text-align: center;
+  }
+  
+  .payment-loading-spinner p {
+    margin-top: 12px;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top: 4px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Payment Method Icons */
+  .payment-method-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+  }
+  
+  .payment-method-btn:hover {
+    border-color: #bbb;
+  }
+  
+  .payment-method-btn.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+  }
+  
+  .payment-method-icon {
+    font-size: 1.5rem;
+  }
+  
+  /* Credit Section */
+  .payment-credit-section {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+  }
+  
+  .credit-customer-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    outline: none;
+  }
+  
+  .credit-customer-select:focus {
+    border-color: #2563eb;
+  }
+  
+  .credit-balance {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .credit-balance-label {
+    font-size: 0.85rem;
+    color: #991b1b;
+  }
+  
+  .credit-balance-amount {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #dc2626;
+  }
+  
+  .credit-notes-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+  }
+  
+  .credit-notes-input:focus {
+    border-color: #2563eb;
+  }
+  
+  .credit-note {
+    margin-top: 8px;
+  }
+  
   @media (max-width: 900px) {
     .pos-layout {
       flex-direction: column;
@@ -1055,8 +1207,28 @@ const TotalsPanel = {
 
 /**
  * PaymentModal — Handles payment UI
+ * 
+ * Supports multiple payment methods:
+ * - cash: Full payment with change calculation
+ * - mpesa: Mobile money payment (future integration)
+ * - credit: Debtor/credit payment with balance tracking
+ * 
+ * To add a new payment method:
+ * 1. Add method to PAYMENT_METHODS array
+ * 2. Add handler in _handleMethodChange()
+ * 3. Add validation in _validatePayment()
  */
 const PaymentModal = {
+  
+  /**
+   * Available payment methods
+   * Extend this array to add new payment methods
+   */
+  PAYMENT_METHODS: [
+    { id: 'cash', label: 'Cash', icon: '💰', requiresAmount: true },
+    { id: 'mpesa', label: 'M-Pesa', icon: '📱', requiresAmount: false },
+    { id: 'credit', label: 'Credit', icon: '📋', requiresAmount: false }
+  ],
   
   /**
    * Initialize modal when shown
@@ -1072,10 +1244,17 @@ const PaymentModal = {
     if (itemCountEl) itemCountEl.textContent = CartState.getTotalQuantity();
     if (summaryTotalEl) summaryTotalEl.textContent = PricingService.formatCurrency(total);
     
-    // Reset amount
+    // Reset loading state
+    this._setLoading(false);
+    
+    // Render payment methods dynamically
+    this._renderPaymentMethods();
+    
+    // Reset amount - PREFILL with total amount
     const amountInput = document.getElementById("payment-amount");
     if (amountInput) {
-      amountInput.value = "";
+      amountInput.value = total.toFixed(2);
+      amountInput.disabled = false;
       setTimeout(() => amountInput.focus(), 100);
     }
     
@@ -1083,8 +1262,31 @@ const PaymentModal = {
     const changeDisplay = document.getElementById("change-display");
     if (changeDisplay) changeDisplay.style.display = "none";
     
+    // Reset credit section
+    const creditSection = document.getElementById("credit-section");
+    if (creditSection) creditSection.style.display = "none";
+    
     // Set default method
     this.setMethod("cash");
+    
+    // Trigger amount change to update UI
+    this.onAmountChange();
+  },
+  
+  /**
+   * Render payment method buttons dynamically
+   * Extend PAYMENT_METHODS array to add new methods
+   */
+  _renderPaymentMethods() {
+    const container = document.getElementById("payment-method-options");
+    if (!container) return;
+    
+    container.innerHTML = this.PAYMENT_METHODS.map(method => `
+      <button class="payment-method-btn" data-method="${method.id}" onclick="PaymentModal.setMethod('${method.id}')">
+        <span class="payment-method-icon">${method.icon}</span>
+        <span class="payment-method-label">${method.label}</span>
+      </button>
+    `).join("");
   },
   
   /**
@@ -1098,15 +1300,110 @@ const PaymentModal = {
       btn.classList.toggle("active", btn.dataset.method === method);
     });
     
-    // Show/hide cash input
+    this._handleMethodChange(method);
+  },
+  
+  /**
+   * Handle UI changes when payment method changes
+   * Extend this method when adding new payment methods
+   */
+  _handleMethodChange(method) {
     const cashSection = document.getElementById("cash-input-section");
-    if (cashSection) {
-      if (method === "cash") {
-        cashSection.style.display = "block";
+    const creditSection = document.getElementById("credit-section");
+    const amountInput = document.getElementById("payment-amount");
+    const total = CartState.summary.total;
+    
+    // Hide all method-specific sections first
+    if (cashSection) cashSection.style.display = "none";
+    if (creditSection) creditSection.style.display = "none";
+    
+    switch (method) {
+      case 'cash':
+        if (cashSection) cashSection.style.display = "block";
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = false;
+        }
+        break;
+        
+      case 'mpesa':
+        // M-Pesa: Auto-set amount to total (future: integrate with M-Pesa API)
+        CartState.payment.amountPaid = total;
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = true;
+        }
+        break;
+        
+      case 'credit':
+        // Credit: Show credit section, auto-set amount to total
+        CartState.payment.amountPaid = total;
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = true;
+        }
+        if (creditSection) creditSection.style.display = "block";
+        this._loadCustomers();
+        break;
+        
+      default:
+        // Default: treat as full payment
+        CartState.payment.amountPaid = total;
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = true;
+        }
+    }
+    
+    // Update change and button state
+    this.onAmountChange();
+  },
+  
+  /**
+   * Load customers for credit payment
+   */
+  async _loadCustomers() {
+    const select = document.getElementById("credit-customer-select");
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Loading customers...</option>';
+    
+    try {
+      const raw = await api("GET_CUSTOMERS");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && Array.isArray(response.data)) {
+        select.innerHTML = '<option value="">Select customer</option>' +
+          response.data.map(c => `
+            <option value="${c.id}" data-balance="${c.balance || 0}">
+              ${c.name} ${c.phone ? '- ' + c.phone : ''} ${Number(c.balance) > 0 ? '(Balance: KES ' + Number(c.balance).toFixed(2) + ')' : ''}
+            </option>
+          `).join("");
       } else {
-        cashSection.style.display = "none";
-        CartState.payment.amountPaid = CartState.summary.total;
+        select.innerHTML = '<option value="">No customers available</option>';
       }
+    } catch (error) {
+      console.error("Failed to load customers:", error);
+      select.innerHTML = '<option value="">Error loading customers</option>';
+    }
+  },
+  
+  /**
+   * Handle customer selection change
+   */
+  onCustomerChange() {
+    const select = document.getElementById("credit-customer-select");
+    const balanceDisplay = document.getElementById("credit-balance");
+    
+    if (!select || !balanceDisplay) return;
+    
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      const balance = Number(selectedOption.dataset.balance) || 0;
+      balanceDisplay.textContent = 'KES ' + balance.toFixed(2);
+      balanceDisplay.style.display = "block";
+    } else {
+      balanceDisplay.style.display = "none";
     }
   },
   
@@ -1119,6 +1416,7 @@ const PaymentModal = {
     
     CartState.payment.amountPaid = amount;
     
+    const total = CartState.summary.total;
     const change = CheckoutService.calculateChange(amount);
     const changeDisplay = document.getElementById("change-display");
     const changeAmount = document.getElementById("change-amount");
@@ -1133,7 +1431,63 @@ const PaymentModal = {
     // Enable/disable confirm button
     const confirmBtn = document.getElementById("confirm-payment-btn");
     if (confirmBtn) {
-      confirmBtn.disabled = amount < CartState.summary.total;
+      // For credit, always enable if customer is selected
+      if (CartState.payment.method === 'credit') {
+        const customerSelect = document.getElementById("credit-customer-select");
+        confirmBtn.disabled = !customerSelect || !customerSelect.value;
+      } else {
+        confirmBtn.disabled = amount < total;
+      }
+    }
+  },
+  
+  /**
+   * Validate payment before processing
+   */
+  _validatePayment() {
+    const method = CartState.payment.method;
+    const total = CartState.summary.total;
+    const amountPaid = CartState.payment.amountPaid;
+    
+    switch (method) {
+      case 'cash':
+        if (!amountPaid || amountPaid < total) {
+          throw new Error(`Insufficient payment. Total is ${PricingService.formatCurrency(total)}, but received ${PricingService.formatCurrency(amountPaid || 0)}`);
+        }
+        break;
+        
+      case 'mpesa':
+        // M-Pesa validation (future: add M-Pesa transaction ID validation)
+        break;
+        
+      case 'credit':
+        const customerSelect = document.getElementById("credit-customer-select");
+        if (!customerSelect || !customerSelect.value) {
+          throw new Error("Please select a customer for credit payment");
+        }
+        break;
+        
+      default:
+        throw new Error("Unknown payment method: " + method);
+    }
+    
+    return true;
+  },
+  
+  /**
+   * Set loading state
+   */
+  _setLoading(isLoading) {
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    const loadingOverlay = document.getElementById("payment-loading-overlay");
+    
+    if (confirmBtn) {
+      confirmBtn.disabled = isLoading;
+      confirmBtn.textContent = isLoading ? "Processing..." : "Complete Sale";
+    }
+    
+    if (loadingOverlay) {
+      loadingOverlay.style.display = isLoading ? "flex" : "none";
     }
   },
   
@@ -1141,25 +1495,40 @@ const PaymentModal = {
    * Confirm payment and process checkout
    */
   async confirm() {
-    const confirmBtn = document.getElementById("confirm-payment-btn");
-    if (confirmBtn) {
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = "Processing...";
-    }
-    
     try {
-      const amountPaid = CartState.payment.method === "cash" 
-        ? Number(document.getElementById("payment-amount").value) || 0
-        : CartState.summary.total;
+      // Validate payment
+      this._validatePayment();
       
-      // Validate payment amount
-      if (amountPaid < CartState.summary.total) {
-        throw new Error(`Insufficient payment. Total is ${PricingService.formatCurrency(CartState.summary.total)}, but received ${PricingService.formatCurrency(amountPaid)}`);
+      // Show loading state
+      this._setLoading(true);
+      
+      const method = CartState.payment.method;
+      let amountPaid;
+      let customerId = null;
+      
+      switch (method) {
+        case 'cash':
+          amountPaid = Number(document.getElementById("payment-amount").value) || 0;
+          break;
+          
+        case 'mpesa':
+          amountPaid = CartState.summary.total;
+          break;
+          
+        case 'credit':
+          amountPaid = CartState.summary.total;
+          const customerSelect = document.getElementById("credit-customer-select");
+          customerId = customerSelect ? customerSelect.value : null;
+          break;
+          
+        default:
+          amountPaid = CartState.summary.total;
       }
       
       const paymentData = {
-        method: CartState.payment.method,
-        amountPaid: amountPaid
+        method: method,
+        amountPaid: amountPaid,
+        customerId: customerId
       };
       
       await CheckoutService.process(paymentData);
@@ -1167,10 +1536,7 @@ const PaymentModal = {
       Modal.close();
       
     } catch (error) {
-      if (confirmBtn) {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = "Complete Sale";
-      }
+      this._setLoading(false);
       Toast.error(error.message || "Payment failed");
     }
   }

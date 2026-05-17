@@ -124,13 +124,19 @@ async function loadSales() {
           render: function(val) { return 'KES ' + Number(val).toFixed(2); }
         },
         { key: 'payment_method', label: 'Payment', sortable: true,
-          render: function(val) {
+          render: function(val, row) {
             const colors = {
               'cash': 'text-green-600',
-              'card': 'text-blue-600',
+              'mpesa': 'text-blue-600',
+              'credit': 'text-orange-600',
+              'card': 'text-purple-600',
               'transfer': 'text-purple-600'
             };
-            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + val + '</span>';
+            let label = val;
+            if (val === 'credit') {
+              label = 'Credit ' + (row.is_paid ? '(Paid)' : '(Due)');
+            }
+            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + label + '</span>';
           }
         },
         { key: 'created_at', label: 'Date', sortable: true,
