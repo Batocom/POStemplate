@@ -446,6 +446,10 @@ async function bulkDeleteProducts() {
 }
 
 
+function editProduct(id) {
+  openEditProductModal(id);
+}
+
 async function deleteProduct(id) {
   const confirmed = await Modal.confirm('Are you sure you want to delete this product?');
   if (!confirmed) return;
