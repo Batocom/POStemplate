@@ -279,15 +279,28 @@ async function loadStockMovements() {
   container.innerHTML = 'Loading...';
 
   try {
-    const raw = await api('GET_STOCK_MOVEMENTS');
-    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+    // Fetch both movements and products in parallel
+    const [movementsRaw, productsRaw] = await Promise.all([
+      api('GET_STOCK_MOVEMENTS'),
+      api('GET_PRODUCTS')
+    ]);
 
-    if (!response || !response.success) {
+    const movementsResponse = typeof movementsRaw === "string" ? JSON.parse(movementsRaw) : movementsRaw;
+    const productsResponse = typeof productsRaw === "string" ? JSON.parse(productsRaw) : productsRaw;
+
+    if (!movementsResponse || !movementsResponse.success) {
       container.innerHTML = '<div class="text-red-500">Failed to load stock movements</div>';
       return;
     }
 
-    const movements = response.data;
+    const movements = movementsResponse.data;
+    const products = productsResponse.success && Array.isArray(productsResponse.data) ? productsResponse.data : [];
+
+    // Build a product lookup map
+    const productMap = {};
+    products.forEach(function(p) {
+      productMap[p.id] = p.name;
+    });
 
     if (!Array.isArray(movements)) {
       container.innerHTML = '<div class="text-red-500">Invalid stock movements data</div>';
@@ -303,7 +316,12 @@ async function loadStockMovements() {
 
     Table.render('stockMovementsTableInner', {
       columns: [
-        { key: 'product_id', label: 'Product ID', sortable: true },
+        { key: 'product_id', label: 'Product', sortable: true,
+          render: function(val) {
+            const name = productMap[val] || val;
+            return name;
+          }
+        },
         { key: 'type', label: 'Type', sortable: true,
           render: function(val) {
             const colors = {
