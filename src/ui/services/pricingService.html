@@ -16,26 +16,37 @@ const PricingService = {
 
   /**
    * Cached tax rate to avoid repeated API calls
+   * Initialized to null, will be fetched from backend
    */
   _taxRate: null,
   
   /**
+   * Initialize pricing service - fetch tax rate from backend
+   * Call this once when the app starts
+   */
+  async init() {
+    await this.fetchTaxRate();
+    return this._taxRate;
+  },
+  
+  /**
    * Fetch tax rate from backend
-   * Falls back to 8% if not available
+   * Throws error if unable to fetch - never defaults
    */
   async fetchTaxRate() {
     try {
       const raw = await api("GET_TAX_RATE");
       const response = typeof raw === "string" ? JSON.parse(raw) : raw;
       
-      if (response.success && response.data) {
-        this._taxRate = Number(response.data.rate) || 8;
+      if (response.success && response.data && response.data.rate !== undefined) {
+        this._taxRate = Number(response.data.rate);
+        console.log("Tax rate loaded from backend:", this._taxRate + "%");
       } else {
-        this._taxRate = 8;
+        throw new Error("Invalid tax rate response from backend");
       }
     } catch (error) {
-      console.error("Failed to fetch tax rate, using default 8%:", error);
-      this._taxRate = 8;
+      console.error("Failed to fetch tax rate:", error);
+      throw error;
     }
     
     return this._taxRate;
@@ -43,9 +54,13 @@ const PricingService = {
   
   /**
    * Get current tax rate
+   * Throws if not yet fetched - ensures we never use a default
    */
   getTaxRate() {
-    return this._taxRate || 8;
+    if (this._taxRate === null) {
+      throw new Error("Tax rate not yet fetched from database");
+    }
+    return this._taxRate;
   },
   
   /**

@@ -1025,12 +1025,21 @@ const POSPage = {
       await ProductSearch.loadCategories();
       
       // Fetch tax rate from backend
-      await PricingService.fetchTaxRate();
+      try {
+        await PricingService.fetchTaxRate();
+      } catch (error) {
+        console.error("Failed to fetch tax rate:", error);
+        Toast.error("Failed to load tax rate from database");
+      }
       
       // Update tax label
       const taxLabel = document.getElementById("tax-label");
       if (taxLabel) {
-        taxLabel.textContent = PricingService.getTaxLabel();
+        try {
+          taxLabel.textContent = PricingService.getTaxLabel();
+        } catch (e) {
+          taxLabel.textContent = "Tax";
+        }
       }
       
       // Enable scanner

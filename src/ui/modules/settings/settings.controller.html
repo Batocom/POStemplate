@@ -30,18 +30,23 @@ const SettingsController = {
       const raw = await api("GET_TAX_RATE");
       const response = typeof raw === "string" ? JSON.parse(raw) : raw;
       
-      if (response.success && response.data) {
-        const rate = Number(response.data.rate) || 8;
+      if (response.success && response.data && response.data.rate !== undefined) {
+        const rate = Number(response.data.rate);
         
         const input = document.getElementById("taxRateInput");
         const display = document.getElementById("currentTaxRateDisplay");
         
         if (input) input.value = rate;
         if (display) display.textContent = rate + "%";
+        
+        // Update pricing service cache
+        PricingService._taxRate = rate;
+      } else {
+        throw new Error("Invalid tax rate response");
       }
     } catch (error) {
       console.error("Failed to load tax rate:", error);
-      Toast.error("Failed to load tax rate");
+      Toast.error("Failed to load tax rate from database");
     }
   },
   

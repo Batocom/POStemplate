@@ -8,6 +8,7 @@ window.onload = async () => {
     console.log("PricingService initialized with tax rate:", PricingService.getTaxRate() + "%");
   } catch (error) {
     console.error("Failed to initialize PricingService:", error);
+    Toast.error("Failed to load tax rate. Please check database settings.");
   }
 
   if (State.token) {
