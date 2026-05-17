@@ -451,3 +451,5 @@ The print module handles receipt printing.
 4. **Payment Processing** - Split payments, multiple tender types
 5. **Offline Support** - Local storage queue for transactions
 6. **EventBus Implementation** - Currently implied but not explicitly defined in provided files
+7. **M-Pesa API Integration** - Connect to M-Pesa payment gateway
+8. **Credit/Debtor Management** - Full customer credit tracking with payment history
