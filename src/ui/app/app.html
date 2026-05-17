@@ -195,6 +195,13 @@ async function viewSaleReceipt(saleId) {
         '</tr>';
       }).join("");
       
+      // Store sale data for print functionality
+      window._currentReceiptData = {
+        sale: sale,
+        items: items,
+        productMap: productMap
+      };
+      
       Modal.close();
       Modal.open({
         title: "Sale - " + sale.invoice_no,
@@ -208,6 +215,18 @@ async function viewSaleReceipt(saleId) {
   } catch (error) {
     Modal.close();
     Toast.error("Failed to load sale details: " + error.message);
+  }
+}
+
+/**
+ * Print the currently viewed receipt
+ * Called from the receipt modal's print button
+ */
+function printCurrentReceipt() {
+  if (window._currentReceiptData) {
+    PrintService.printReceipt(window._currentReceiptData);
+  } else {
+    Toast.error("No receipt data available for printing");
   }
 }
 

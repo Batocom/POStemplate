@@ -1,0 +1,238 @@
+<script>
+/**
+ * PrintService - Handles printing receipts and other documents
+ * 
+ * Provides:
+ * - printReceipt(saleData) - Opens print dialog with formatted receipt
+ * - printElement(elementId) - Prints content of a specific element
+ * - formatReceiptHTML(saleData) - Generates HTML for receipt printing
+ */
+const PrintService = {
+  
+  /**
+   * Print a receipt using sale data
+   * @param {Object} saleData - Contains sale, items, and productMap
+   */
+  printReceipt(saleData) {
+    const html = this.formatReceiptHTML(saleData);
+    this._openPrintWindow(html);
+  },
+  
+  /**
+   * Print the content of a specific element by ID
+   * @param {string} elementId - The ID of the element to print
+   */
+  printElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      Toast.error('Element not found for printing');
+      return;
+    }
+    
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) {
+      Toast.error('Please allow pop-ups for printing');
+      return;
+    }
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Print</title>
+        <style>
+          body { font-family: 'Courier New', monospace; padding: 20px; }
+          @media print {
+            body { margin: 0; padding: 10px; }
+          }
+        </style>
+      </head>
+      <body>
+        ${element.innerHTML}
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 500);
+  },
+  
+  /**
+   * Generate formatted HTML for receipt printing
+   * @param {Object} saleData - Contains sale, items, and productMap
+   * @returns {string} HTML string for printing
+   */
+  formatReceiptHTML(saleData) {
+    const { sale, items, productMap } = saleData;
+    
+    const itemsHTML = items.map(item => {
+      const productName = productMap[item.product_id] || item.product_id;
+      return `
+        <tr>
+          <td style="padding: 4px 8px; text-align: left;">${productName}</td>
+          <td style="padding: 4px 8px; text-align: center;">${item.quantity}</td>
+          <td style="padding: 4px 8px; text-align: right;">KES ${Number(item.price).toFixed(2)}</td>
+          <td style="padding: 4px 8px; text-align: right;">KES ${Number(item.subtotal).toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - ${sale.invoice_no}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 20px;
+            max-width: 300px;
+            margin: 0 auto;
+          }
+          .receipt-header {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #333;
+          }
+          .receipt-header h2 {
+            font-size: 16px;
+            margin-bottom: 4px;
+          }
+          .receipt-header p {
+            font-size: 11px;
+            color: #555;
+          }
+          .receipt-info {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #333;
+          }
+          .receipt-info p {
+            margin: 2px 0;
+          }
+          .receipt-items {
+            width: 100%;
+            margin-bottom: 12px;
+            border-collapse: collapse;
+          }
+          .receipt-items th {
+            border-bottom: 1px solid #333;
+            padding: 4px 8px;
+            text-align: left;
+            font-size: 11px;
+          }
+          .receipt-items th:not(:first-child) {
+            text-align: right;
+          }
+          .receipt-items td {
+            padding: 4px 8px;
+            border-bottom: 1px dotted #ccc;
+          }
+          .receipt-items td:not(:first-child) {
+            text-align: right;
+          }
+          .receipt-total {
+            text-align: right;
+            padding: 8px 0;
+            border-top: 2px solid #333;
+            font-size: 16px;
+            font-weight: bold;
+          }
+          .receipt-footer {
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed #333;
+            font-size: 11px;
+            color: #555;
+          }
+          @media print {
+            body { padding: 10px; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-header">
+          <h2>POS System</h2>
+          <p>Receipt</p>
+        </div>
+        
+        <div class="receipt-info">
+          <p><strong>Invoice:</strong> ${sale.invoice_no}</p>
+          <p><strong>Customer:</strong> ${sale.customer_name}</p>
+          <p><strong>Date:</strong> ${new Date(sale.created_at).toLocaleDateString()}</p>
+          <p><strong>Payment:</strong> ${sale.payment_method}</p>
+        </div>
+        
+        <table class="receipt-items">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th style="text-align: center;">Qty</th>
+              <th style="text-align: right;">Price</th>
+              <th style="text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHTML}
+          </tbody>
+        </table>
+        
+        <div class="receipt-total">
+          TOTAL: KES ${Number(sale.total_amount).toFixed(2)}
+        </div>
+        
+        <div class="receipt-footer">
+          <p>Thank you for your business!</p>
+          <p style="margin-top: 4px;">${new Date().toLocaleString()}</p>
+        </div>
+        
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+            Print Receipt
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-left: 8px;">
+            Close
+          </button>
+        </div>
+        
+        <script>
+          // Auto-print after a short delay
+          setTimeout(function() {
+            // Uncomment to auto-print: window.print();
+          }, 1000);
+        <\/script>
+      </body>
+      </html>
+    `;
+  },
+  
+  /**
+   * Internal: Open a print window with the given HTML content
+   */
+  _openPrintWindow(html) {
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) {
+      Toast.error('Please allow pop-ups for printing');
+      return;
+    }
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+    
+    // Focus the window
+    setTimeout(() => {
+      printWindow.focus();
+    }, 300);
+  }
+};
+</script>

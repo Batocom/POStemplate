@@ -50,6 +50,11 @@ const CheckoutService = {
         await this._showReceipt(saleData.saleId);
       }
       
+      // Show receipt modal with print option
+      if (saleData && saleData.saleId) {
+        await this._showReceiptModal(saleData.saleId);
+      }
+      
       // Clear cart
       CartService.clear();
       
@@ -108,6 +113,69 @@ const CheckoutService = {
       }
     } catch (error) {
       console.error("Receipt generation failed:", error);
+    }
+  },
+  
+  /**
+   * Show receipt modal with print option after sale
+   */
+  async _showReceiptModal(saleId) {
+    try {
+      // Fetch sale details and products for the receipt modal
+      const [saleRaw, productsRaw] = await Promise.all([
+        api("GET_SALE_BY_ID", { saleId }),
+        api("GET_PRODUCTS")
+      ]);
+      
+      const response = typeof saleRaw === "string" ? JSON.parse(saleRaw) : saleRaw;
+      const productsResponse = typeof productsRaw === "string" ? JSON.parse(productsRaw) : productsRaw;
+      
+      // Build product name lookup
+      const productMap = {};
+      if (productsResponse.success && Array.isArray(productsResponse.data)) {
+        productsResponse.data.forEach(function(p) {
+          productMap[p.id] = p.name;
+        });
+      }
+      
+      if (response.success) {
+        const { sale, items } = response.data;
+        
+        // Store receipt data for printing
+        window._currentReceiptData = {
+          sale: sale,
+          items: items,
+          productMap: productMap
+        };
+        
+        // Populate modal with sale details
+        document.getElementById("modal-invoice").textContent = sale.invoice_no;
+        document.getElementById("modal-customer").textContent = sale.customer_name;
+        document.getElementById("modal-date").textContent = new Date(sale.created_at).toLocaleDateString();
+        document.getElementById("modal-payment").textContent = sale.payment_method;
+        document.getElementById("modal-total").textContent = "KES " + Number(sale.total_amount).toFixed(2);
+        
+        // Render items with product names
+        const itemsBody = document.getElementById("modal-items-body");
+        itemsBody.innerHTML = items.map(function(item) {
+          const productName = productMap[item.product_id] || item.product_id;
+          return '<tr>' +
+            '<td>' + productName + '</td>' +
+            '<td>' + item.quantity + '</td>' +
+            '<td>KES ' + Number(item.price).toFixed(2) + '</td>' +
+            '<td>KES ' + Number(item.subtotal).toFixed(2) + '</td>' +
+          '</tr>';
+        }).join("");
+        
+        // Show the receipt modal
+        Modal.open({
+          title: "Sale Complete - " + sale.invoice_no,
+          content: document.getElementById("salesModalContent").innerHTML,
+          size: "lg"
+        });
+      }
+    } catch (error) {
+      console.error("Receipt modal display failed:", error);
     }
   },
   
