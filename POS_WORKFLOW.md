@@ -210,7 +210,7 @@ and sale completion.
               CartService.clear()
                        │
                        ▼
-                  ┌──────────┐
+                  ┌──────────┐   
                   │   idle   │
                   └──────────┘
 

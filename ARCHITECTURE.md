@@ -1,3 +1,4 @@
+=======
 # POS Architecture
 
 ## Overview
@@ -66,7 +67,7 @@ Handles:
 - frontend interactions
 
 ## Directory Structure
-|   appsscript.json
+ appsscript.json
 |   Code.js
 |
 +---core
@@ -85,6 +86,7 @@ Handles:
 |   |   |       relations.js
 |   |   |
 |   |   +---schema
+|   |   |       categories.schema.js
 |   |   |       migrations.schema.js
 |   |   |       products.schema.js
 |   |   |       sales.schema.js
@@ -95,6 +97,7 @@ Handles:
 |   |   |       users.schema.js
 |   |   |
 |   |   \---seeders
+|   |           categoriesSeeder.js
 |   |           seedRunner.js
 |   |           usersSeeder.js
 |   |
@@ -131,6 +134,8 @@ Handles:
 |   |
 |   \---units
 |            unitService.js
+|           unitService.js
+|           unitValidator.js
 |
 \---ui
     +---app
@@ -142,8 +147,10 @@ Handles:
     |       state.html
     |
     +---components
+    |       cartItemRow.html
     |       modal.html
     |       sidebar.html
+    |       table.html
     |       topbar.html
     |
     +---modules
@@ -151,22 +158,40 @@ Handles:
     |   |       categories.controller.html
     |   |       categories.modal.html
     |   |
-    |   \---products
-    |           products.controller.html
-    |           products.modal.html
+    |   +---products
+    |   |       products.controller.html
+    |   |       products.modal.html
+    |   |
+    |   \---units
+    |           units.controller.html
+    |           units.modal.html
     |
     +---pages
     |       categories.html
     |       dashboard.html
     |       login.html
+    |       pos.html
     |       products.html
     |       stockMovements.html
+    |       units.html
     |
     +---services
+    |       cartService.html
+    |       checkoutService.html
+    |       editService.html
+    |       modalService.html
+    |       pricingService.html
+    |       scannerService.html
+    |       searchService.html
+    |       tableService.html
     |       toastService.html
+    |
+    +---state
+    |       cartState.html
     |
     \---styles
             theme.html
+
 
 ## Runtime Flow
 
@@ -503,4 +528,4 @@ to:
 - PostgreSQL
 - Firebase
 - Node.js
-- React
+- react
