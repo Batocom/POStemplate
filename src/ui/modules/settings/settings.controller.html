@@ -1,0 +1,103 @@
+<script>
+/**
+ * SettingsController — Handles settings page logic
+ * 
+ * Manages:
+ * - Tax rate configuration
+ * - System settings
+ */
+const SettingsController = {
+  
+  /**
+   * Initialize settings page
+   */
+  async init() {
+    try {
+      await this.loadTaxRate();
+    } catch (error) {
+      Toast.error("Failed to load settings: " + error.message);
+    }
+  },
+  
+  /**
+   * Load current tax rate from backend
+   */
+  async loadTaxRate() {
+    try {
+      const raw = await api("GET_TAX_RATE");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && response.data) {
+        const rate = Number(response.data.rate) || 8;
+        
+        const input = document.getElementById("taxRateInput");
+        const display = document.getElementById("currentTaxRateDisplay");
+        
+        if (input) input.value = rate;
+        if (display) display.textContent = rate + "%";
+      }
+    } catch (error) {
+      console.error("Failed to load tax rate:", error);
+      Toast.error("Failed to load tax rate");
+    }
+  },
+  
+  /**
+   * Save tax rate to backend
+   */
+  async saveTaxRate() {
+    const input = document.getElementById("taxRateInput");
+    const btn = document.getElementById("saveTaxBtn");
+    
+    if (!input) return;
+    
+    const rate = Number(input.value);
+    
+    if (isNaN(rate) || rate < 0) {
+      Toast.error("Please enter a valid tax rate (0 or greater)");
+      return;
+    }
+    
+    if (rate > 100) {
+      Toast.error("Tax rate cannot exceed 100%");
+      return;
+    }
+    
+    // Disable button and show loading
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+    }
+    
+    try {
+      const raw = await api("SET_TAX_RATE", { rate: rate });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success) {
+        Toast.success("Tax rate updated to " + rate + "%");
+        
+        // Update display
+        const display = document.getElementById("currentTaxRateDisplay");
+        if (display) display.textContent = rate + "%";
+        
+        // Update pricing service cache
+        PricingService._taxRate = rate;
+        
+        // Recalculate cart totals if cart has items
+        if (CartState && CartState.hasItems()) {
+          PricingService.recalculate();
+        }
+      } else {
+        Toast.error(response.error || "Failed to save tax rate");
+      }
+    } catch (error) {
+      Toast.error("Error saving tax rate: " + error.message);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Save";
+      }
+    }
+  }
+};
+</script>
