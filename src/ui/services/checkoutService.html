@@ -45,12 +45,7 @@ const CheckoutService = {
       // Show success
       Toast.success("Sale completed successfully!");
       
-      // Generate receipt
-      if (saleData && saleData.saleId) {
-        await this._showReceipt(saleData.saleId);
-      }
-      
-      // Show receipt modal with print option
+      // Show receipt modal with print option (this replaces the old text receipt)
       if (saleData && saleData.saleId) {
         await this._showReceiptModal(saleData.saleId);
       }
@@ -138,6 +133,7 @@ const CheckoutService = {
   
   /**
    * Show receipt modal with print option after sale
+   * This is called after a successful sale to display the receipt
    */
   async _showReceiptModal(saleId) {
     try {
@@ -169,23 +165,37 @@ const CheckoutService = {
         };
         
         // Populate modal with sale details
-        document.getElementById("modal-invoice").textContent = sale.invoice_no;
-        document.getElementById("modal-customer").textContent = sale.customer_name;
-        document.getElementById("modal-date").textContent = new Date(sale.created_at).toLocaleDateString();
-        document.getElementById("modal-payment").textContent = sale.payment_method;
-        document.getElementById("modal-total").textContent = "KES " + Number(sale.total_amount).toFixed(2);
+        const invoiceEl = document.getElementById("modal-invoice");
+        const customerEl = document.getElementById("modal-customer");
+        const dateEl = document.getElementById("modal-date");
+        const paymentEl = document.getElementById("modal-payment");
+        const totalEl = document.getElementById("modal-total");
+        const itemsBody = document.getElementById("modal-items-body");
+        
+        if (invoiceEl) invoiceEl.textContent = sale.invoice_no;
+        if (customerEl) customerEl.textContent = sale.customer_name || 'Walk-in';
+        if (dateEl) dateEl.textContent = new Date(sale.created_at).toLocaleDateString();
+        if (paymentEl) paymentEl.textContent = sale.payment_method;
+        if (totalEl) totalEl.textContent = "KES " + Number(sale.total_amount).toFixed(2);
         
         // Render items with product names
-        const itemsBody = document.getElementById("modal-items-body");
-        itemsBody.innerHTML = items.map(function(item) {
-          const productName = productMap[item.product_id] || item.product_id;
-          return '<tr>' +
-            '<td>' + productName + '</td>' +
-            '<td>' + item.quantity + '</td>' +
-            '<td>KES ' + Number(item.price).toFixed(2) + '</td>' +
-            '<td>KES ' + Number(item.subtotal).toFixed(2) + '</td>' +
-          '</tr>';
-        }).join("");
+        if (itemsBody) {
+          itemsBody.innerHTML = items.map(function(item) {
+            const productName = productMap[item.product_id] || item.product_id;
+            return '<tr>' +
+              '<td>' + productName + '</td>' +
+              '<td>' + item.quantity + '</td>' +
+              '<td>KES ' + Number(item.price).toFixed(2) + '</td>' +
+              '<td>KES ' + Number(item.subtotal).toFixed(2) + '</td>' +
+            '</tr>';
+          }).join("");
+        }
+        
+        // Close the payment modal first
+        Modal.close();
+        
+        // Small delay to ensure payment modal is closed
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Show the receipt modal
         Modal.open({
@@ -193,9 +203,16 @@ const CheckoutService = {
           content: document.getElementById("salesModalContent").innerHTML,
           size: "lg"
         });
+      } else {
+        // Fallback: show simple success message
+        Modal.close();
+        Toast.success("Sale completed successfully!");
       }
     } catch (error) {
       console.error("Receipt modal display failed:", error);
+      // Fallback: show simple success message
+      Modal.close();
+      Toast.success("Sale completed successfully!");
     }
   },
   
