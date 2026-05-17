@@ -69,7 +69,11 @@ function renderSettingsPage() {
   if (template) {
     renderAppShell(template.innerHTML);
     setTimeout(() => {
-      SettingsController.init();
+      if (typeof SettingsController !== 'undefined' && SettingsController.init) {
+        SettingsController.init();
+      } else {
+        console.error('SettingsController not loaded');
+      }
     }, 100);
   } else {
     console.error('Settings template not found');

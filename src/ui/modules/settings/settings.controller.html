@@ -6,12 +6,15 @@
  * - Tax rate configuration
  * - System settings
  */
+console.log('SettingsController loaded');
+
 const SettingsController = {
   
   /**
    * Initialize settings page
    */
   async init() {
+    console.log('SettingsController.init() called');
     try {
       await this.loadTaxRate();
     } catch (error) {
