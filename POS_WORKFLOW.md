@@ -329,10 +329,11 @@ and sale completion.
 2. **Discount**: Currently 0 (placeholder for future)
 3. **Stock Validation**: Cannot sell more than available stock
 4. **Price Validation**: sell_price must be >= 0
-5. **Payment Methods**: Cash, M-Pesa, Credit (extensible via `PAYMENT_METHODS` array)
+5. **Payment Methods**: 
    - Cash: Requires amount >= total, shows change calculation
    - M-Pesa: Auto-sets amountPaid = total (future: M-Pesa API integration)
    - Credit: Requires customer selection, tracks debtor balance
+   - Extensible via `PAYMENT_METHODS` array in `PaymentModal`
 6. **Invoice Number**: Format "INV-" + Date.now() (timestamp-based)
 7. **Customer**: Defaults to "Walk-in" if not specified
 8. **Category Filters**: Dynamic, fetched from categories schema, not hardcoded
