@@ -1,14 +1,8 @@
 const TaxService = {
   
   /**
-   * Default tax rate (8%)
-   * Can be overridden by settings in the database
-   */
-  DEFAULT_TAX_RATE: 8,
-  
-  /**
-   * Get the current tax rate
-   * Checks for a tax setting in the database, falls back to default
+   * Get the current tax rate from database
+   * Returns 0 if not set or if settings table doesn't exist
    */
   getTaxRate() {
     try {
@@ -16,18 +10,19 @@ const TaxService = {
       const settingsTable = DBInstance.table("settings");
       const taxSetting = settingsTable.where("key", "tax_rate");
       
-      if (taxSetting.length > 0 && taxSetting[0].value) {
+      if (taxSetting.length > 0 && taxSetting[0].value !== undefined && taxSetting[0].value !== "") {
         const rate = Number(taxSetting[0].value);
         if (!isNaN(rate) && rate >= 0) {
           return rate;
         }
       }
     } catch (e) {
-      // Settings table may not exist yet, use default
+      // Settings table may not exist yet
       console.error("Failed to get tax rate from settings:", e);
     }
     
-    return this.DEFAULT_TAX_RATE;
+    // Return 0 if no tax rate is set in database
+    return 0;
   },
   
   /**

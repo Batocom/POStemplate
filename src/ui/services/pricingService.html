@@ -31,7 +31,7 @@ const PricingService = {
   
   /**
    * Fetch tax rate from backend
-   * Throws error if unable to fetch - never defaults
+   * Sets to 0 if not found in database - never defaults to 8
    */
   async fetchTaxRate() {
     try {
@@ -42,11 +42,13 @@ const PricingService = {
         this._taxRate = Number(response.data.rate);
         console.log("Tax rate loaded from backend:", this._taxRate + "%");
       } else {
-        throw new Error("Invalid tax rate response from backend");
+        // No tax rate set in database, use 0
+        console.log("No tax rate found in database, using 0%");
+        this._taxRate = 0;
       }
     } catch (error) {
-      console.error("Failed to fetch tax rate:", error);
-      throw error;
+      console.error("Failed to fetch tax rate, using 0%:", error);
+      this._taxRate = 0;
     }
     
     return this._taxRate;
@@ -54,11 +56,12 @@ const PricingService = {
   
   /**
    * Get current tax rate
-   * Throws if not yet fetched - ensures we never use a default
+   * Returns 0 if not yet fetched
    */
   getTaxRate() {
     if (this._taxRate === null) {
-      throw new Error("Tax rate not yet fetched from database");
+      console.warn("Tax rate not yet fetched, using 0%");
+      return 0;
     }
     return this._taxRate;
   },
