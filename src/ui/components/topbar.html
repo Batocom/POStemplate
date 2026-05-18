@@ -4,36 +4,35 @@ function renderTopbar() {
 
   return `
 
-    <header class="bg-white shadow px-4 md:px-6 py-3 md:py-4 flex justify-between items-center" style="min-height: 56px;">
+    <header style="background:white;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;min-height:56px;">
 
-      <div class="flex items-center gap-3">
+      <div style="display:flex;align-items:center;gap:12px;">
 
         <!-- Mobile hamburger -->
         <button
           onclick="toggleMobileSidebar()"
-          class="mobile-sidebar-toggle p-2 rounded hover:bg-gray-100 focus:outline-none"
+          id="hamburgerBtn"
           aria-label="Toggle navigation menu"
-          style="background: none; border: none; cursor: pointer;"
+          style="background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;display:none;"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>
 
-        <div class="font-bold text-lg md:text-xl" style="font-size: 1.125rem;">
+        <div style="font-size:1.125rem;font-weight:bold;">
           ${State.currentPage?.toUpperCase() || "POS"}
         </div>
 
       </div>
 
-      <div class="flex items-center gap-2 md:gap-4">
+      <div style="display:flex;align-items:center;gap:8px;">
 
-        <span class="text-sm md:text-base truncate" style="max-width: 120px; font-size: 0.875rem;">${State.user?.name || ""}</span>
+        <span style="font-size:0.875rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${State.user?.name || ""}</span>
 
         <button
           onclick="logout()"
-          class="bg-red-500 hover:bg-red-600 text-white text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 rounded transition-colors"
-          style="background-color: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.875rem; cursor: pointer;"
+          style="background-color:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.875rem;cursor:pointer;"
         >
           Logout
         </button>

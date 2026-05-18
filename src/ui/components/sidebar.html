@@ -4,55 +4,55 @@ function renderSidebar() {
 
   return `
 
-    <div class="p-4 text-2xl font-bold border-b border-gray-700 flex items-center justify-between" style="padding: 16px; font-size: 1.5rem; font-weight: bold; border-bottom: 1px solid #374151; display: flex; align-items: center; justify-content: space-between;">
+    <div style="padding:16px;font-size:1.5rem;font-weight:bold;border-bottom:1px solid #374151;display:flex;align-items:center;justify-content:space-between;">
 
       <span>Batocom POS</span>
 
       <!-- Close button for mobile -->
       <button
         onclick="closeMobileSidebar()"
-        class="show-mobile p-1 rounded hover:bg-gray-700 focus:outline-none"
+        id="sidebarCloseBtn"
         aria-label="Close navigation menu"
-        style="background: none; border: none; color: #9ca3af; cursor: pointer; padding: 8px; font-size: 1.5rem; line-height: 1;"
+        style="background:none;border:none;color:#9ca3af;cursor:pointer;padding:8px;font-size:1.5rem;line-height:1;display:none;"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+        <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
 
     </div>
 
-    <nav class="p-4 space-y-1" style="padding: 16px;">
+    <nav style="padding:16px;">
 
-      <button onclick="Router.go('dashboard'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('dashboard'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         📊 Dashboard
       </button>
 
-      <button onclick="Router.go('pos'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('pos'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         🛒 Point of Sale
       </button>
 
-      <button onclick="Router.go('products'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('products'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         📦 Products
       </button>
 
-      <button onclick="Router.go('categories'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('categories'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         🏷️ Categories
       </button>
 
-      <button onclick="Router.go('stock'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('stock'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         📋 Stock Movements
       </button>
 
-      <button onclick="Router.go('sales'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('sales'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         💳 POS Sales
       </button>
 
-      <button onclick="Router.go('units'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('units'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         ⚖️ Units
       </button>
 
-      <button onclick="Router.go('settings'); closeMobileSidebar();" class="w-full text-left px-3 py-2.5 rounded hover:bg-gray-800 transition-colors text-sm md:text-base" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 6px; background: none; border: none; color: white; cursor: pointer; font-size: 0.875rem;">
+      <button onclick="Router.go('settings'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
         ⚙️ Settings
       </button>
 
