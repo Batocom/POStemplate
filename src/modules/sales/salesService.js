@@ -1,4 +1,4 @@
-const SalesService = {
+var SalesService = SalesService || {
 
   createSale(token, payload) {
 
