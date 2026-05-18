@@ -7,6 +7,7 @@ function getSchemaRegistry() {
     getSaleItemsSchema(),
     getStockMovementsSchema(),
     getMigrationsSchema(),
-    getUnitsSchema()
+    getUnitsSchema(),
+    getSettingsSchema()
   ];
 }

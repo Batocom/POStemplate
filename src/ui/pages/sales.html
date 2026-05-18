@@ -1,0 +1,180 @@
+<template id="salesPageTemplate">
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">Sales History</h1>
+        <p class="text-gray-500">View all completed sales</p>
+      </div>
+      <button
+        onclick="Router.go('pos')"
+        class="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        New Sale
+      </button>
+    </div>
+    <div
+      id="salesTableContainer"
+      class="bg-white rounded shadow p-4"
+    >
+      Loading sales...
+    </div>
+  </div>
+</template>
+
+<!-- Receipt Modal Content (hidden, used by viewSaleReceipt) -->
+<div id="salesModalContent" style="display:none;">
+  <div class="receipt-modal">
+    <div class="receipt-header-info">
+      <div class="receipt-field">
+        <span class="receipt-label">Invoice:</span>
+        <span id="modal-invoice" class="receipt-value"></span>
+      </div>
+      <div class="receipt-field">
+        <span class="receipt-label">Customer:</span>
+        <span id="modal-customer" class="receipt-value"></span>
+      </div>
+      <div class="receipt-field">
+        <span class="receipt-label">Date:</span>
+        <span id="modal-date" class="receipt-value"></span>
+      </div>
+      <div class="receipt-field">
+        <span class="receipt-label">Payment:</span>
+        <span id="modal-payment" class="receipt-value"></span>
+      </div>
+    </div>
+    
+    <div class="receipt-items-section">
+      <h4 class="receipt-section-title">Items</h4>
+      <table class="receipt-items-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="modal-items-body">
+          <!-- Items rendered here -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="receipt-total-section">
+      <div class="receipt-total-row">
+        <span class="receipt-total-label">Total Amount</span>
+        <span id="modal-total" class="receipt-total-value"></span>
+      </div>
+    </div>
+    
+    <div class="receipt-actions">
+      <button onclick="printCurrentReceipt()" class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
+        <span>&#128424;</span> Print Receipt
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .receipt-modal {
+    padding: 0;
+  }
+  
+  .receipt-header-info {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .receipt-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.9rem;
+  }
+  
+  .receipt-label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .receipt-value {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .receipt-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .receipt-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+  
+  .receipt-items-table th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+  }
+  
+  .receipt-items-table th:not(:first-child) {
+    text-align: right;
+  }
+  
+  .receipt-items-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+  }
+  
+  .receipt-items-table td:not(:first-child) {
+    text-align: right;
+  }
+  
+  .receipt-total-section {
+    border-top: 2px solid #333;
+    padding-top: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .receipt-total-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .receipt-total-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2563eb;
+  }
+  
+  .receipt-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .receipt-actions button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+</style>

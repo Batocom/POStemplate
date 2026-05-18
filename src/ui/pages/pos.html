@@ -29,19 +29,11 @@
       </div>
       
       <!-- Quick Category Filters -->
-      <div class="category-filters">
-        <button class="category-btn active" onclick="ProductSearch.filterByCategory('all')">
+      <div class="category-filters" id="category-filters">
+        <button class="category-btn active" onclick="ProductSearch.filterByCategory('all', event)">
           All
         </button>
-        <button class="category-btn" onclick="ProductSearch.filterByCategory('Food')">
-          Food
-        </button>
-        <button class="category-btn" onclick="ProductSearch.filterByCategory('Beverages')">
-          Beverages
-        </button>
-        <button class="category-btn" onclick="ProductSearch.filterByCategory('Other')">
-          Other
-        </button>
+        <!-- Categories rendered dynamically by ProductSearch.loadCategories() -->
       </div>
       
       <!-- Product Grid -->
@@ -76,24 +68,28 @@
       <div class="totals-panel">
         <div class="totals-row">
           <span class="totals-label">Subtotal</span>
-          <span id="subtotal" class="totals-value">$0.00</span>
+          <span id="subtotal" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-row">
-          <span class="totals-label">Tax (8%)</span>
-          <span id="tax" class="totals-value">$0.00</span>
+          <span class="totals-label" id="tax-label">Tax</span>
+          <span id="tax" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-row">
           <span class="totals-label">Discount</span>
-          <span id="discount" class="totals-value">$0.00</span>
+          <span id="discount" class="totals-value">KES 0.00</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-label">Profit</span>
+          <span id="profit" class="totals-value">KES 0.00</span>
         </div>
         <div class="totals-divider"></div>
         <div class="totals-row totals-grand">
           <span class="totals-label font-bold">Total</span>
-          <span id="total" class="totals-value totals-amount">$0.00</span>
+          <span id="total" class="totals-value totals-amount">KES 0.00</span>
         </div>
         <div class="totals-row totals-change" id="change-row" style="display:none;">
           <span class="totals-label">Change</span>
-          <span id="change" class="totals-value totals-change-amount">$0.00</span>
+          <span id="change" class="totals-value totals-change-amount">KES 0.00</span>
         </div>
       </div>
       
@@ -102,7 +98,64 @@
         <button class="bg-blue-600 text-white px-6 py-3 rounded w-full text-lg font-bold" 
                 onclick="PaymentModal.init(); Modal.open({ title: 'Complete Payment', content: document.getElementById('paymentModalContent').innerHTML, size: 'md' });"
                 id="checkout-btn" disabled>
-          Checkout ($0.00)
+          Checkout (KES 0.00)
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Receipt Modal Content (hidden, used by viewSaleReceipt and checkout) -->
+  <div id="salesModalContent" style="display:none;">
+    <div class="receipt-modal">
+      <div class="receipt-header-info">
+        <div class="receipt-field">
+          <span class="receipt-label">Invoice:</span>
+          <span id="modal-invoice" class="receipt-value"></span>
+        </div>
+        <div class="receipt-field">
+          <span class="receipt-label">Customer:</span>
+          <span id="modal-customer" class="receipt-value"></span>
+        </div>
+        <div class="receipt-field">
+          <span class="receipt-label">Date:</span>
+          <span id="modal-date" class="receipt-value"></span>
+        </div>
+        <div class="receipt-field">
+          <span class="receipt-label">Payment:</span>
+          <span id="modal-payment" class="receipt-value"></span>
+        </div>
+      </div>
+      
+      <div class="receipt-items-section">
+        <h4 class="receipt-section-title">Items</h4>
+        <table class="receipt-items-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="modal-items-body">
+            <!-- Items rendered here -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="receipt-total-section">
+        <div class="receipt-total-row">
+          <span class="receipt-total-label">Total Amount</span>
+          <span id="modal-total" class="receipt-total-value"></span>
+        </div>
+      </div>
+      
+      <div class="receipt-actions">
+        <button onclick="printCurrentReceipt()" class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          <span>&#128424;</span> Print Receipt
+        </button>
+        <button onclick="Modal.close()" class="bg-gray-500 text-white px-4 py-2 rounded flex items-center gap-2">
+          Close
         </button>
       </div>
     </div>
@@ -111,33 +164,33 @@
   <!-- Payment Modal Content (hidden, used by Modal) -->
   <div id="paymentModalContent" style="display:none;">
     <div class="payment-modal-inner">
+      <!-- Loading Overlay -->
+      <div id="payment-loading-overlay" class="payment-loading-overlay" style="display:none;">
+        <div class="payment-loading-spinner">
+          <div class="spinner"></div>
+          <p>Processing payment...</p>
+        </div>
+      </div>
+      
       <!-- Total Display -->
       <div class="payment-total-display">
         <div class="payment-total-label">Total Due</div>
-        <div class="payment-total-amount" id="payment-total">$0.00</div>
+        <div class="payment-total-amount" id="payment-total">KES 0.00</div>
       </div>
       
       <!-- Payment Method -->
       <div class="payment-methods">
         <label class="payment-method-label">Payment Method</label>
-        <div class="payment-method-options">
-          <button class="payment-method-btn active" data-method="cash" onclick="PaymentModal.setMethod('cash')">
-            Cash
-          </button>
-          <button class="payment-method-btn" data-method="card" onclick="PaymentModal.setMethod('card')">
-            Card
-          </button>
-          <button class="payment-method-btn" data-method="transfer" onclick="PaymentModal.setMethod('transfer')">
-            Transfer
-          </button>
+        <div class="payment-method-options" id="payment-method-options">
+          <!-- Methods rendered dynamically by PaymentModal -->
         </div>
       </div>
       
-      <!-- Amount Input -->
+      <!-- Amount Input (for cash) -->
       <div class="payment-amount" id="cash-input-section">
         <label class="payment-amount-label">Amount Received</label>
         <div class="payment-amount-input-wrapper">
-          <span class="currency-symbol">$</span>
+          <span class="currency-symbol">KES</span>
           <input type="number" 
                  id="payment-amount" 
                  class="payment-amount-input" 
@@ -151,7 +204,25 @@
       <!-- Change Display -->
       <div class="payment-change" id="change-display" style="display:none;">
         <div class="change-label">Change Due</div>
-        <div class="change-amount" id="change-amount">$0.00</div>
+        <div class="change-amount" id="change-amount">KES 0.00</div>
+      </div>
+      
+      <!-- Credit Section (for credit/debtor payments) -->
+      <div class="payment-credit-section" id="credit-section" style="display:none;">
+        <div class="credit-customer">
+          <label class="payment-amount-label">Select Customer</label>
+          <select id="credit-customer-select" class="credit-customer-select" onchange="PaymentModal.onCustomerChange()">
+            <option value="">Loading customers...</option>
+          </select>
+        </div>
+        <div class="credit-balance" id="credit-balance" style="display:none;">
+          <span class="credit-balance-label">Existing Balance:</span>
+          <span class="credit-balance-amount">KES 0.00</span>
+        </div>
+        <div class="credit-note">
+          <label class="payment-amount-label">Notes (optional)</label>
+          <textarea id="credit-notes" class="credit-notes-input" placeholder="Add notes for this credit sale..." rows="2"></textarea>
+        </div>
       </div>
       
       <!-- Summary -->
@@ -162,7 +233,7 @@
         </div>
         <div class="summary-row">
           <span>Total</span>
-          <span id="payment-summary-total">$0.00</span>
+          <span id="payment-summary-total">KES 0.00</span>
         </div>
       </div>
       
@@ -684,6 +755,243 @@
     color: #666;
   }
   
+  /* Payment Loading Overlay */
+  .payment-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 12px;
+  }
+  
+  .payment-loading-spinner {
+    text-align: center;
+  }
+  
+  .payment-loading-spinner p {
+    margin-top: 12px;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top: 4px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Payment Method Icons */
+  .payment-method-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+  }
+  
+  .payment-method-btn:hover {
+    border-color: #bbb;
+  }
+  
+  .payment-method-btn.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+  }
+  
+  .payment-method-icon {
+    font-size: 1.5rem;
+  }
+  
+  /* Credit Section */
+  .payment-credit-section {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+  }
+  
+  .credit-customer-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    outline: none;
+  }
+  
+  .credit-customer-select:focus {
+    border-color: #2563eb;
+  }
+  
+  .credit-balance {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .credit-balance-label {
+    font-size: 0.85rem;
+    color: #991b1b;
+  }
+  
+  .credit-balance-amount {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #dc2626;
+  }
+  
+  .credit-notes-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+  }
+  
+  .credit-notes-input:focus {
+    border-color: #2563eb;
+  }
+  
+  .credit-note {
+    margin-top: 8px;
+  }
+  
+  /* Receipt Modal Styles */
+  .receipt-modal {
+    padding: 0;
+  }
+  
+  .receipt-header-info {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .receipt-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.9rem;
+  }
+  
+  .receipt-label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .receipt-value {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .receipt-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .receipt-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+  
+  .receipt-items-table th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+  }
+  
+  .receipt-items-table th:not(:first-child) {
+    text-align: right;
+  }
+  
+  .receipt-items-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+  }
+  
+  .receipt-items-table td:not(:first-child) {
+    text-align: right;
+  }
+  
+  .receipt-total-section {
+    border-top: 2px solid #333;
+    padding-top: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .receipt-total-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .receipt-total-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2563eb;
+  }
+  
+  .receipt-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .receipt-actions button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
   @media (max-width: 900px) {
     .pos-layout {
       flex-direction: column;
@@ -713,6 +1021,27 @@ const POSPage = {
       // Load products
       await ProductSearch.loadProducts();
       
+      // Load categories for dynamic filters
+      await ProductSearch.loadCategories();
+      
+      // Fetch tax rate from backend
+      try {
+        await PricingService.fetchTaxRate();
+      } catch (error) {
+        console.error("Failed to fetch tax rate:", error);
+        Toast.error("Failed to load tax rate from database");
+      }
+      
+      // Update tax label
+      const taxLabel = document.getElementById("tax-label");
+      if (taxLabel) {
+        try {
+          taxLabel.textContent = PricingService.getTaxLabel();
+        } catch (e) {
+          taxLabel.textContent = "Tax";
+        }
+      }
+      
       // Enable scanner
       ScannerService.enable((barcode) => {
         ProductSearch.searchByBarcode(barcode);
@@ -734,6 +1063,11 @@ const POSPage = {
       EventBus.on("totalsUpdated", () => {
         this.updateCheckoutButton();
         TotalsPanel.render();
+        // Update tax label in case it changed
+        const taxLabel = document.getElementById("tax-label");
+        if (taxLabel) {
+          taxLabel.textContent = PricingService.getTaxLabel();
+        }
       });
       
       EventBus.on("cartCleared", () => {
@@ -794,9 +1128,9 @@ const POSPage = {
     grid.innerHTML = products.map(product => `
       <div class="product-card" 
            onclick="CartService.add({id: '${product.id}', name: '${product.name.replace(/'/g, "\\'")}', barcode: '${product.barcode || ''}', sell_price: ${product.sell_price || 0}, buy_price: ${product.buy_price || 0}, stock: ${product.stock || 0}})"
-           title="${product.name} - $${Number(product.sell_price).toFixed(2)}">
+           title="${product.name} - ${PricingService.formatCurrency(product.sell_price)}">
         <div class="product-name">${product.name}</div>
-        <div class="product-price">$${Number(product.sell_price).toFixed(2)}</div>
+        <div class="product-price">${PricingService.formatCurrency(product.sell_price)}</div>
         <div class="product-stock">Stock: ${product.stock || 0}</div>
         ${product.barcode ? `<div class="product-barcode">${product.barcode}</div>` : ''}
       </div>
@@ -816,7 +1150,7 @@ const POSPage = {
       btn.textContent = `Checkout (${PricingService.formatCurrency(CartState.summary.total)})`;
     } else {
       btn.disabled = true;
-      btn.textContent = "Checkout ($0.00)";
+      btn.textContent = "Checkout (KES 0.00)";
     }
   },
   
@@ -834,6 +1168,7 @@ const POSPage = {
 const ProductSearch = {
   products: [],
   filteredProducts: [],
+  categories: [],
   searchTimeout: null,
   
   /**
@@ -852,6 +1187,43 @@ const ProductSearch = {
       console.error("Failed to load products:", error);
       Toast.error("Failed to load products");
     }
+  },
+  
+  /**
+   * Load categories from backend for dynamic filters
+   */
+  async loadCategories() {
+    try {
+      const raw = await api("GET_CATEGORIES");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && Array.isArray(response.data)) {
+        this.categories = response.data;
+        this._renderCategoryFilters();
+      }
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+    }
+  },
+  
+  /**
+   * Render category filter buttons dynamically
+   */
+  _renderCategoryFilters() {
+    const container = document.getElementById("category-filters");
+    if (!container) return;
+    
+    // Keep the "All" button
+    let html = '<button class="category-btn active" onclick="ProductSearch.filterByCategory(\'all\', event)">All</button>';
+    
+    // Add dynamic category buttons
+    html += this.categories.map(cat => `
+      <button class="category-btn" onclick="ProductSearch.filterByCategory('${cat.id}', event)">
+        ${cat.name}
+      </button>
+    `).join("");
+    
+    container.innerHTML = html;
   },
   
   /**
@@ -886,7 +1258,7 @@ const ProductSearch = {
               <div class="result-name">${product.name}</div>
               <div class="result-stock">Stock: ${product.stock || 0}</div>
             </div>
-            <div class="result-price">$${Number(product.sell_price).toFixed(2)}</div>
+            <div class="result-price">${PricingService.formatCurrency(product.sell_price)}</div>
           </div>
         `).join("");
         results.style.display = "block";
@@ -930,19 +1302,23 @@ const ProductSearch = {
   
   /**
    * Filter products by category
+   * @param {string} categoryId - Category ID or 'all' for all products
+   * @param {Event} evt - Click event
    */
-  filterByCategory(category) {
+  filterByCategory(categoryId, evt) {
     // Update active button
     document.querySelectorAll(".category-btn").forEach(btn => {
       btn.classList.remove("active");
     });
-    event.target.classList.add("active");
+    if (evt && evt.target) {
+      evt.target.classList.add("active");
+    }
     
-    if (category === "all") {
+    if (categoryId === "all") {
       this.filteredProducts = [...this.products];
     } else {
       this.filteredProducts = this.products.filter(p => 
-        p.category && p.category.toLowerCase() === category.toLowerCase()
+        p.category_id === categoryId
       );
     }
     
@@ -1028,6 +1404,7 @@ const TotalsPanel = {
     const subtotalEl = document.getElementById("subtotal");
     const taxEl = document.getElementById("tax");
     const discountEl = document.getElementById("discount");
+    const profitEl = document.getElementById("profit");
     const totalEl = document.getElementById("total");
     const changeEl = document.getElementById("change");
     const changeRow = document.getElementById("change-row");
@@ -1035,6 +1412,7 @@ const TotalsPanel = {
     if (subtotalEl) subtotalEl.textContent = PricingService.formatCurrency(summary.subtotal);
     if (taxEl) taxEl.textContent = PricingService.formatCurrency(summary.tax);
     if (discountEl) discountEl.textContent = PricingService.formatCurrency(summary.discount);
+    if (profitEl) profitEl.textContent = PricingService.formatCurrency(summary.profit);
     if (totalEl) totalEl.textContent = PricingService.formatCurrency(summary.total);
     
     // Show change if payment entered
@@ -1049,8 +1427,28 @@ const TotalsPanel = {
 
 /**
  * PaymentModal — Handles payment UI
+ * 
+ * Supports multiple payment methods:
+ * - cash: Full payment with change calculation
+ * - mpesa: Mobile money payment (future integration)
+ * - credit: Debtor/credit payment with balance tracking
+ * 
+ * To add a new payment method:
+ * 1. Add method to PAYMENT_METHODS array
+ * 2. Add handler in _handleMethodChange()
+ * 3. Add validation in _validatePayment()
  */
 const PaymentModal = {
+  
+  /**
+   * Available payment methods
+   * Extend this array to add new payment methods
+   */
+  PAYMENT_METHODS: [
+    { id: 'cash', label: 'Cash', icon: '💰', requiresAmount: true },
+    { id: 'mpesa', label: 'M-Pesa', icon: '📱', requiresAmount: false },
+    { id: 'credit', label: 'Credit', icon: '📋', requiresAmount: false }
+  ],
   
   /**
    * Initialize modal when shown
@@ -1066,10 +1464,17 @@ const PaymentModal = {
     if (itemCountEl) itemCountEl.textContent = CartState.getTotalQuantity();
     if (summaryTotalEl) summaryTotalEl.textContent = PricingService.formatCurrency(total);
     
-    // Reset amount
+    // Reset loading state
+    this._setLoading(false);
+    
+    // Render payment methods dynamically
+    this._renderPaymentMethods();
+    
+    // Reset amount - PREFILL with total amount
     const amountInput = document.getElementById("payment-amount");
     if (amountInput) {
-      amountInput.value = "";
+      amountInput.value = total.toFixed(2);
+      amountInput.disabled = false;
       setTimeout(() => amountInput.focus(), 100);
     }
     
@@ -1077,8 +1482,31 @@ const PaymentModal = {
     const changeDisplay = document.getElementById("change-display");
     if (changeDisplay) changeDisplay.style.display = "none";
     
+    // Reset credit section
+    const creditSection = document.getElementById("credit-section");
+    if (creditSection) creditSection.style.display = "none";
+    
     // Set default method
     this.setMethod("cash");
+    
+    // Trigger amount change to update UI
+    this.onAmountChange();
+  },
+  
+  /**
+   * Render payment method buttons dynamically
+   * Extend PAYMENT_METHODS array to add new methods
+   */
+  _renderPaymentMethods() {
+    const container = document.getElementById("payment-method-options");
+    if (!container) return;
+    
+    container.innerHTML = this.PAYMENT_METHODS.map(method => `
+      <button class="payment-method-btn" data-method="${method.id}" onclick="PaymentModal.setMethod('${method.id}')">
+        <span class="payment-method-icon">${method.icon}</span>
+        <span class="payment-method-label">${method.label}</span>
+      </button>
+    `).join("");
   },
   
   /**
@@ -1092,15 +1520,110 @@ const PaymentModal = {
       btn.classList.toggle("active", btn.dataset.method === method);
     });
     
-    // Show/hide cash input
+    this._handleMethodChange(method);
+  },
+  
+  /**
+   * Handle UI changes when payment method changes
+   * Extend this method when adding new payment methods
+   */
+  _handleMethodChange(method) {
     const cashSection = document.getElementById("cash-input-section");
-    if (cashSection) {
-      if (method === "cash") {
-        cashSection.style.display = "block";
+    const creditSection = document.getElementById("credit-section");
+    const amountInput = document.getElementById("payment-amount");
+    const total = CartState.summary.total;
+    
+    // Hide all method-specific sections first
+    if (cashSection) cashSection.style.display = "none";
+    if (creditSection) creditSection.style.display = "none";
+    
+    switch (method) {
+      case 'cash':
+        if (cashSection) cashSection.style.display = "block";
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = false;
+        }
+        break;
+        
+      case 'mpesa':
+        // M-Pesa: Auto-set amount to total (future: integrate with M-Pesa API)
+        CartState.payment.amountPaid = total;
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = true;
+        }
+        break;
+        
+      case 'credit':
+        // Credit: Show credit section, auto-set amount to total
+        CartState.payment.amountPaid = total;
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = true;
+        }
+        if (creditSection) creditSection.style.display = "block";
+        this._loadCustomers();
+        break;
+        
+      default:
+        // Default: treat as full payment
+        CartState.payment.amountPaid = total;
+        if (amountInput) {
+          amountInput.value = total.toFixed(2);
+          amountInput.disabled = true;
+        }
+    }
+    
+    // Update change and button state
+    this.onAmountChange();
+  },
+  
+  /**
+   * Load customers for credit payment
+   */
+  async _loadCustomers() {
+    const select = document.getElementById("credit-customer-select");
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Loading customers...</option>';
+    
+    try {
+      const raw = await api("GET_CUSTOMERS");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && Array.isArray(response.data)) {
+        select.innerHTML = '<option value="">Select customer</option>' +
+          response.data.map(c => `
+            <option value="${c.id}" data-balance="${c.balance || 0}">
+              ${c.name} ${c.phone ? '- ' + c.phone : ''} ${Number(c.balance) > 0 ? '(Balance: KES ' + Number(c.balance).toFixed(2) + ')' : ''}
+            </option>
+          `).join("");
       } else {
-        cashSection.style.display = "none";
-        CartState.payment.amountPaid = CartState.summary.total;
+        select.innerHTML = '<option value="">No customers available</option>';
       }
+    } catch (error) {
+      console.error("Failed to load customers:", error);
+      select.innerHTML = '<option value="">Error loading customers</option>';
+    }
+  },
+  
+  /**
+   * Handle customer selection change
+   */
+  onCustomerChange() {
+    const select = document.getElementById("credit-customer-select");
+    const balanceDisplay = document.getElementById("credit-balance");
+    
+    if (!select || !balanceDisplay) return;
+    
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      const balance = Number(selectedOption.dataset.balance) || 0;
+      balanceDisplay.textContent = 'KES ' + balance.toFixed(2);
+      balanceDisplay.style.display = "block";
+    } else {
+      balanceDisplay.style.display = "none";
     }
   },
   
@@ -1113,6 +1636,7 @@ const PaymentModal = {
     
     CartState.payment.amountPaid = amount;
     
+    const total = CartState.summary.total;
     const change = CheckoutService.calculateChange(amount);
     const changeDisplay = document.getElementById("change-display");
     const changeAmount = document.getElementById("change-amount");
@@ -1127,7 +1651,63 @@ const PaymentModal = {
     // Enable/disable confirm button
     const confirmBtn = document.getElementById("confirm-payment-btn");
     if (confirmBtn) {
-      confirmBtn.disabled = amount < CartState.summary.total;
+      // For credit, always enable if customer is selected
+      if (CartState.payment.method === 'credit') {
+        const customerSelect = document.getElementById("credit-customer-select");
+        confirmBtn.disabled = !customerSelect || !customerSelect.value;
+      } else {
+        confirmBtn.disabled = amount < total;
+      }
+    }
+  },
+  
+  /**
+   * Validate payment before processing
+   */
+  _validatePayment() {
+    const method = CartState.payment.method;
+    const total = CartState.summary.total;
+    const amountPaid = CartState.payment.amountPaid;
+    
+    switch (method) {
+      case 'cash':
+        if (!amountPaid || amountPaid < total) {
+          throw new Error(`Insufficient payment. Total is ${PricingService.formatCurrency(total)}, but received ${PricingService.formatCurrency(amountPaid || 0)}`);
+        }
+        break;
+        
+      case 'mpesa':
+        // M-Pesa validation (future: add M-Pesa transaction ID validation)
+        break;
+        
+      case 'credit':
+        const customerSelect = document.getElementById("credit-customer-select");
+        if (!customerSelect || !customerSelect.value) {
+          throw new Error("Please select a customer for credit payment");
+        }
+        break;
+        
+      default:
+        throw new Error("Unknown payment method: " + method);
+    }
+    
+    return true;
+  },
+  
+  /**
+   * Set loading state
+   */
+  _setLoading(isLoading) {
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    const loadingOverlay = document.getElementById("payment-loading-overlay");
+    
+    if (confirmBtn) {
+      confirmBtn.disabled = isLoading;
+      confirmBtn.textContent = isLoading ? "Processing..." : "Complete Sale";
+    }
+    
+    if (loadingOverlay) {
+      loadingOverlay.style.display = isLoading ? "flex" : "none";
     }
   },
   
@@ -1135,18 +1715,40 @@ const PaymentModal = {
    * Confirm payment and process checkout
    */
   async confirm() {
-    const confirmBtn = document.getElementById("confirm-payment-btn");
-    if (confirmBtn) {
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = "Processing...";
-    }
-    
     try {
+      // Validate payment
+      this._validatePayment();
+      
+      // Show loading state
+      this._setLoading(true);
+      
+      const method = CartState.payment.method;
+      let amountPaid;
+      let customerId = null;
+      
+      switch (method) {
+        case 'cash':
+          amountPaid = Number(document.getElementById("payment-amount").value) || 0;
+          break;
+          
+        case 'mpesa':
+          amountPaid = CartState.summary.total;
+          break;
+          
+        case 'credit':
+          amountPaid = CartState.summary.total;
+          const customerSelect = document.getElementById("credit-customer-select");
+          customerId = customerSelect ? customerSelect.value : null;
+          break;
+          
+        default:
+          amountPaid = CartState.summary.total;
+      }
+      
       const paymentData = {
-        method: CartState.payment.method,
-        amountPaid: CartState.payment.method === "cash" 
-          ? Number(document.getElementById("payment-amount").value) || 0
-          : CartState.summary.total
+        method: method,
+        amountPaid: amountPaid,
+        customerId: customerId
       };
       
       await CheckoutService.process(paymentData);
@@ -1154,10 +1756,7 @@ const PaymentModal = {
       Modal.close();
       
     } catch (error) {
-      if (confirmBtn) {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = "Complete Sale";
-      }
+      this._setLoading(false);
       Toast.error(error.message || "Payment failed");
     }
   }

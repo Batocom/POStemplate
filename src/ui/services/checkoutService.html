@@ -45,9 +45,9 @@ const CheckoutService = {
       // Show success
       Toast.success("Sale completed successfully!");
       
-      // Generate receipt
+      // Show receipt modal with print option
       if (saleData && saleData.saleId) {
-        await this._showReceipt(saleData.saleId);
+        await ReceiptService.show(saleData.saleId);
       }
       
       // Clear cart
@@ -78,6 +78,24 @@ const CheckoutService = {
       total: item.total
     }));
     
+    // Get customer ID from payment data if credit method
+    let customerId = CartState.customer ? CartState.customer.id : null;
+    if (CartState.payment.method === 'credit') {
+      const customerSelect = document.getElementById("credit-customer-select");
+      if (customerSelect && customerSelect.value) {
+        customerId = customerSelect.value;
+      }
+    }
+    
+    // Get credit notes if applicable
+    let notes = '';
+    if (CartState.payment.method === 'credit') {
+      const notesInput = document.getElementById("credit-notes");
+      if (notesInput) {
+        notes = notesInput.value;
+      }
+    }
+    
     return {
       items: items,
       subtotal: CartState.summary.subtotal,
@@ -86,7 +104,9 @@ const CheckoutService = {
       total: CartState.summary.total,
       payment_method: CartState.payment.method,
       amount_paid: CartState.payment.amountPaid,
-      customer_id: CartState.customer ? CartState.customer.id : null
+      customer_id: customerId,
+      notes: notes,
+      is_credit: CartState.payment.method === 'credit'
     };
   },
   
@@ -109,6 +129,15 @@ const CheckoutService = {
     } catch (error) {
       console.error("Receipt generation failed:", error);
     }
+  },
+  
+  /**
+   * Show receipt modal with print option after sale
+   * This is called after a successful sale to display the receipt
+   * Delegates to ReceiptService for consistency
+   */
+  async _showReceiptModal(saleId) {
+    await ReceiptService.show(saleId);
   },
   
   /**

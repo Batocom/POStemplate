@@ -141,6 +141,38 @@ function handleRequest(action, payload) {
         data: StockMovementService.getSummary(payload.token, payload.filters || {})
       });
 
+    case "GET_DASHBOARD_DATA":
+      return JSON.stringify({
+        success: true,
+        data: SalesService.getDashboardData(payload.token)
+      });
+
+    case "GET_SALES":
+      return JSON.stringify({
+        success: true,
+        data: SalesService.getAll(payload.token)
+      });
+
+    case "GET_SALE_BY_ID":
+      const sale = SalesService.getById(payload.token, payload.saleId);
+      const items = SalesService.getItemsBySaleId(payload.token, payload.saleId);
+      return JSON.stringify({
+        success: true,
+        data: { sale, items }
+      });
+
+    case "GET_TAX_RATE":
+      const taxRate = TaxService.getTaxRate();
+      return JSON.stringify({
+        success: true,
+        data: { rate: taxRate }
+      });
+
+    case "SET_TAX_RATE":
+      requireRole(payload.token, "ADMIN");
+      const result = TaxService.setTaxRate(payload.token, payload.rate);
+      return JSON.stringify({ success: true, data: result });
+
     default:
       throw new Error("Unknown action");
   }

@@ -35,6 +35,8 @@
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/pricingService').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/scannerService').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/checkoutService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/printService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/receiptService').getContent(); ?>
   
   <!-- POS Components -->
   <?!= HtmlService.createHtmlOutputFromFile('ui/components/cartItemRow').getContent(); ?>
@@ -47,12 +49,17 @@
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/categories').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/stockMovements').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/units').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/pages/sales').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/modules/sales/sales.modal').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/modules/sales/sales.controller').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/modules/products/products.modal').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/modules/units/units.modal').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/modules/units/units.controller').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/modules/products/products.controller').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/modules/categories/categories.modal').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/modules/categories/categories.controller').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/pages/settings').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/modules/settings/settings.controller').getContent(); ?>
   
   <!-- Then load app shell and boot -->
   <?!= HtmlService.createHtmlOutputFromFile('ui/app/app').getContent(); ?>

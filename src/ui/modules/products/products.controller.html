@@ -7,7 +7,10 @@ async function openCreateProductModal() {
     content: template.innerHTML,
     size: "lg"
   });
-  await loadUnitsDropdown();
+  await Promise.all([
+    loadUnitsDropdown(),
+    loadCategoriesDropdown()
+  ]);
 }
 
 async function loadUnitsDropdown() {
@@ -43,7 +46,8 @@ async function submitCreateProduct(e) {
     buy_price: Number(document.getElementById("buyPrice").value),
     sell_price: Number(document.getElementById("sellPrice").value),
     stock: Number(document.getElementById("stockQty").value),
-    unit_id: document.getElementById("unitSelect").value
+    unit_id: document.getElementById("unitSelect").value,
+    category_id: document.getElementById("categorySelect").value
   };
 
   try {
@@ -85,6 +89,7 @@ async function openEditProductModal(productId) {
       document.getElementById('editBuyPrice').value = product.buy_price || 0;
       document.getElementById('editStockQty').value = product.stock || 0;
       loadEditUnitsDropdown(product.unit_id);
+      loadEditCategoriesDropdown(product.category_id);
     },
     getPayload: function() {
       return {
@@ -93,7 +98,8 @@ async function openEditProductModal(productId) {
         sell_price: Number(document.getElementById('editSellPrice').value),
         buy_price: Number(document.getElementById('editBuyPrice').value),
         stock: Number(document.getElementById('editStockQty').value),
-        unit_id: document.getElementById('editUnitSelect').value
+        unit_id: document.getElementById('editUnitSelect').value,
+        category_id: document.getElementById('editCategorySelect').value
       };
     },
     onSuccess: function() {
@@ -120,6 +126,42 @@ async function loadEditUnitsDropdown(selectedUnitId) {
   `).join("");
 }
 
+async function loadCategoriesDropdown() {
+  const raw = await api("GET_CATEGORIES");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("categorySelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No categories available</option>';
+    return;
+  }
+
+  select.innerHTML = '<option value="">Select category</option>' +
+    response.data.map(cat => `
+    <option value="${cat.id}">
+      ${cat.name}
+    </option>
+  `).join("");
+}
+
+async function loadEditCategoriesDropdown(selectedCategoryId) {
+  const raw = await api("GET_CATEGORIES");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("editCategorySelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No categories available</option>';
+    return;
+  }
+
+  select.innerHTML = '<option value="">Select category</option>' +
+    response.data.map(cat => `
+    <option value="${cat.id}" ${cat.id === selectedCategoryId ? 'selected' : ''}>
+      ${cat.name}
+    </option>
+  `).join("");
+}
+
 async function submitEditProduct(e) {
   e.preventDefault();
 
@@ -136,7 +178,8 @@ async function submitEditProduct(e) {
     buy_price: Number(document.getElementById("editBuyPrice").value),
     sell_price: Number(document.getElementById("editSellPrice").value),
     stock: Number(document.getElementById("editStockQty").value),
-    unit_id: document.getElementById("editUnitSelect").value
+    unit_id: document.getElementById("editUnitSelect").value,
+    category_id: document.getElementById("editCategorySelect").value
   };
 
   try {

@@ -1,83 +1,158 @@
 <script>
 /**
- * PricingService — ALL calculations centralized
- * 
- * Never calculate totals in:
- * - tables
- * - pages
- * - components
- * 
- * EVER.
+ * PricingService — All price calculations and formatting
+ *
+ * Responsibilities:
+ * - Recalculate cart totals (subtotal, tax, discount, total)
+ * - Format currency values (KES)
+ * - Calculate change
+ *
+ * Does NOT:
+ * - Touch DOM
+ * - Render HTML
+ * - Call modals
  */
 const PricingService = {
+
+  /**
+   * Cached tax rate to avoid repeated API calls
+   * Initialized to null, will be fetched from backend
+   */
+  _taxRate: null,
   
   /**
-   * Recalculate all cart totals
-   * Called whenever cart changes
+   * Initialize pricing service - fetch tax rate from backend
+   * Call this once when the app starts
+   */
+  async init() {
+    await this.fetchTaxRate();
+    return this._taxRate;
+  },
+  
+  /**
+   * Fetch tax rate from backend
+   * Sets to 0 if not found in database - never defaults to 8
+   */
+  async fetchTaxRate() {
+    try {
+      const raw = await api("GET_TAX_RATE");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && response.data && response.data.rate !== undefined) {
+        this._taxRate = Number(response.data.rate);
+        console.log("Tax rate loaded from backend:", this._taxRate + "%");
+      } else {
+        // No tax rate set in database, use 0
+        console.log("No tax rate found in database, using 0%");
+        this._taxRate = 0;
+      }
+    } catch (error) {
+      console.error("Failed to fetch tax rate, using 0%:", error);
+      this._taxRate = 0;
+    }
+    
+    return this._taxRate;
+  },
+  
+  /**
+   * Get current tax rate
+   * Returns 0 if not yet fetched
+   */
+  getTaxRate() {
+    if (this._taxRate === null) {
+      console.warn("Tax rate not yet fetched, using 0%");
+      return 0;
+    }
+    return this._taxRate;
+  },
+  
+  /**
+   * Get tax label for display
+   */
+  getTaxLabel() {
+    const rate = this.getTaxRate();
+    return "Tax (" + rate + "%)";
+  },
+
+  /**
+   * Recalculate all totals from CartState.items
    */
   recalculate() {
     const items = CartState.items;
-    
+
     let subtotal = 0;
+    let discount = 0; // placeholder for future discount logic
+    let tax = 0;
+    let total = 0;
+    let profit = 0;
     let itemCount = 0;
-    
+
     items.forEach(item => {
-      subtotal += item.total;
+      const lineTotal = item.price * item.quantity;
+      subtotal += lineTotal;
       itemCount += item.quantity;
+
+      // Profit per line = (sell_price - buy_price) * quantity
+      const lineProfit = (item.price - item.buyPrice) * item.quantity;
+      profit += lineProfit;
     });
-    
-    // Tax calculation (configurable rate)
-    const taxRate = 0.08; // 8% VAT
-    const tax = subtotal * taxRate;
-    
-    // Discount (currently 0, extendable)
-    const discount = 0;
-    
-    // Grand total
-    const total = subtotal + tax - discount;
-    
-    CartState.summary = {
-      subtotal: Math.round(subtotal * 100) / 100,
-      discount: Math.round(discount * 100) / 100,
-      tax: Math.round(tax * 100) / 100,
-      total: Math.round(total * 100) / 100,
-      itemCount: itemCount
-    };
-    
-    // Update payment balance
-    CartState.payment.balance = CartState.summary.total - CartState.payment.amountPaid;
-    CartState.payment.change = CartState.payment.amountPaid > CartState.summary.total 
-      ? CartState.payment.amountPaid - CartState.summary.total 
+
+    // Tax: dynamic rate from backend
+    const taxRate = this.getTaxRate();
+    tax = subtotal * (taxRate / 100);
+
+    // Discount: currently 0 (placeholder)
+    discount = 0;
+
+    // Total = subtotal + tax - discount
+    total = subtotal + tax - discount;
+
+    // Update CartState.summary
+    CartState.summary.subtotal = subtotal;
+    CartState.summary.tax = tax;
+    CartState.summary.discount = discount;
+    CartState.summary.total = total;
+    CartState.summary.profit = profit;
+    CartState.summary.itemCount = itemCount;
+
+    // Update payment balance/change
+    CartState.payment.balance = total - CartState.payment.amountPaid;
+    CartState.payment.change = CartState.payment.amountPaid >= total
+      ? CartState.payment.amountPaid - total
       : 0;
-    
+
+    // Emit event so UI can re-render
     EventBus.emit("totalsUpdated");
   },
-  
+
   /**
-   * Calculate profit estimate for current cart
-   */
-  calculateProfit() {
-    let totalCost = 0;
-    let totalRevenue = 0;
-    
-    CartState.items.forEach(item => {
-      totalCost += item.buyPrice * item.quantity;
-      totalRevenue += item.price * item.quantity;
-    });
-    
-    return {
-      cost: totalCost,
-      revenue: totalRevenue,
-      profit: totalRevenue - totalCost,
-      margin: totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue * 100) : 0
-    };
-  },
-  
-  /**
-   * Format currency
+   * Format a number as KES currency
+   * @param {number} amount
+   * @returns {string} e.g. "KES 1,234.56"
    */
   formatCurrency(amount) {
-    return "$" + Number(amount).toFixed(2);
+    const num = Number(amount) || 0;
+    const formatted = num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    return `KES ${formatted}`;
+  },
+
+  /**
+   * Calculate change given amount paid
+   * @param {number} amountPaid
+   * @returns {number}
+   */
+  calculateChange(amountPaid) {
+    const total = CartState.summary.total;
+    amountPaid = Number(amountPaid) || 0;
+
+    if (amountPaid >= total) {
+      return amountPaid - total;
+    }
+
+    return 0;
   }
 };
 </script>

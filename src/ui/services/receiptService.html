@@ -1,0 +1,115 @@
+<script>
+/**
+ * ReceiptService — Handles receipt modal display and printing
+ * 
+ * Provides a consistent receipt modal experience across:
+ * - POS page (after sale completion)
+ * - Sales History page (viewing past receipts)
+ * 
+ * Usage:
+ *   ReceiptService.show(saleId) — Fetch sale data and show receipt modal
+ *   ReceiptService.showWithData(saleData) — Show receipt with existing data
+ *   ReceiptService.print() — Print the currently displayed receipt
+ */
+const ReceiptService = {
+  
+  /**
+   * Show receipt modal by fetching sale data
+   * @param {string} saleId - The sale ID to fetch and display
+   */
+  async show(saleId) {
+    try {
+      Modal.loading("Loading receipt...");
+      
+      // Fetch sale details and products in parallel
+      const [saleRaw, productsRaw] = await Promise.all([
+        api("GET_SALE_BY_ID", { saleId }),
+        api("GET_PRODUCTS")
+      ]);
+      
+      const response = typeof saleRaw === "string" ? JSON.parse(saleRaw) : saleRaw;
+      const productsResponse = typeof productsRaw === "string" ? JSON.parse(productsRaw) : productsRaw;
+      
+      // Build product name lookup
+      const productMap = {};
+      if (productsResponse.success && Array.isArray(productsResponse.data)) {
+        productsResponse.data.forEach(function(p) {
+          productMap[p.id] = p.name;
+        });
+      }
+      
+      if (response.success) {
+        const { sale, items } = response.data;
+        this.showWithData({ sale, items, productMap });
+      } else {
+        Modal.close();
+        Toast.error(response.error || "Failed to load sale details");
+      }
+    } catch (error) {
+      Modal.close();
+      Toast.error("Failed to load receipt: " + error.message);
+    }
+  },
+  
+  /**
+   * Show receipt modal with pre-fetched data
+   * @param {Object} data - { sale, items, productMap }
+   */
+  showWithData(data) {
+    const { sale, items, productMap } = data;
+    
+    // Store receipt data for printing
+    window._currentReceiptData = data;
+    
+    // Populate modal with sale details
+    const invoiceEl = document.getElementById("modal-invoice");
+    const customerEl = document.getElementById("modal-customer");
+    const dateEl = document.getElementById("modal-date");
+    const paymentEl = document.getElementById("modal-payment");
+    const totalEl = document.getElementById("modal-total");
+    const itemsBody = document.getElementById("modal-items-body");
+    
+    if (invoiceEl) invoiceEl.textContent = sale.invoice_no;
+    if (customerEl) customerEl.textContent = sale.customer_name || 'Walk-in';
+    if (dateEl) dateEl.textContent = new Date(sale.created_at).toLocaleDateString();
+    if (paymentEl) paymentEl.textContent = sale.payment_method;
+    if (totalEl) totalEl.textContent = "KES " + Number(sale.total_amount).toFixed(2);
+    
+    // Render items with product names
+    if (itemsBody) {
+      itemsBody.innerHTML = items.map(function(item) {
+        const productName = productMap[item.product_id] || item.product_id;
+        return '<tr>' +
+          '<td>' + productName + '</td>' +
+          '<td>' + item.quantity + '</td>' +
+          '<td>KES ' + Number(item.price).toFixed(2) + '</td>' +
+          '<td>KES ' + Number(item.subtotal).toFixed(2) + '</td>' +
+        '</tr>';
+      }).join("");
+    }
+    
+    // Close any existing modal first
+    Modal.close();
+    
+    // Small delay to ensure previous modal is closed
+    setTimeout(function() {
+      Modal.open({
+        title: "Sale - " + sale.invoice_no,
+        content: document.getElementById("salesModalContent").innerHTML,
+        size: "lg"
+      });
+    }, 200);
+  },
+  
+  /**
+   * Print the currently displayed receipt
+   */
+  print() {
+    if (window._currentReceiptData) {
+      PrintService.printReceipt(window._currentReceiptData);
+    } else {
+      Toast.error("No receipt data available for printing");
+    }
+  }
+};
+</script>

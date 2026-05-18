@@ -1,6 +1,16 @@
 <script>
 
-window.onload = () => {
+window.onload = async () => {
+
+  // Initialize pricing service to fetch tax rate early
+  try {
+    await PricingService.init();
+    console.log("PricingService initialized with tax rate:", PricingService.getTaxRate() + "%");
+  } catch (error) {
+    console.error("Failed to initialize PricingService:", error);
+    // Don't show error toast, just use 0%
+    PricingService._taxRate = 0;
+  }
 
   if (State.token) {
 

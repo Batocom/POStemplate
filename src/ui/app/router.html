@@ -53,4 +53,32 @@ const Router = {
 
 };
 
+function renderSalesPage() {
+  const template = document.getElementById('salesPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadSales();
+  } else {
+    console.error('Sales template not found');
+    renderAppShell('<div class="text-red-500">Error loading sales page</div>');
+  }
+}
+
+function renderSettingsPage() {
+  const template = document.getElementById('settingsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    setTimeout(() => {
+      if (typeof SettingsController !== 'undefined' && SettingsController.init) {
+        SettingsController.init();
+      } else {
+        console.error('SettingsController not loaded');
+      }
+    }, 100);
+  } else {
+    console.error('Settings template not found');
+    renderAppShell('<div class="text-red-500">Error loading settings page</div>');
+  }
+}
+
 </script>
