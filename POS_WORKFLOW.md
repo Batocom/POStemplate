@@ -241,8 +241,6 @@ and sale completion.
 | `GET_PRODUCTS` | `{ token }` | `{ success: true, data: Product[] }` | `{ success: false, error: string }` |
 | `CREATE_SALE` | `{ token, items, subtotal, tax, discount, total, payment_method, amount_paid, customer_id }` | `{ success: true, data: { saleId, totalAmount, totalProfit } }` | `{ success: false, error: string }` |
 | `PRINT_RECEIPT` | `{ token, saleId }` | `{ success: true, data: string }` | `{ success: false, error: string }` |
-| `GET_TAX_RATE` | `{ token }` | `{ success: true, data: { rate: number } }` | `{ success: false, error: string }` |
-| `SET_TAX_RATE` | `{ token, rate }` | `{ success: true, data: { taxRate: number } }` | `{ success: false, error: string }` |
 
 ### Product Object Shape
 
@@ -267,7 +265,7 @@ and sale completion.
 {
   productId: string,
   name: string,
-  barcode: string,
+  barcode: string, 
   price: number,       // sell_price
   buyPrice: number,    // buy_price
   quantity: number,
@@ -325,18 +323,13 @@ and sale completion.
 
 ## Key Business Rules
 
-1. **Tax Rate**: Dynamic, fetched from database via `TaxService.getTaxRate()`. Defaults to 0% if not set. Configurable via Settings page.
+1. **Tax Rate**: 8% (hardcoded in PricingService.recalculate())
 2. **Discount**: Currently 0 (placeholder for future)
 3. **Stock Validation**: Cannot sell more than available stock
 4. **Price Validation**: sell_price must be >= 0
-5. **Payment Methods**: 
-   - Cash: Requires amount >= total, shows change calculation
-   - M-Pesa: Auto-sets amountPaid = total (future: M-Pesa API integration)
-   - Credit: Requires customer selection, tracks debtor balance
-   - Extensible via `PAYMENT_METHODS` array in `PaymentModal`
+5. **Payment**: Cash requires amount >= total; Card/Transfer auto-sets amountPaid = total
 6. **Invoice Number**: Format "INV-" + Date.now() (timestamp-based)
 7. **Customer**: Defaults to "Walk-in" if not specified
-8. **Category Filters**: Dynamic, fetched from categories schema, not hardcoded
 
 ## Dependencies
 
@@ -387,70 +380,12 @@ SalesService.createSale()
   └── DBInstance.table("sales").update()
 ```
 
-### Settings Module
-
-The settings module manages system configuration including tax rate.
-
-**Service API:**
-- `TaxService.getTaxRate()` — Get current tax rate from database (returns 0 if not set)
-- `TaxService.setTaxRate(token, rate)` — Set tax rate (admin only)
-- `TaxService.calculateTax(amount)` — Calculate tax for a given amount
-- `TaxService.getTaxInfo()` — Get tax info for display
-
-**Database Schema:**
-- `settings.schema.js` — Settings table with key-value pairs
-- Keys: `tax_rate` (stored as string percentage)
-
-**UI Files:**
-- `ui/pages/settings.html` — Page template with tax rate input
-- `ui/modules/settings/settings.controller.html` — Controller logic
-
-**Frontend Integration:**
-- `PricingService.fetchTaxRate()` — Fetches tax rate from backend on app boot
-- `PricingService.getTaxRate()` — Returns cached tax rate (0 if not fetched)
-- `PricingService.getTaxLabel()` — Returns "Tax (X%)" for display
-- Tax rate is fetched in `boot.html` via `PricingService.init()`
-- POS page fetches tax rate in `POSPage.init()`
-- Settings page allows admin to change tax rate
-
-### Receipt Module
-
-The receipt module provides consistent receipt display across POS and Sales History.
-
-**Service API:**
-- `ReceiptService.show(saleId)` — Fetch sale data and show receipt modal
-- `ReceiptService.showWithData(data)` — Show receipt with pre-fetched data
-- `ReceiptService.print()` — Print the currently displayed receipt
-
-**UI Files:**
-- `ui/services/receiptService.html` — Receipt service logic
-- `ui/services/printService.html` — Print service for opening print window
-
-**Usage:**
-- After POS sale: `ReceiptService.show(saleId)` called from `CheckoutService.process()`
-- From Sales History: `viewSaleReceipt(saleId)` calls `ReceiptService.show(saleId)`
-
-### Print Module
-
-The print module handles receipt printing.
-
-**Service API:**
-- `PrintService.printReceipt(saleData)` — Opens print window with formatted receipt
-- `PrintService.printElement(elementId)` — Prints content of a specific element
-- `PrintService.formatReceiptHTML(saleData)` — Generates HTML for receipt printing
-
-**Features:**
-- Formatted receipt with invoice details, items, totals
-- Print button in receipt modal
-- Auto-print option
-
 ## Missing Components (Future Work)
 
 1. **Sales Validator** (`modules/sales/salesValidator.js`) - Dedicated validation for sale payloads
 2. **Customer Module** - Customer management, history, loyalty
 3. **Discount/Promotion System** - Coupons, percentage/flat discounts
 4. **Payment Processing** - Split payments, multiple tender types
-5. **Offline Support** - Local storage queue for transactions
-6. **EventBus Implementation** - Currently implied but not explicitly defined in provided files
-7. **M-Pesa API Integration** - Connect to M-Pesa payment gateway
-8. **Credit/Debtor Management** - Full customer credit tracking with payment history
+5. **Settings Module** - Configurable tax rate, currency, receipt header
+6. **Offline Support** - Local storage queue for transactions
+7. **EventBus Implementation** - Currently implied but not explicitly defined in provided files
