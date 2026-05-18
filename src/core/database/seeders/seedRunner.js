@@ -1,0 +1,6 @@
+function runSeeders() {
+
+  seedUsers();
+  seedCategories();
+
+}

@@ -1,0 +1,360 @@
+<script>
+
+function renderAppShell(content) {
+
+  document.getElementById("app").innerHTML = `
+
+    <div class="flex h-screen overflow-hidden">
+
+      <!-- SIDEBAR -->
+      <aside class="w-64 bg-gray-900 text-white hidden md:block">
+
+        ${renderSidebar()}
+
+      </aside>
+
+      <!-- MAIN -->
+      <div class="flex-1 flex flex-col">
+
+        ${renderTopbar()}
+
+        <main class="flex-1 overflow-y-auto p-4">
+
+          ${content}
+
+        </main>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+function renderPOSPage() {
+  const template = document.getElementById('posPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    // Initialize POS after DOM is rendered
+    setTimeout(() => {
+      POSPage.init();
+    }, 100);
+  } else {
+    console.error('POS template not found');
+    renderAppShell('<div class="text-red-500">Error loading POS page</div>');
+  }
+}
+
+function renderProductsPage() {
+  console.log('renderProductsPage called');
+  const template = document.getElementById('productsPageTemplate');
+  console.log('Template found:', template);
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadProducts();
+  } else {
+    console.error('Products template not found');
+    renderAppShell('<div class="text-red-500">Error loading products page</div>');
+  }
+}
+
+function renderCategoriesPage() {
+  const template = document.getElementById('categoriesPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadCategories();
+  } else {
+    console.error('Categories template not found');
+    renderAppShell('<div class="text-red-500">Error loading categories page</div>');
+  }
+}
+
+function renderStockMovementsPage() {
+  const template = document.getElementById('stockMovementsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadStockMovements();
+  } else {
+    console.error('Stock movements template not found');
+    renderAppShell('<div class="text-red-500">Error loading stock movements page</div>');
+  }
+}
+
+function renderSalesPage() {
+  renderAppShell(`
+    <div class="text-center py-12">
+      <h2 class="text-2xl font-bold mb-4">POS Sales</h2>
+      <p class="text-gray-500">Sales module coming soon</p>
+    </div>
+  `);
+}
+
+function renderUnitsPage() {
+  const template = document.getElementById('unitsPageTemplate');
+  if (template) {
+    renderAppShell(template.innerHTML);
+    loadUnits();
+  } else {
+    console.error('Units template not found');
+    renderAppShell('<div class="text-red-500">Error loading units page</div>');
+  }
+}
+
+function renderSettingsPage() {
+  renderAppShell(`
+    <div class="text-center py-12">
+      <h2 class="text-2xl font-bold mb-4">Settings</h2>
+      <p class="text-gray-500">Settings module coming soon</p>
+    </div>
+  `);
+}
+
+async function loadProducts() {
+
+  const container = document.getElementById(
+    'productsTableContainer'
+  );
+
+  container.innerHTML = 'Loading...';
+
+  try {
+
+    const raw = await api('GET_PRODUCTS');
+
+    const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = `
+        <div class="text-red-500">
+          Failed to load products
+        </div>
+      `;
+      return;
+    }
+
+    const products = response.data;
+
+    if (!Array.isArray(products)) {
+      container.innerHTML = `
+        <div class="text-red-500">
+          Invalid products data
+        </div>
+      `;
+      return;
+    }
+
+    // Check if table already exists, refresh it instead of re-rendering
+    const innerContainer = document.getElementById('productsTableInner');
+    if (innerContainer && products.length > 0) {
+      Table.refresh('productsTableInner', products);
+    } else {
+      renderProductsTable(products);
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="text-red-500">
+        Something went wrong
+      </div>
+    `;
+
+  }
+
+}
+
+async function loadStockMovements() {
+  const container = document.getElementById('stockMovementsTableContainer');
+  if (!container) return;
+
+  container.innerHTML = 'Loading...';
+
+  try {
+    const raw = await api('GET_STOCK_MOVEMENTS');
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = '<div class="text-red-500">Failed to load stock movements</div>';
+      return;
+    }
+
+    const movements = response.data;
+
+    if (!Array.isArray(movements)) {
+      container.innerHTML = '<div class="text-red-500">Invalid stock movements data</div>';
+      return;
+    }
+
+    if (!movements.length) {
+      container.innerHTML = '<div class="text-gray-500">No stock movements found</div>';
+      return;
+    }
+
+    container.innerHTML = '<div id="stockMovementsTableInner"></div>';
+
+    Table.render('stockMovementsTableInner', {
+      columns: [
+        { key: 'product_id', label: 'Product ID', sortable: true },
+        { key: 'type', label: 'Type', sortable: true,
+          render: function(val) {
+            const colors = {
+              'SALE': 'text-red-600',
+              'PURCHASE': 'text-green-600',
+              'ADJUSTMENT': 'text-blue-600',
+              'RETURN': 'text-yellow-600',
+              'DAMAGE': 'text-red-800',
+              'TRANSFER': 'text-purple-600',
+              'MANUAL_IN': 'text-green-800',
+              'MANUAL_OUT': 'text-orange-600'
+            };
+            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + val + '</span>';
+          }
+        },
+        { key: 'quantity', label: 'Quantity', sortable: true,
+          render: function(val) { return Number(val); }
+        },
+        { key: 'reference_id', label: 'Reference', sortable: true,
+          render: function(val) { return val || '-'; }
+        },
+        { key: 'created_at', label: 'Date', sortable: true,
+          render: function(val) { return new Date(val).toLocaleString(); }
+        }
+      ],
+      data: movements,
+      pageSize: 10,
+      searchable: true,
+      emptyMessage: 'No stock movements found'
+    });
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+  }
+}
+
+function renderProductsTable(products) {
+  const container = document.getElementById('productsTableContainer');
+
+  if (!products.length) {
+    container.innerHTML = `
+      <div class="text-gray-500">No products found</div>
+    `;
+    return;
+  }
+
+  // Add bulk delete button above the table
+  const bulkHtml = `
+    <div class="mb-4">
+      <button id="bulkDeleteBtn" onclick="bulkDeleteProducts()" class="bg-red-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled>
+        Delete Selected
+      </button>
+    </div>
+  `;
+
+  // Insert bulk button before table
+  container.innerHTML = bulkHtml + '<div id="productsTableInner"></div>';
+
+  Table.render('productsTableInner', {
+    columns: [
+      { key: 'name', label: 'Product', sortable: true },
+      { key: 'unit_id', label: 'Unit', sortable: true,
+        render: function(val) { return val || '-'; }
+      },
+      { key: 'stock', label: 'Stock', sortable: true,
+        render: function(val) { return Number(val); }
+      },
+      { key: 'buy_price', label: 'Buy Price', sortable: true,
+        render: function(val) { return 'KES ' + Number(val).toFixed(2); }
+      },
+      { key: 'sell_price', label: 'Sell Price', sortable: true,
+        render: function(val) { return 'KES ' + Number(val).toFixed(2); }
+      },
+      { key: 'stock', label: 'Status', sortable: false,
+        render: function(val) {
+          const stock = Number(val);
+          let statusClass = 'bg-red-100 text-red-800';
+          let statusText = 'Out of Stock';
+          if (stock > 10) {
+            statusClass = 'bg-green-100 text-green-800';
+            statusText = 'In Stock';
+          } else if (stock > 0) {
+            statusClass = 'bg-yellow-100 text-yellow-800';
+            statusText = 'Low Stock';
+          }
+          return '<span class="px-2 py-1 rounded text-sm ' + statusClass + '">' + statusText + '</span>';
+        }
+      }
+    ],
+    data: products,
+    actions: [
+      { label: 'Edit', class: 'text-blue-600', onClick: function(row) { editProduct(row.id); } },
+      { label: 'Delete', class: 'text-red-600', onClick: function(row) { deleteProduct(row.id); } }
+    ],
+    selectable: true,
+    onSelectionChange: function(selectedIds) {
+      const btn = document.getElementById('bulkDeleteBtn');
+      if (btn) {
+        btn.disabled = selectedIds.length === 0;
+      }
+    },
+    pageSize: 10,
+    searchable: true,
+    emptyMessage: 'No products found'
+  });
+}
+
+async function bulkDeleteProducts() {
+  const selectedIds = Table.getSelectedIds('productsTableInner');
+  if (selectedIds.length === 0) return;
+
+  const confirmed = await Modal.confirm('Delete ' + selectedIds.length + ' product(s)?');
+  if (!confirmed) return;
+
+  const btn = document.getElementById('bulkDeleteBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+  }
+
+  try {
+    for (const id of selectedIds) {
+      const raw = await api('DELETE_PRODUCT', { productId: id });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (!response.success) {
+        Toast.error('Failed to delete product ' + id + ': ' + (response.error || 'Unknown error'));
+      }
+    }
+    Toast.success('Deleted ' + selectedIds.length + ' product(s)');
+    await loadProducts();
+  } catch (err) {
+    Toast.error('Error during bulk delete: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Delete Selected';
+    }
+  }
+}
+
+function editProduct(id) {
+  openEditProductModal(id);
+}
+
+async function deleteProduct(id) {
+  const confirmed = await Modal.confirm('Are you sure you want to delete this product?');
+  if (!confirmed) return;
+
+  const raw = await api('DELETE_PRODUCT', { productId: id });
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response.success) {
+    Toast.error(response.error || "Failed to delete product");
+    return;
+  }
+
+  Toast.success('Product deleted successfully');
+  await loadProducts();
+}
+</script>

@@ -1,0 +1,1165 @@
+<div id="posPageTemplate" style="display:none;">
+  <div class="pos-layout">
+    <!-- LEFT SIDE: Product Search & Selection -->
+    <div class="pos-left">
+      <div class="pos-header">
+        <h2 class="text-2xl font-bold">Point of Sale</h2>
+        <div class="pos-actions">
+          <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="CartService.clear()">
+            New Sale
+          </button>
+        </div>
+      </div>
+      
+      <!-- Product Search Component -->
+      <div id="product-search-container">
+        <div class="product-search">
+          <div class="search-input-wrapper">
+            <input type="text" 
+                   id="product-search-input" 
+                   class="search-input" 
+                   placeholder="Search products by name or barcode..."
+                   autocomplete="off">
+            <button class="search-clear-btn" onclick="ProductSearch.clearSearch()" style="display:none;">
+              &times;
+            </button>
+          </div>
+          <div id="search-results" class="search-results" style="display:none;"></div>
+        </div>
+      </div>
+      
+      <!-- Quick Category Filters -->
+      <div class="category-filters">
+        <button class="category-btn active" onclick="ProductSearch.filterByCategory('all')">
+          All
+        </button>
+        <button class="category-btn" onclick="ProductSearch.filterByCategory('Food')">
+          Food
+        </button>
+        <button class="category-btn" onclick="ProductSearch.filterByCategory('Beverages')">
+          Beverages
+        </button>
+        <button class="category-btn" onclick="ProductSearch.filterByCategory('Other')">
+          Other
+        </button>
+      </div>
+      
+      <!-- Product Grid -->
+      <div id="product-grid" class="product-grid">
+        <!-- Products rendered here -->
+      </div>
+    </div>
+    
+    <!-- RIGHT SIDE: Cart & Checkout -->
+    <div class="pos-right">
+      <!-- Cart Table Component -->
+      <div class="cart-table-container">
+        <div class="cart-header">
+          <h3 class="font-bold">Current Sale</h3>
+          <span id="cart-item-count" class="cart-count">0 items</span>
+        </div>
+        
+        <div id="cart-items" class="cart-items">
+          <!-- Empty state -->
+          <div id="cart-empty" class="cart-empty">
+            <div class="empty-icon">&#128722;</div>
+            <p>Cart is empty</p>
+            <p class="empty-hint">Search or scan products to add</p>
+          </div>
+          
+          <!-- Cart items rendered here -->
+          <div id="cart-items-list" style="display:none;"></div>
+        </div>
+      </div>
+      
+      <!-- Totals Panel Component -->
+      <div class="totals-panel">
+        <div class="totals-row">
+          <span class="totals-label">Subtotal</span>
+          <span id="subtotal" class="totals-value">$0.00</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-label">Tax (8%)</span>
+          <span id="tax" class="totals-value">$0.00</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-label">Discount</span>
+          <span id="discount" class="totals-value">$0.00</span>
+        </div>
+        <div class="totals-divider"></div>
+        <div class="totals-row totals-grand">
+          <span class="totals-label font-bold">Total</span>
+          <span id="total" class="totals-value totals-amount">$0.00</span>
+        </div>
+        <div class="totals-row totals-change" id="change-row" style="display:none;">
+          <span class="totals-label">Change</span>
+          <span id="change" class="totals-value totals-change-amount">$0.00</span>
+        </div>
+      </div>
+      
+      <!-- Checkout Button -->
+      <div class="checkout-actions">
+        <button class="bg-blue-600 text-white px-6 py-3 rounded w-full text-lg font-bold" 
+                onclick="PaymentModal.init(); Modal.open({ title: 'Complete Payment', content: document.getElementById('paymentModalContent').innerHTML, size: 'md' });"
+                id="checkout-btn" disabled>
+          Checkout ($0.00)
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Payment Modal Content (hidden, used by Modal) -->
+  <div id="paymentModalContent" style="display:none;">
+    <div class="payment-modal-inner">
+      <!-- Total Display -->
+      <div class="payment-total-display">
+        <div class="payment-total-label">Total Due</div>
+        <div class="payment-total-amount" id="payment-total">$0.00</div>
+      </div>
+      
+      <!-- Payment Method -->
+      <div class="payment-methods">
+        <label class="payment-method-label">Payment Method</label>
+        <div class="payment-method-options">
+          <button class="payment-method-btn active" data-method="cash" onclick="PaymentModal.setMethod('cash')">
+            Cash
+          </button>
+          <button class="payment-method-btn" data-method="card" onclick="PaymentModal.setMethod('card')">
+            Card
+          </button>
+          <button class="payment-method-btn" data-method="transfer" onclick="PaymentModal.setMethod('transfer')">
+            Transfer
+          </button>
+        </div>
+      </div>
+      
+      <!-- Amount Input -->
+      <div class="payment-amount" id="cash-input-section">
+        <label class="payment-amount-label">Amount Received</label>
+        <div class="payment-amount-input-wrapper">
+          <span class="currency-symbol">$</span>
+          <input type="number" 
+                 id="payment-amount" 
+                 class="payment-amount-input" 
+                 step="0.01" 
+                 min="0" 
+                 placeholder="0.00"
+                 autofocus>
+        </div>
+      </div>
+      
+      <!-- Change Display -->
+      <div class="payment-change" id="change-display" style="display:none;">
+        <div class="change-label">Change Due</div>
+        <div class="change-amount" id="change-amount">$0.00</div>
+      </div>
+      
+      <!-- Summary -->
+      <div class="payment-summary">
+        <div class="summary-row">
+          <span>Items</span>
+          <span id="payment-item-count">0</span>
+        </div>
+        <div class="summary-row">
+          <span>Total</span>
+          <span id="payment-summary-total">$0.00</span>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-secondary" onclick="Modal.close()">Cancel</button>
+        <button class="modal-btn modal-btn-primary" onclick="PaymentModal.confirm()" id="confirm-payment-btn">
+          Complete Sale
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .pos-layout {
+    display: flex;
+    height: calc(100vh - 80px);
+    gap: 0;
+  }
+  
+  .pos-left {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    border-right: 1px solid #e0e0e0;
+  }
+  
+  .pos-right {
+    width: 420px;
+    min-width: 420px;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+  }
+  
+  .pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .category-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .category-btn {
+    padding: 6px 16px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+  
+  .category-btn:hover {
+    background: #f0f0f0;
+  }
+  
+  .category-btn.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+  }
+  
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  
+  .product-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  
+  .product-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .product-card .product-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    color: #333;
+  }
+  
+  .product-card .product-price {
+    color: #2563eb;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .product-card .product-stock {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+  }
+  
+  .product-card .product-barcode {
+    font-size: 0.7rem;
+    color: #aaa;
+    margin-top: 2px;
+  }
+  
+  .product-search {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  
+  .search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+  
+  .search-input-wrapper:focus-within {
+    border-color: #2563eb;
+  }
+  
+  .search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: transparent;
+  }
+  
+  .search-clear-btn {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #888;
+  }
+  
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .search-result-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+  }
+  
+  .search-result-item:hover {
+    background: #f0f7ff;
+  }
+  
+  .search-result-item:last-child {
+    border-bottom: none;
+  }
+  
+  .search-result-item .result-name {
+    font-weight: 500;
+  }
+  
+  .search-result-item .result-price {
+    color: #2563eb;
+    font-weight: 600;
+  }
+  
+  .search-result-item .result-stock {
+    font-size: 0.8rem;
+    color: #888;
+  }
+  
+  .cart-table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: white;
+  }
+  
+  .cart-count {
+    font-size: 0.85rem;
+    color: #888;
+  }
+  
+  .cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  
+  .cart-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: #888;
+  }
+  
+  .cart-empty .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+  }
+  
+  .cart-empty p {
+    margin: 4px 0;
+  }
+  
+  .cart-empty .empty-hint {
+    font-size: 0.85rem;
+    color: #aaa;
+  }
+  
+  .cart-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+  }
+  
+  .cart-item:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .cart-item .item-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .cart-item .item-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .cart-item .item-price {
+    font-size: 0.8rem;
+    color: #888;
+  }
+  
+  .cart-item .item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 12px;
+  }
+  
+  .cart-item .qty-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  
+  .cart-item .qty-btn:hover {
+    background: #f0f0f0;
+    border-color: #bbb;
+  }
+  
+  .cart-item .qty-value {
+    width: 30px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  
+  .cart-item .item-total {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #2563eb;
+    min-width: 60px;
+    text-align: right;
+  }
+  
+  .cart-item .item-remove {
+    padding: 4px 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 1.2rem;
+    transition: color 0.15s;
+  }
+  
+  .cart-item .item-remove:hover {
+    color: #e74c3c;
+  }
+  
+  .totals-panel {
+    padding: 16px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+  }
+  
+  .totals-label {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .totals-value {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  .totals-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 8px 0;
+  }
+  
+  .totals-grand {
+    padding: 8px 0;
+  }
+  
+  .totals-amount {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2563eb;
+  }
+  
+  .totals-change {
+    padding-top: 4px;
+  }
+  
+  .totals-change-amount {
+    color: #27ae60;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .checkout-actions {
+    padding: 16px;
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .payment-modal-inner {
+    padding: 0;
+  }
+  
+  .payment-total-display {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 20px;
+  }
+  
+  .payment-total-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 4px;
+  }
+  
+  .payment-total-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+  
+  .payment-methods {
+    margin-bottom: 16px;
+  }
+  
+  .payment-method-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  
+  .payment-method-options {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .payment-method-btn {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .payment-method-btn:hover {
+    border-color: #bbb;
+  }
+  
+  .payment-method-btn.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+  }
+  
+  .payment-amount {
+    margin-bottom: 16px;
+  }
+  
+  .payment-amount-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  
+  .payment-amount-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .payment-amount-input-wrapper:focus-within {
+    border-color: #2563eb;
+  }
+  
+  .currency-symbol {
+    padding: 12px 8px 12px 16px;
+    font-size: 1.2rem;
+    color: #888;
+    font-weight: 600;
+  }
+  
+  .payment-amount-input {
+    flex: 1;
+    padding: 12px 16px 12px 4px;
+    border: none;
+    outline: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  
+  .payment-change {
+    text-align: center;
+    padding: 12px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .change-label {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  .change-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #27ae60;
+  }
+  
+  .payment-summary {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 12px;
+  }
+  
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  @media (max-width: 900px) {
+    .pos-layout {
+      flex-direction: column;
+    }
+    
+    .pos-right {
+      width: 100%;
+      min-width: 100%;
+    }
+  }
+</style>
+
+<script>
+/**
+ * POS Page Controller
+ * 
+ * ONLY orchestration.
+ * NOT business logic.
+ */
+const POSPage = {
+  
+  /**
+   * Initialize POS page
+   */
+  async init() {
+    try {
+      // Load products
+      await ProductSearch.loadProducts();
+      
+      // Enable scanner
+      ScannerService.enable((barcode) => {
+        ProductSearch.searchByBarcode(barcode);
+      });
+      
+      // Render initial product grid
+      this.renderProductGrid(ProductSearch.products);
+      
+      // Update checkout button state
+      this.updateCheckoutButton();
+      
+      // Listen for cart changes
+      EventBus.on("cartUpdated", () => {
+        this.updateCheckoutButton();
+        CartTable.render();
+        TotalsPanel.render();
+      });
+      
+      EventBus.on("totalsUpdated", () => {
+        this.updateCheckoutButton();
+        TotalsPanel.render();
+      });
+      
+      EventBus.on("cartCleared", () => {
+        this.updateCheckoutButton();
+        CartTable.render();
+        TotalsPanel.render();
+      });
+      
+      // Initialize search input listener
+      const input = document.getElementById("product-search-input");
+      if (input) {
+        input.addEventListener("input", (e) => {
+          clearTimeout(ProductSearch.searchTimeout);
+          ProductSearch.searchTimeout = setTimeout(() => {
+            ProductSearch.search(e.target.value);
+          }, 200);
+        });
+        
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            ProductSearch.clearSearch();
+            input.blur();
+          }
+        });
+      }
+      
+      // Initialize payment amount input
+      const paymentInput = document.getElementById("payment-amount");
+      if (paymentInput) {
+        paymentInput.addEventListener("input", () => {
+          PaymentModal.onAmountChange();
+        });
+        paymentInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            PaymentModal.confirm();
+          }
+        });
+      }
+      
+    } catch (error) {
+      Toast.error("Failed to initialize POS: " + error.message);
+    }
+  },
+  
+  /**
+   * Render product grid
+   */
+  renderProductGrid(products) {
+    const grid = document.getElementById("product-grid");
+    
+    if (!grid) return;
+    
+    if (!products || products.length === 0) {
+      grid.innerHTML = '<div class="text-gray-500 text-center py-8">No products found</div>';
+      return;
+    }
+    
+    grid.innerHTML = products.map(product => `
+      <div class="product-card" 
+           onclick="CartService.add({id: '${product.id}', name: '${product.name.replace(/'/g, "\\'")}', barcode: '${product.barcode || ''}', sell_price: ${product.sell_price || 0}, buy_price: ${product.buy_price || 0}, stock: ${product.stock || 0}})"
+           title="${product.name} - $${Number(product.sell_price).toFixed(2)}">
+        <div class="product-name">${product.name}</div>
+        <div class="product-price">$${Number(product.sell_price).toFixed(2)}</div>
+        <div class="product-stock">Stock: ${product.stock || 0}</div>
+        ${product.barcode ? `<div class="product-barcode">${product.barcode}</div>` : ''}
+      </div>
+    `).join("");
+  },
+  
+  /**
+   * Update checkout button state
+   */
+  updateCheckoutButton() {
+    const btn = document.getElementById("checkout-btn");
+    
+    if (!btn) return;
+    
+    if (CartState.hasItems()) {
+      btn.disabled = false;
+      btn.textContent = `Checkout (${PricingService.formatCurrency(CartState.summary.total)})`;
+    } else {
+      btn.disabled = true;
+      btn.textContent = "Checkout ($0.00)";
+    }
+  },
+  
+  /**
+   * Cleanup when leaving page
+   */
+  destroy() {
+    ScannerService.disable();
+  }
+};
+
+/**
+ * ProductSearch — Handles product searching and selection
+ */
+const ProductSearch = {
+  products: [],
+  filteredProducts: [],
+  searchTimeout: null,
+  
+  /**
+   * Load all products from backend
+   */
+  async loadProducts() {
+    try {
+      const raw = await api("GET_PRODUCTS");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success) {
+        this.products = response.data || [];
+        this.filteredProducts = [...this.products];
+      }
+    } catch (error) {
+      console.error("Failed to load products:", error);
+      Toast.error("Failed to load products");
+    }
+  },
+  
+  /**
+   * Search products by name
+   */
+  search(query) {
+    const input = document.getElementById("product-search-input");
+    const results = document.getElementById("search-results");
+    const clearBtn = document.querySelector(".search-clear-btn");
+    
+    if (!query || query.length < 1) {
+      if (results) results.style.display = "none";
+      if (clearBtn) clearBtn.style.display = "none";
+      POSPage.renderProductGrid(this.products);
+      return;
+    }
+    
+    if (clearBtn) clearBtn.style.display = "block";
+    
+    const lowerQuery = query.toLowerCase();
+    const matches = this.products.filter(p => 
+      p.name.toLowerCase().includes(lowerQuery) || 
+      (p.barcode && p.barcode.toLowerCase().includes(lowerQuery))
+    );
+    
+    if (results) {
+      if (matches.length > 0) {
+        results.innerHTML = matches.slice(0, 10).map(product => `
+          <div class="search-result-item" 
+               onclick="ProductSearch.selectProduct({id: '${product.id}', name: '${product.name.replace(/'/g, "\\'")}', barcode: '${product.barcode || ''}', sell_price: ${product.sell_price || 0}, buy_price: ${product.buy_price || 0}, stock: ${product.stock || 0}})">
+            <div>
+              <div class="result-name">${product.name}</div>
+              <div class="result-stock">Stock: ${product.stock || 0}</div>
+            </div>
+            <div class="result-price">$${Number(product.sell_price).toFixed(2)}</div>
+          </div>
+        `).join("");
+        results.style.display = "block";
+      } else {
+        results.innerHTML = '<div class="search-result-item">No products found</div>';
+        results.style.display = "block";
+      }
+    }
+    
+    // Also filter grid
+    POSPage.renderProductGrid(matches);
+  },
+  
+  /**
+   * Select product from search results
+   */
+  selectProduct(product) {
+    CartService.add(product);
+    
+    // Clear search
+    this.clearSearch();
+    
+    // Focus back on search input
+    const input = document.getElementById("product-search-input");
+    if (input) input.focus();
+  },
+  
+  /**
+   * Search by barcode (from scanner)
+   */
+  async searchByBarcode(barcode) {
+    const product = this.products.find(p => p.barcode === barcode);
+    
+    if (product) {
+      CartService.add(product);
+      Toast.success(`Added ${product.name} to cart`);
+    } else {
+      Toast.warning(`Product with barcode ${barcode} not found`);
+    }
+  },
+  
+  /**
+   * Filter products by category
+   */
+  filterByCategory(category) {
+    // Update active button
+    document.querySelectorAll(".category-btn").forEach(btn => {
+      btn.classList.remove("active");
+    });
+    event.target.classList.add("active");
+    
+    if (category === "all") {
+      this.filteredProducts = [...this.products];
+    } else {
+      this.filteredProducts = this.products.filter(p => 
+        p.category && p.category.toLowerCase() === category.toLowerCase()
+      );
+    }
+    
+    POSPage.renderProductGrid(this.filteredProducts);
+  },
+  
+  /**
+   * Clear search input
+   */
+  clearSearch() {
+    const input = document.getElementById("product-search-input");
+    const results = document.getElementById("search-results");
+    const clearBtn = document.querySelector(".search-clear-btn");
+    
+    if (input) input.value = "";
+    if (results) results.style.display = "none";
+    if (clearBtn) clearBtn.style.display = "none";
+    
+    POSPage.renderProductGrid(this.products);
+  }
+};
+
+/**
+ * CartTable — Pure rendering component
+ */
+const CartTable = {
+  
+  /**
+   * Render cart items
+   */
+  render() {
+    const items = CartState.items;
+    const emptyEl = document.getElementById("cart-empty");
+    const listEl = document.getElementById("cart-items-list");
+    const countEl = document.getElementById("cart-item-count");
+    
+    if (!listEl || !emptyEl) return;
+    
+    if (items.length === 0) {
+      emptyEl.style.display = "block";
+      listEl.style.display = "none";
+      if (countEl) countEl.textContent = "0 items";
+      return;
+    }
+    
+    emptyEl.style.display = "none";
+    listEl.style.display = "block";
+    
+    if (countEl) {
+      countEl.textContent = `${CartState.getTotalQuantity()} items`;
+    }
+    
+    listEl.innerHTML = items.map(item => `
+      <div class="cart-item" data-product-id="${item.productId}">
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">${PricingService.formatCurrency(item.price)} each</div>
+        </div>
+        <div class="item-quantity">
+          <button class="qty-btn" onclick="CartService.updateQuantity('${item.productId}', ${item.quantity - 1})">-</button>
+          <span class="qty-value">${item.quantity}</span>
+          <button class="qty-btn" onclick="CartService.updateQuantity('${item.productId}', ${item.quantity + 1})">+</button>
+        </div>
+        <div class="item-total">${PricingService.formatCurrency(item.total)}</div>
+        <button class="item-remove" onclick="CartService.remove('${item.productId}')" title="Remove">&times;</button>
+      </div>
+    `).join("");
+  }
+};
+
+/**
+ * TotalsPanel — Displays cart summary
+ */
+const TotalsPanel = {
+  
+  /**
+   * Render totals
+   */
+  render() {
+    const summary = CartState.summary;
+    const payment = CartState.payment;
+    
+    const subtotalEl = document.getElementById("subtotal");
+    const taxEl = document.getElementById("tax");
+    const discountEl = document.getElementById("discount");
+    const totalEl = document.getElementById("total");
+    const changeEl = document.getElementById("change");
+    const changeRow = document.getElementById("change-row");
+    
+    if (subtotalEl) subtotalEl.textContent = PricingService.formatCurrency(summary.subtotal);
+    if (taxEl) taxEl.textContent = PricingService.formatCurrency(summary.tax);
+    if (discountEl) discountEl.textContent = PricingService.formatCurrency(summary.discount);
+    if (totalEl) totalEl.textContent = PricingService.formatCurrency(summary.total);
+    
+    // Show change if payment entered
+    if (payment.amountPaid > 0 && payment.amountPaid >= summary.total) {
+      if (changeRow) changeRow.style.display = "flex";
+      if (changeEl) changeEl.textContent = PricingService.formatCurrency(payment.change);
+    } else {
+      if (changeRow) changeRow.style.display = "none";
+    }
+  }
+};
+
+/**
+ * PaymentModal — Handles payment UI
+ */
+const PaymentModal = {
+  
+  /**
+   * Initialize modal when shown
+   */
+  init() {
+    const total = CartState.summary.total;
+    
+    const totalEl = document.getElementById("payment-total");
+    const itemCountEl = document.getElementById("payment-item-count");
+    const summaryTotalEl = document.getElementById("payment-summary-total");
+    
+    if (totalEl) totalEl.textContent = PricingService.formatCurrency(total);
+    if (itemCountEl) itemCountEl.textContent = CartState.getTotalQuantity();
+    if (summaryTotalEl) summaryTotalEl.textContent = PricingService.formatCurrency(total);
+    
+    // Reset amount
+    const amountInput = document.getElementById("payment-amount");
+    if (amountInput) {
+      amountInput.value = "";
+      setTimeout(() => amountInput.focus(), 100);
+    }
+    
+    // Reset change display
+    const changeDisplay = document.getElementById("change-display");
+    if (changeDisplay) changeDisplay.style.display = "none";
+    
+    // Set default method
+    this.setMethod("cash");
+  },
+  
+  /**
+   * Set payment method
+   */
+  setMethod(method) {
+    CartState.payment.method = method;
+    
+    // Update UI
+    document.querySelectorAll(".payment-method-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.method === method);
+    });
+    
+    // Show/hide cash input
+    const cashSection = document.getElementById("cash-input-section");
+    if (cashSection) {
+      if (method === "cash") {
+        cashSection.style.display = "block";
+      } else {
+        cashSection.style.display = "none";
+        CartState.payment.amountPaid = CartState.summary.total;
+      }
+    }
+  },
+  
+  /**
+   * Calculate change on input
+   */
+  onAmountChange() {
+    const amountInput = document.getElementById("payment-amount");
+    const amount = Number(amountInput ? amountInput.value : 0) || 0;
+    
+    CartState.payment.amountPaid = amount;
+    
+    const change = CheckoutService.calculateChange(amount);
+    const changeDisplay = document.getElementById("change-display");
+    const changeAmount = document.getElementById("change-amount");
+    
+    if (change > 0) {
+      if (changeDisplay) changeDisplay.style.display = "block";
+      if (changeAmount) changeAmount.textContent = PricingService.formatCurrency(change);
+    } else {
+      if (changeDisplay) changeDisplay.style.display = "none";
+    }
+    
+    // Enable/disable confirm button
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    if (confirmBtn) {
+      confirmBtn.disabled = amount < CartState.summary.total;
+    }
+  },
+  
+  /**
+   * Confirm payment and process checkout
+   */
+  async confirm() {
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Processing...";
+    }
+    
+    try {
+      const paymentData = {
+        method: CartState.payment.method,
+        amountPaid: CartState.payment.method === "cash" 
+          ? Number(document.getElementById("payment-amount").value) || 0
+          : CartState.summary.total
+      };
+      
+      await CheckoutService.process(paymentData);
+      
+      Modal.close();
+      
+    } catch (error) {
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Complete Sale";
+      }
+      Toast.error(error.message || "Payment failed");
+    }
+  }
+};
+</script>

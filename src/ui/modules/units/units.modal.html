@@ -1,0 +1,47 @@
+<template id="createUnitModalTemplate">
+  <form class="space-y-4" onsubmit="submitCreateUnit(event)">
+    <input
+      id="unitName"
+      type="text"
+      placeholder="Unit name (e.g. Kilogram)"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="unitSymbol"
+      type="text"
+      placeholder="Symbol (e.g. kg)"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
+      Save Unit
+    </button>
+  </form>
+</template>
+
+<template id="editUnitModalTemplate">
+  <form class="space-y-4" onsubmit="Edit.submit(event)">
+    <input
+      id="editUnitId"
+      type="hidden"
+    />
+    <input
+      id="editUnitName"
+      type="text"
+      placeholder="Unit name"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editUnitSymbol"
+      type="text"
+      placeholder="Symbol"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
+      Update Unit
+    </button>
+  </form>
+</template>

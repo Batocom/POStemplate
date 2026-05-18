@@ -1,0 +1,164 @@
+<script>
+
+async function openCreateProductModal() {
+  const template = document.getElementById("createProductModalTemplate");
+  Modal.open({
+    title: "Add Product",
+    content: template.innerHTML,
+    size: "lg"
+  });
+  await loadUnitsDropdown();
+}
+
+async function loadUnitsDropdown() {
+  const raw = await api("GET_UNITS");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("unitSelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No units available</option>';
+    return;
+  }
+
+  select.innerHTML = response.data.map(unit => `
+    <option value="${unit.id}">
+      ${unit.name} (${unit.symbol})
+    </option>
+  `).join("");
+}
+
+async function submitCreateProduct(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  
+  // Guard against null submitBtn
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  const payload = {
+    name: document.getElementById("productName").value,
+    buy_price: Number(document.getElementById("buyPrice").value),
+    sell_price: Number(document.getElementById("sellPrice").value),
+    stock: Number(document.getElementById("stockQty").value),
+    unit_id: document.getElementById("unitSelect").value
+  };
+
+  try {
+    const raw = await api("CREATE_PRODUCT", { data: payload });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      Toast.error(response?.error || "Failed to create product");
+      return;
+    }
+
+    closeModal();
+    Toast.success('Product created successfully');
+    await loadProducts();
+  } catch (err) {
+    Toast.error('Error: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Product';
+    }
+  }
+}
+
+async function openEditProductModal(productId) {
+  await Edit.open({
+    title: 'Edit Product',
+    templateId: 'editProductModalTemplate',
+    fetchApi: 'GET_PRODUCTS',
+    updateApi: 'UPDATE_PRODUCT',
+    entityId: productId,
+    findInResponse: function(data, id) {
+      return data.find(p => p.id === id);
+    },
+    populate: function(product) {
+      document.getElementById('editProductId').value = product.id;
+      document.getElementById('editProductName').value = product.name || '';
+      document.getElementById('editSellPrice').value = product.sell_price || 0;
+      document.getElementById('editBuyPrice').value = product.buy_price || 0;
+      document.getElementById('editStockQty').value = product.stock || 0;
+      loadEditUnitsDropdown(product.unit_id);
+    },
+    getPayload: function() {
+      return {
+        id: document.getElementById('editProductId').value,
+        name: document.getElementById('editProductName').value,
+        sell_price: Number(document.getElementById('editSellPrice').value),
+        buy_price: Number(document.getElementById('editBuyPrice').value),
+        stock: Number(document.getElementById('editStockQty').value),
+        unit_id: document.getElementById('editUnitSelect').value
+      };
+    },
+    onSuccess: function() {
+      Toast.success('Product updated successfully');
+      loadProducts();
+    }
+  });
+}
+
+async function loadEditUnitsDropdown(selectedUnitId) {
+  const raw = await api("GET_UNITS");
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  const select = document.getElementById("editUnitSelect");
+  if (!response.success || !response.data.length) {
+    select.innerHTML = '<option value="">No units available</option>';
+    return;
+  }
+
+  select.innerHTML = response.data.map(unit => `
+    <option value="${unit.id}" ${unit.id === selectedUnitId ? 'selected' : ''}>
+      ${unit.name} (${unit.symbol})
+    </option>
+  `).join("");
+}
+
+async function submitEditProduct(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Updating...';
+  }
+
+  const payload = {
+    id: document.getElementById("editProductId").value,
+    name: document.getElementById("editProductName").value,
+    buy_price: Number(document.getElementById("editBuyPrice").value),
+    sell_price: Number(document.getElementById("editSellPrice").value),
+    stock: Number(document.getElementById("editStockQty").value),
+    unit_id: document.getElementById("editUnitSelect").value
+  };
+
+  try {
+    const raw = await api("UPDATE_PRODUCT", { data: payload });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      Toast.error(response?.error || "Failed to update product");
+      return;
+    }
+
+    closeModal();
+    Toast.success('Product updated successfully');
+    await loadProducts();
+  } catch (err) {
+    Toast.error('Error: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Update Product';
+    }
+  }
+}
+
+</script>

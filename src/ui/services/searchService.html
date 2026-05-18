@@ -1,0 +1,215 @@
+<script>
+/**
+ * SearchService - Reusable client-side search/filter engine
+ * 
+ * API:
+ *   Search.filter(data, query, fields)     // Filter array of objects
+ *   Search.highlight(text, query)          // Wrap matches in <mark> tags
+ *   Search.matches(text, query)            // Boolean check if text matches
+ *   Search.score(text, query)              // Return match score (0-1)
+ *   Search.suggest(data, query, field)     // Get autocomplete suggestions
+ * 
+ * Features:
+ *   - Case-insensitive matching
+ *   - Partial word matching
+ *   - Multi-field search
+ *   - Dot notation for nested fields
+ *   - Configurable threshold
+ *   - Highlight support
+ *   - Scoring for relevance sorting
+ *   - Autocomplete suggestions
+ */
+const Search = (function() {
+  
+  /**
+   * Get a value from an object using dot notation
+   * e.g., getValue({ user: { name: 'John' } }, 'user.name') => 'John'
+   */
+  function getValue(obj, path) {
+    if (!obj || !path) return '';
+    if (path.includes('.')) {
+      return path.split('.').reduce((o, key) => (o && o[key] !== undefined) ? o[key] : '', obj);
+    }
+    return obj[path] !== undefined ? obj[path] : '';
+  }
+  
+  /**
+   * Normalize a string for comparison
+   * - lowercase
+   * - trim
+   * - remove extra spaces
+   */
+  function normalize(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).toLowerCase().trim().replace(/\s+/g, ' ');
+  }
+  
+  /**
+   * Check if a single text value matches a query
+   * Returns boolean
+   */
+  function matches(text, query) {
+    if (!query) return true;
+    const normalizedText = normalize(text);
+    const normalizedQuery = normalize(query);
+    if (!normalizedQuery) return true;
+    return normalizedText.includes(normalizedQuery);
+  }
+  
+  /**
+   * Calculate a relevance score (0-1) for how well text matches query
+   * - 1.0: exact match
+   * - 0.8: starts with query
+   * - 0.6: contains query as whole word
+   * - 0.4: contains query
+   * - 0.0: no match
+   */
+  function score(text, query) {
+    if (!query) return 1.0;
+    const normalizedText = normalize(text);
+    const normalizedQuery = normalize(query);
+    
+    if (!normalizedText || !normalizedQuery) return 0;
+    
+    // Exact match
+    if (normalizedText === normalizedQuery) return 1.0;
+    
+    // Starts with query
+    if (normalizedText.startsWith(normalizedQuery)) return 0.8;
+    
+    // Contains query as whole word
+    const wordBoundary = new RegExp('\\b' + normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+    if (wordBoundary.test(normalizedText)) return 0.6;
+    
+    // Contains query
+    if (normalizedText.includes(normalizedQuery)) return 0.4;
+    
+    return 0;
+  }
+  
+  /**
+   * Filter an array of objects by query across specified fields
+   * 
+   * @param {Array} data - Array of objects to filter
+   * @param {string} query - Search query string
+   * @param {Array|string} fields - Field(s) to search in (supports dot notation)
+   * @param {Object} options - Optional settings
+   * @param {number} options.threshold - Minimum score to include (0-1, default 0)
+   * @param {boolean} options.sortByScore - Sort results by relevance (default false)
+   * @returns {Array} Filtered array (original objects, not modified)
+   * 
+   * Examples:
+   *   Search.filter(users, 'john', ['name', 'email'])
+   *   Search.filter(products, 'laptop', ['title', 'description', 'category.name'])
+   *   Search.filter(items, 'abc', 'name')  // single field as string
+   */
+  function filter(data, query, fields, options) {
+    if (!data || !Array.isArray(data)) return [];
+    if (!query || !normalize(query)) return data;
+    
+    // Normalize fields to array
+    const searchFields = Array.isArray(fields) ? fields : [fields];
+    
+    // Default options
+    const config = Object.assign({
+      threshold: 0,
+      sortByScore: false
+    }, options);
+    
+    // Score each item
+    const scored = data.map(item => {
+      let maxScore = 0;
+      
+      searchFields.forEach(field => {
+        const value = getValue(item, field);
+        const fieldScore = score(value, query);
+        if (fieldScore > maxScore) maxScore = fieldScore;
+      });
+      
+      return { item, score: maxScore };
+    });
+    
+    // Filter by threshold
+    let results = scored.filter(s => s.score > config.threshold);
+    
+    // Sort by score if requested
+    if (config.sortByScore) {
+      results.sort((a, b) => b.score - a.score);
+    }
+    
+    return results.map(s => s.item);
+  }
+  
+  /**
+   * Wrap matching portions of text in <mark> tags for highlighting
+   * 
+   * @param {string} text - Original text
+   * @param {string} query - Search query
+   * @returns {string} HTML with <mark> tags around matches
+   * 
+   * Example:
+   *   Search.highlight('John Doe', 'john') => '<mark>John</mark> Doe'
+   */
+  function highlight(text, query) {
+    if (!text || !query) return escapeHtml(text);
+    
+    const normalizedQuery = normalize(query);
+    if (!normalizedQuery) return escapeHtml(text);
+    
+    const escaped = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp('(' + escaped + ')', 'gi');
+    
+    return String(text).replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">$1</mark>');
+  }
+  
+  /**
+   * Escape HTML to prevent XSS
+   */
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  
+  /**
+   * Get autocomplete suggestions from data
+   * 
+   * @param {Array} data - Array of objects
+   * @param {string} query - Current user input
+   * @param {string} field - Field to suggest from
+   * @param {number} limit - Max suggestions (default 5)
+   * @returns {Array} Unique matching values
+   * 
+   * Example:
+   *   Search.suggest(products, 'lap', 'name', 5)
+   *   // => ['Laptop', 'Laptop Bag']
+   */
+  function suggest(data, query, field, limit) {
+    if (!data || !field) return [];
+    
+    const maxResults = limit || 5;
+    const normalizedQuery = normalize(query);
+    
+    if (!normalizedQuery) return [];
+    
+    // Get unique values that match
+    const values = data
+      .map(item => getValue(item, field))
+      .filter(val => val && matches(val, query))
+      .filter((val, index, self) => self.indexOf(val) === index) // unique
+      .slice(0, maxResults);
+    
+    return values;
+  }
+  
+  // Public API
+  return {
+    filter: filter,
+    highlight: highlight,
+    matches: matches,
+    score: score,
+    suggest: suggest
+  };
+})();
+</script>

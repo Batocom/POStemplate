@@ -1,0 +1,421 @@
+<script>
+/**
+ * TableService - Reusable data table engine
+ * 
+ * API:
+ *   Table.render(containerId, options)
+ *   Table.refresh(containerId, newData)
+ *   Table.destroy(containerId)
+ * 
+ * Options:
+ *   columns: [{ key, label, sortable, render, width }]
+ *   data: []
+ *   actions: [{ label, class, onClick }]
+ *   selectable: boolean
+ *   onSelectionChange: function(selectedIds)
+ *   pageSize: number (default 10)
+ *   searchable: boolean
+ *   emptyMessage: string
+ *   onSort: function(key, direction)
+ */
+const Table = (function() {
+  // Store table instances
+  const instances = {};
+  
+  function generateId() {
+    return 'table-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  }
+  
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  
+  function getValue(row, key) {
+    if (key.includes('.')) {
+      return key.split('.').reduce((obj, k) => obj && obj[k], row);
+    }
+    return row[key];
+  }
+  
+  function renderSortIcon(key, state) {
+    if (!state.sortable) return '';
+    const direction = state.sortKey === key ? state.sortDirection : '';
+    const active = direction ? 'text-blue-600' : 'text-gray-400';
+    const up = direction === 'asc' ? 'opacity-100' : 'opacity-40';
+    const down = direction === 'desc' ? 'opacity-100' : 'opacity-40';
+    return `
+      <span class="inline-flex flex-col ml-1 ${active}">
+        <svg class="w-3 h-3 ${up}" viewBox="0 0 10 6" fill="currentColor">
+          <path d="M5 0L10 6H0z"/>
+        </svg>
+        <svg class="w-3 h-3 ${down}" viewBox="0 0 10 6" fill="currentColor">
+          <path d="M5 6L0 0h10z"/>
+        </svg>
+      </span>
+    `;
+  }
+  
+  function renderTable(state) {
+    const { columns, data, actions, selectable, pageSize, currentPage, searchQuery, sortKey, sortDirection, emptyMessage, tableId } = state;
+    
+    // Filter data using SearchService
+    let filtered = data;
+    if (searchQuery) {
+      const searchFields = columns.map(col => col.key);
+      filtered = Search.filter(data, searchQuery, searchFields);
+    }
+    
+    // Sort data
+    if (sortKey) {
+      filtered = [...filtered].sort((a, b) => {
+        const aVal = getValue(a, sortKey);
+        const bVal = getValue(b, sortKey);
+        if (aVal == null) return 1;
+        if (bVal == null) return -1;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        const strA = String(aVal).toLowerCase();
+        const strB = String(bVal).toLowerCase();
+        if (sortDirection === 'asc') return strA.localeCompare(strB);
+        return strB.localeCompare(strA);
+      });
+    }
+    
+    // Paginate
+    const totalItems = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const safePage = Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * pageSize;
+    const pageData = filtered.slice(start, start + pageSize);
+    
+    // Update state
+    state.currentPage = safePage;
+    state.filteredData = filtered;
+    
+    // Build HTML
+    let html = '';
+    
+    // Search bar
+    if (state.searchable) {
+      html += `
+        <div class="mb-4">
+          <input
+            type="text"
+            placeholder="Search..."
+            class="w-full border p-2 rounded"
+            value="${escapeHtml(searchQuery)}"
+            oninput="Table._handleSearch('${tableId}', this.value)"
+          />
+        </div>
+      `;
+    }
+    
+    // Bulk actions bar
+    if (selectable) {
+      const selectedCount = state.selectedIds.length;
+      html += `
+        <div class="mb-4 flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              ${pageData.length > 0 && pageData.every(r => state.selectedIds.includes(r.id)) ? 'checked' : ''}
+              onchange="Table._handleSelectAll('${tableId}', this.checked)"
+            />
+            Select All
+          </label>
+          ${selectedCount > 0 ? `<span class="text-sm text-gray-500">${selectedCount} selected</span>` : ''}
+        </div>
+      `;
+    }
+    
+    // Table
+    if (pageData.length === 0) {
+      html += `<div class="text-gray-500 text-center py-8">${emptyMessage}</div>`;
+    } else {
+      html += '<div class="overflow-x-auto"><table class="w-full text-left">';
+      
+      // Header
+      html += '<thead><tr class="border-b">';
+      if (selectable) {
+        html += '<th class="py-2 w-10"></th>';
+      }
+      columns.forEach(col => {
+        const sortable = col.sortable !== false;
+        html += `<th class="py-2 ${col.width ? 'w-' + col.width : ''} ${sortable ? 'cursor-pointer hover:text-blue-600' : ''}" 
+          onclick="${sortable ? `Table._handleSort('${tableId}', '${col.key}')` : ''}">
+          <div class="flex items-center">
+            ${escapeHtml(col.label)}
+            ${renderSortIcon(col.key, state)}
+          </div>
+        </th>`;
+      });
+      if (actions && actions.length > 0) {
+        html += '<th class="py-2 w-32">Actions</th>';
+      }
+      html += '</tr></thead>';
+      
+      // Body
+      html += '<tbody>';
+      pageData.forEach((row, index) => {
+        const isSelected = state.selectedIds.includes(row.id);
+        html += `<tr class="border-b hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}">`;
+        if (selectable) {
+          html += `<td class="py-2">
+            <input
+              type="checkbox"
+              ${isSelected ? 'checked' : ''}
+              onchange="Table._handleSelect('${tableId}', '${row.id}', this.checked)"
+            />
+          </td>`;
+        }
+        columns.forEach(col => {
+          const val = getValue(row, col.key);
+          if (col.render) {
+            html += `<td class="py-2">${col.render(val, row)}</td>`;
+          } else {
+            html += `<td class="py-2">${escapeHtml(val)}</td>`;
+          }
+        });
+        if (actions && actions.length > 0) {
+          html += '<td class="py-2">';
+          actions.forEach(action => {
+            html += `<button class="${action.class || 'text-blue-600'} mr-2" onclick="Table._handleAction('${tableId}', ${index}, '${action.label}')">${escapeHtml(action.label)}</button>`;
+          });
+          html += '</td>';
+        }
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      
+      // Pagination - always show
+      html += '<div class="flex items-center justify-between mt-4 pt-4 border-t">';
+      html += `<div class="text-sm text-gray-500">Showing ${start + 1}-${Math.min(start + pageSize, totalItems)} of ${totalItems}</div>`;
+      html += '<div class="flex items-center gap-2">';
+    
+      // Page size selector
+      html += `<select class="border rounded px-2 py-1 text-sm bg-white" onchange="Table._handlePageSize('${tableId}', this.value)">
+        <option value="5" ${pageSize === 5 ? 'selected' : ''}>5 / page</option>
+        <option value="10" ${pageSize === 10 ? 'selected' : ''}>10 / page</option>
+        <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 / page</option>
+        <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 / page</option>
+        <option value="100" ${pageSize === 100 ? 'selected' : ''}>100 / page</option>
+      </select>`;
+    
+      // Previous button
+      html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage <= 1 ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
+        onclick="Table._handlePage('${tableId}', ${safePage - 1})" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>`;
+    
+      // Page numbers
+      const maxVisible = 5;
+      let startPage = Math.max(1, safePage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+    
+      if (startPage > 1) {
+        html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', 1)">1</button>`;
+        if (startPage > 2) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
+      }
+    
+      for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="px-3 py-1 rounded border text-sm font-medium ${i === safePage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-100'}" 
+          onclick="Table._handlePage('${tableId}', ${i})">${i}</button>`;
+      }
+    
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
+        html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', ${totalPages})">${totalPages}</button>`;
+      }
+    
+      // Next button
+      html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage >= totalPages ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
+        onclick="Table._handlePage('${tableId}', ${safePage + 1})" ${safePage >= totalPages ? 'disabled' : ''}>Next</button>`;
+      html += '</div></div>';
+    }
+    
+    return html;
+  }
+  
+  return {
+    _instances: instances,
+    
+    _handleSearch: function(tableId, query) {
+      const state = instances[tableId];
+      if (!state) return;
+      state.searchQuery = query;
+      state.currentPage = 1;
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+    },
+    
+    _handleSort: function(tableId, key) {
+      const state = instances[tableId];
+      if (!state) return;
+      if (state.sortKey === key) {
+        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.sortKey = key;
+        state.sortDirection = 'asc';
+      }
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+      if (state.onSort) {
+        state.onSort(state.sortKey, state.sortDirection);
+      }
+    },
+    
+    _handlePage: function(tableId, page) {
+      const state = instances[tableId];
+      if (!state) return;
+      if (page < 1 || page > Math.ceil(state.filteredData.length / state.pageSize)) return;
+      state.currentPage = page;
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+    },
+    
+    _handlePageSize: function(tableId, size) {
+      const state = instances[tableId];
+      if (!state) return;
+      state.pageSize = parseInt(size, 10);
+      state.currentPage = 1;
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+    },
+    
+    _handleSelect: function(tableId, id, checked) {
+      const state = instances[tableId];
+      if (!state) return;
+      if (checked) {
+        if (!state.selectedIds.includes(id)) {
+          state.selectedIds.push(id);
+        }
+      } else {
+        state.selectedIds = state.selectedIds.filter(sid => sid !== id);
+      }
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+      if (state.onSelectionChange) {
+        state.onSelectionChange([...state.selectedIds]);
+      }
+    },
+    
+    _handleSelectAll: function(tableId, checked) {
+      const state = instances[tableId];
+      if (!state) return;
+      const pageData = state.filteredData.slice(
+        (state.currentPage - 1) * state.pageSize,
+        state.currentPage * state.pageSize
+      );
+      if (checked) {
+        pageData.forEach(row => {
+          if (!state.selectedIds.includes(row.id)) {
+            state.selectedIds.push(row.id);
+          }
+        });
+      } else {
+        pageData.forEach(row => {
+          state.selectedIds = state.selectedIds.filter(sid => sid !== row.id);
+        });
+      }
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+      if (state.onSelectionChange) {
+        state.onSelectionChange([...state.selectedIds]);
+      }
+    },
+    
+    _handleAction: function(tableId, rowIndex, actionLabel) {
+      const state = instances[tableId];
+      if (!state) return;
+      const pageData = state.filteredData.slice(
+        (state.currentPage - 1) * state.pageSize,
+        state.currentPage * state.pageSize
+      );
+      const row = pageData[rowIndex];
+      if (!row) return;
+      const action = state.actions.find(a => a.label === actionLabel);
+      if (action && action.onClick) {
+        action.onClick(row);
+      }
+    },
+    
+    render: function(containerId, options) {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error('Table container not found:', containerId);
+        return;
+      }
+      
+      const tableId = containerId + '-table';
+      
+      const state = {
+        tableId: tableId,
+        columns: options.columns || [],
+        data: options.data || [],
+        actions: options.actions || [],
+        selectable: options.selectable || false,
+        selectedIds: [],
+        pageSize: options.pageSize || 10,
+        currentPage: 1,
+        searchable: options.searchable || false,
+        searchQuery: '',
+        sortKey: null,
+        sortDirection: 'asc',
+        filteredData: [],
+        emptyMessage: options.emptyMessage || 'No data found',
+        onSelectionChange: options.onSelectionChange || null,
+        onSort: options.onSort || null
+      };
+      
+      instances[tableId] = state;
+      container.id = tableId;
+      container.innerHTML = renderTable(state);
+    },
+    
+    refresh: function(containerId, newData) {
+      const tableId = containerId + '-table';
+      const state = instances[tableId];
+      if (!state) return;
+      state.data = newData;
+      state.currentPage = 1;
+      state.selectedIds = [];
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = renderTable(state);
+      }
+    },
+    
+    destroy: function(containerId) {
+      const tableId = containerId + '-table';
+      delete instances[tableId];
+      const container = document.getElementById(tableId);
+      if (container) {
+        container.innerHTML = '';
+      }
+    },
+    
+    getSelectedIds: function(containerId) {
+      const tableId = containerId + '-table';
+      const state = instances[tableId];
+      return state ? [...state.selectedIds] : [];
+    }
+  };
+})();
+</script>

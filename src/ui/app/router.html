@@ -1,0 +1,56 @@
+<script>
+
+const Router = {
+
+  async go(page) {
+
+    State.currentPage = page;
+
+    switch(page) {
+
+      case "login":
+        renderLoginPage();
+        break;
+
+      case "dashboard":
+        renderDashboardPage();
+        break;
+
+      case "products":
+        renderProductsPage();
+        break;
+
+      case "categories":
+        renderCategoriesPage();
+        break;
+
+      case "stock":
+        renderStockMovementsPage();
+        break;
+
+      case "sales":
+        renderSalesPage();
+        break;
+
+      case "units":
+        renderUnitsPage();
+        break;
+
+      case "settings":
+        renderSettingsPage();
+        break;
+
+      case "pos":
+        renderPOSPage();
+        break;
+
+      default:
+        renderLoginPage();
+
+    }
+
+  }
+
+};
+
+</script>

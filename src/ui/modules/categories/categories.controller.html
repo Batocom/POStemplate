@@ -1,0 +1,145 @@
+<script>
+
+async function openCreateCategoryModal() {
+  const template = document.getElementById("createCategoryModalTemplate");
+  Modal.open({
+    title: "Add Category",
+    content: template.innerHTML,
+    size: "md"
+  });
+}
+
+async function submitCreateCategory(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  const payload = {
+    name: document.getElementById("categoryName").value,
+    description: document.getElementById("categoryDescription").value
+  };
+
+  try {
+    const raw = await api("CREATE_CATEGORY", { data: payload });
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      Toast.error(response?.error || "Failed to create category");
+      return;
+    }
+
+    closeModal();
+    Toast.success('Category created successfully');
+    await loadCategories();
+  } catch (err) {
+    Toast.error('Error: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Category';
+    }
+  }
+}
+
+async function openEditCategoryModal(categoryId) {
+  await Edit.open({
+    title: 'Edit Category',
+    templateId: 'editCategoryModalTemplate',
+    fetchApi: 'GET_CATEGORIES',
+    updateApi: 'UPDATE_CATEGORY',
+    entityId: categoryId,
+    findInResponse: function(data, id) {
+      return data.find(c => c.id === id);
+    },
+    populate: function(category) {
+      document.getElementById('editCategoryId').value = category.id;
+      document.getElementById('editCategoryName').value = category.name || '';
+      document.getElementById('editCategoryDescription').value = category.description || '';
+    },
+    getPayload: function() {
+      return {
+        id: document.getElementById('editCategoryId').value,
+        name: document.getElementById('editCategoryName').value,
+        description: document.getElementById('editCategoryDescription').value
+      };
+    },
+    onSuccess: function() {
+      Toast.success('Category updated successfully');
+      loadCategories();
+    }
+  });
+}
+
+async function loadCategories() {
+  const container = document.getElementById('categoriesTableContainer');
+  if (!container) return;
+
+  container.innerHTML = 'Loading...';
+
+  try {
+    const raw = await api('GET_CATEGORIES');
+    const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    if (!response || !response.success) {
+      container.innerHTML = '<div class="text-red-500">Failed to load categories</div>';
+      return;
+    }
+
+    const categories = response.data;
+
+    if (!Array.isArray(categories)) {
+      container.innerHTML = '<div class="text-red-500">Invalid categories data</div>';
+      return;
+    }
+
+    if (!categories.length) {
+      container.innerHTML = '<div class="text-gray-500">No categories found</div>';
+      return;
+    }
+
+    container.innerHTML = '<div id="categoriesTableInner"></div>';
+
+    Table.render('categoriesTableInner', {
+      columns: [
+        { key: 'name', label: 'Name', sortable: true },
+        { key: 'description', label: 'Description', sortable: true,
+          render: function(val) { return val || '-'; }
+        }
+      ],
+      data: categories,
+      actions: [
+        { label: 'Edit', class: 'text-blue-600', onClick: function(row) { openEditCategoryModal(row.id); } },
+        { label: 'Delete', class: 'text-red-600', onClick: function(row) { deleteCategory(row.id); } }
+      ],
+      pageSize: 10,
+      searchable: true,
+      emptyMessage: 'No categories found'
+    });
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+  }
+}
+
+async function deleteCategory(id) {
+  const confirmed = await Modal.confirm('Are you sure you want to delete this category?');
+  if (!confirmed) return;
+
+  const raw = await api('DELETE_CATEGORY', { categoryId: id });
+  const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+  if (!response.success) {
+    Toast.error(response.error || "Failed to delete category");
+    return;
+  }
+
+  Toast.success('Category deleted successfully');
+  await loadCategories();
+}
+
+</script>

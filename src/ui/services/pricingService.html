@@ -1,0 +1,83 @@
+<script>
+/**
+ * PricingService — ALL calculations centralized
+ * 
+ * Never calculate totals in:
+ * - tables
+ * - pages
+ * - components
+ * 
+ * EVER.
+ */
+const PricingService = {
+  
+  /**
+   * Recalculate all cart totals
+   * Called whenever cart changes
+   */
+  recalculate() {
+    const items = CartState.items;
+    
+    let subtotal = 0;
+    let itemCount = 0;
+    
+    items.forEach(item => {
+      subtotal += item.total;
+      itemCount += item.quantity;
+    });
+    
+    // Tax calculation (configurable rate)
+    const taxRate = 0.08; // 8% VAT
+    const tax = subtotal * taxRate;
+    
+    // Discount (currently 0, extendable)
+    const discount = 0;
+    
+    // Grand total
+    const total = subtotal + tax - discount;
+    
+    CartState.summary = {
+      subtotal: Math.round(subtotal * 100) / 100,
+      discount: Math.round(discount * 100) / 100,
+      tax: Math.round(tax * 100) / 100,
+      total: Math.round(total * 100) / 100,
+      itemCount: itemCount
+    };
+    
+    // Update payment balance
+    CartState.payment.balance = CartState.summary.total - CartState.payment.amountPaid;
+    CartState.payment.change = CartState.payment.amountPaid > CartState.summary.total 
+      ? CartState.payment.amountPaid - CartState.summary.total 
+      : 0;
+    
+    EventBus.emit("totalsUpdated");
+  },
+  
+  /**
+   * Calculate profit estimate for current cart
+   */
+  calculateProfit() {
+    let totalCost = 0;
+    let totalRevenue = 0;
+    
+    CartState.items.forEach(item => {
+      totalCost += item.buyPrice * item.quantity;
+      totalRevenue += item.price * item.quantity;
+    });
+    
+    return {
+      cost: totalCost,
+      revenue: totalRevenue,
+      profit: totalRevenue - totalCost,
+      margin: totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue * 100) : 0
+    };
+  },
+  
+  /**
+   * Format currency
+   */
+  formatCurrency(amount) {
+    return "$" + Number(amount).toFixed(2);
+  }
+};
+</script>

@@ -1,0 +1,29 @@
+<script>
+
+window.onload = () => {
+
+  if (State.token) {
+
+    Router.go("dashboard");
+
+  } else {
+
+    Router.go("login");
+
+  }
+
+};
+
+function logout() {
+
+  localStorage.removeItem("token");
+
+  State.token = null;
+
+  State.user = null;
+
+  Router.go("login");
+
+}
+
+</script>

@@ -1,0 +1,89 @@
+<script>
+/**
+ * ScannerService — Barcode scanning support
+ * 
+ * Handles keyboard wedge scanners
+ * which appear as rapid keyboard input
+ */
+const ScannerService = {
+  buffer: "",
+  timeout: null,
+  SCAN_TIMEOUT: 100, // ms between keystrokes to detect scan
+  callback: null,
+  enabled: false,
+  
+  /**
+   * Enable scanner listening
+   */
+  enable(callback) {
+    this.callback = callback;
+    this.enabled = true;
+    
+    document.addEventListener("keydown", this._handleKeydown.bind(this));
+  },
+  
+  /**
+   * Disable scanner listening
+   */
+  disable() {
+    this.enabled = false;
+    this.buffer = "";
+    
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    
+    document.removeEventListener("keydown", this._handleKeydown.bind(this));
+  },
+  
+  /**
+   * Handle keydown events
+   * Scanners send Enter key after barcode
+   */
+  _handleKeydown(event) {
+    if (!this.enabled) return;
+    
+    // Ignore if focus is on input fields (manual typing)
+    if (event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA") {
+      return;
+    }
+    
+    // Enter key signals end of scan
+    if (event.key === "Enter") {
+      if (this.buffer.length > 0) {
+        const barcode = this.buffer;
+        this.buffer = "";
+        
+        if (this.callback) {
+          this.callback(barcode);
+        }
+      }
+      return;
+    }
+    
+    // Accumulate keystrokes
+    if (event.key.length === 1) {
+      this.buffer += event.key;
+      
+      // Reset timeout
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
+      
+      this.timeout = setTimeout(() => {
+        this.buffer = "";
+      }, this.SCAN_TIMEOUT);
+    }
+  },
+  
+  /**
+   * Simulate a barcode scan (for testing)
+   */
+  simulate(barcode) {
+    if (this.callback) {
+      this.callback(barcode);
+    }
+  }
+};
+</script>

@@ -1,0 +1,52 @@
+<script>
+
+function renderSidebar() {
+
+  return `
+
+    <div class="p-4 text-2xl font-bold border-b border-gray-700">
+
+      Batocom POS
+
+    </div>
+
+    <nav class="p-4 space-y-2">
+
+      <button onclick="Router.go('dashboard')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Dashboard
+      </button>
+
+      <button onclick="Router.go('pos')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Point of Sale
+      </button>
+
+      <button onclick="Router.go('products')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Products
+      </button>
+
+      <button onclick="Router.go('categories')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Categories
+      </button>
+
+      <button onclick="Router.go('stock')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Stock Movements
+      </button>
+
+      <button onclick="Router.go('sales')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        POS Sales
+      </button>
+
+      <button onclick="Router.go('units')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Units
+      </button>
+
+      <button onclick="Router.go('settings')" class="w-full text-left p-3 rounded hover:bg-gray-800">
+        Settings
+      </button>
+
+    </nav>
+
+  `;
+}
+
+</script>

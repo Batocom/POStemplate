@@ -1,0 +1,81 @@
+<template id="createProductModalTemplate">
+  <form class="space-y-4" onsubmit="submitCreateProduct(event)">
+    <input
+      id="productName"
+      type="text"
+      placeholder="Product name"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="sellPrice"
+      type="number"
+      placeholder="Sell price"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="buyPrice"
+      type="number"
+      placeholder="Buy price"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="stockQty"
+      type="number"
+      placeholder="Opening stock"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <select id="unitSelect" class="w-full border p-3 rounded">
+      <option value="">Loading units...</option>
+    </select>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
+      Save Product
+    </button>
+  </form>
+</template>
+
+<template id="editProductModalTemplate">
+  <form class="space-y-4" onsubmit="Edit.submit(event)">
+    <input
+      id="editProductId"
+      type="hidden"
+    />
+    <input
+      id="editProductName"
+      type="text"
+      placeholder="Product name"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editSellPrice"
+      type="number"
+      placeholder="Sell price"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editBuyPrice"
+      type="number"
+      placeholder="Buy price"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <input
+      id="editStockQty"
+      type="number"
+      placeholder="Stock quantity"
+      class="w-full border p-3 rounded"
+      required
+    />
+    <select id="editUnitSelect" class="w-full border p-3 rounded">
+      <option value="">Loading units...</option>
+    </select>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
+      Update Product
+    </button>
+  </form>
+</template>
