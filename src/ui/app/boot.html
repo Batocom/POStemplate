@@ -2,6 +2,9 @@
 
 window.onload = async () => {
 
+  // Initialize UI service for responsive behavior
+  UIService.init();
+
   // Initialize pricing service to fetch tax rate early
   try {
     await PricingService.init();

@@ -1,46 +1,30 @@
 <script>
 
 function renderTopbar() {
-
   return `
-
-    <header style="background:white;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;min-height:56px;">
-
+    <header class="topbar">
       <div style="display:flex;align-items:center;gap:12px;">
-
-        <!-- Mobile hamburger -->
         <button
-          onclick="toggleMobileSidebar()"
+          onclick="UIService.toggleSidebar()"
           id="hamburgerBtn"
+          class="topbar__hamburger"
           aria-label="Toggle navigation menu"
-          style="background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;display:none;"
         >
           <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>
-
-        <div style="font-size:1.125rem;font-weight:bold;">
+        <div class="topbar__title">
           ${State.currentPage?.toUpperCase() || "POS"}
         </div>
-
       </div>
-
-      <div style="display:flex;align-items:center;gap:8px;">
-
-        <span style="font-size:0.875rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${State.user?.name || ""}</span>
-
-        <button
-          onclick="logout()"
-          style="background-color:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.875rem;cursor:pointer;"
-        >
+      <div class="topbar__actions">
+        <span class="topbar__user">${State.user?.name || ""}</span>
+        <button onclick="logout()" class="topbar__logout">
           Logout
         </button>
-
       </div>
-
     </header>
-
   `;
 }
 

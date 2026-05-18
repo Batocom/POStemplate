@@ -1,63 +1,47 @@
 <script>
 
 function renderSidebar() {
-
   return `
-
-    <div style="padding:16px;font-size:1.5rem;font-weight:bold;border-bottom:1px solid #374151;display:flex;align-items:center;justify-content:space-between;">
-
+    <div class="sidebar__header">
       <span>Batocom POS</span>
-
-      <!-- Close button for mobile -->
       <button
-        onclick="closeMobileSidebar()"
+        onclick="UIService.closeSidebar()"
         id="sidebarCloseBtn"
+        class="sidebar__close-btn"
         aria-label="Close navigation menu"
-        style="background:none;border:none;color:#9ca3af;cursor:pointer;padding:8px;font-size:1.5rem;line-height:1;display:none;"
       >
         <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
-
     </div>
 
-    <nav style="padding:16px;">
-
-      <button onclick="Router.go('dashboard'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+    <nav class="sidebar__nav">
+      <button onclick="Router.go('dashboard'); UIService.closeSidebar();" class="sidebar__nav-btn">
         📊 Dashboard
       </button>
-
-      <button onclick="Router.go('pos'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('pos'); UIService.closeSidebar();" class="sidebar__nav-btn">
         🛒 Point of Sale
       </button>
-
-      <button onclick="Router.go('products'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('products'); UIService.closeSidebar();" class="sidebar__nav-btn">
         📦 Products
       </button>
-
-      <button onclick="Router.go('categories'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('categories'); UIService.closeSidebar();" class="sidebar__nav-btn">
         🏷️ Categories
       </button>
-
-      <button onclick="Router.go('stock'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('stock'); UIService.closeSidebar();" class="sidebar__nav-btn">
         📋 Stock Movements
       </button>
-
-      <button onclick="Router.go('sales'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('sales'); UIService.closeSidebar();" class="sidebar__nav-btn">
         💳 POS Sales
       </button>
-
-      <button onclick="Router.go('units'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('units'); UIService.closeSidebar();" class="sidebar__nav-btn">
         ⚖️ Units
       </button>
-
-      <button onclick="Router.go('settings'); closeMobileSidebar();" style="width:100%;text-align:left;padding:10px 12px;border-radius:6px;background:none;border:none;color:white;cursor:pointer;font-size:0.875rem;margin-bottom:4px;">
+      <button onclick="Router.go('settings'); UIService.closeSidebar();" class="sidebar__nav-btn">
         ⚙️ Settings
       </button>
-
     </nav>
-
   `;
 }
 
