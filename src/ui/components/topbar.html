@@ -4,19 +4,36 @@ function renderTopbar() {
 
   return `
 
-    <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <header class="bg-white shadow px-4 md:px-6 py-3 md:py-4 flex justify-between items-center" style="min-height: 56px;">
 
-      <div class="font-bold text-xl">
-        ${State.currentPage.toUpperCase()}
+      <div class="flex items-center gap-3">
+
+        <!-- Mobile hamburger -->
+        <button
+          onclick="toggleMobileSidebar()"
+          class="mobile-sidebar-toggle p-2 rounded hover:bg-gray-100 focus:outline-none"
+          aria-label="Toggle navigation menu"
+          style="background: none; border: none; cursor: pointer;"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+
+        <div class="font-bold text-lg md:text-xl" style="font-size: 1.125rem;">
+          ${State.currentPage?.toUpperCase() || "POS"}
+        </div>
+
       </div>
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 md:gap-4">
 
-        <span>${State.user?.name || ""}</span>
+        <span class="text-sm md:text-base truncate" style="max-width: 120px; font-size: 0.875rem;">${State.user?.name || ""}</span>
 
         <button
           onclick="logout()"
-          class="bg-red-500 text-white px-4 py-2 rounded"
+          class="bg-red-500 hover:bg-red-600 text-white text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 rounded transition-colors"
+          style="background-color: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.875rem; cursor: pointer;"
         >
           Logout
         </button>

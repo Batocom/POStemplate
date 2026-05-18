@@ -263,7 +263,6 @@
   
   .pos-right {
     width: 420px;
-    min-width: 420px;
     display: flex;
     flex-direction: column;
     background: #f8f9fa;
@@ -992,14 +991,225 @@
     gap: 6px;
   }
   
-  @media (max-width: 900px) {
+  /* ===== RESPONSIVE BREAKPOINTS ===== */
+  
+  /* Tablet and below */
+  @media (max-width: 1024px) {
+    .pos-right {
+      width: 360px;
+    }
+    
+    .product-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    
+    .product-card {
+      padding: 8px;
+    }
+    
+    .product-card .product-name {
+      font-size: 0.8rem;
+    }
+    
+    .product-card .product-price {
+      font-size: 1rem;
+    }
+  }
+  
+  /* Mobile */
+  @media (max-width: 767px) {
     .pos-layout {
       flex-direction: column;
+      height: auto;
+      min-height: calc(100vh - 56px);
+    }
+    
+    .pos-left {
+      padding: 12px;
+      border-right: none;
+      border-bottom: 1px solid #e0e0e0;
+      max-height: 50vh;
+      overflow-y: auto;
     }
     
     .pos-right {
       width: 100%;
-      min-width: 100%;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    
+    .pos-header h2 {
+      font-size: 1.1rem;
+    }
+    
+    .product-grid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 6px;
+    }
+    
+    .product-card {
+      padding: 6px;
+    }
+    
+    .product-card .product-name {
+      font-size: 0.75rem;
+    }
+    
+    .product-card .product-price {
+      font-size: 0.9rem;
+    }
+    
+    .product-card .product-stock {
+      font-size: 0.65rem;
+    }
+    
+    .product-card .product-barcode {
+      font-size: 0.6rem;
+    }
+    
+    .search-input {
+      padding: 10px 12px;
+      font-size: 0.9rem;
+    }
+    
+    .category-btn {
+      padding: 4px 12px;
+      font-size: 0.75rem;
+    }
+    
+    .cart-header {
+      padding: 10px 12px;
+    }
+    
+    .cart-items {
+      padding: 4px;
+    }
+    
+    .cart-item {
+      padding: 8px 10px;
+    }
+    
+    .cart-item .item-name {
+      font-size: 0.8rem;
+    }
+    
+    .cart-item .item-price {
+      font-size: 0.7rem;
+    }
+    
+    .cart-item .qty-btn {
+      width: 24px;
+      height: 24px;
+      font-size: 0.85rem;
+    }
+    
+    .cart-item .qty-value {
+      width: 24px;
+      font-size: 0.85rem;
+    }
+    
+    .cart-item .item-total {
+      font-size: 0.85rem;
+      min-width: 50px;
+    }
+    
+    .totals-panel {
+      padding: 10px 12px;
+    }
+    
+    .totals-amount {
+      font-size: 1.2rem;
+    }
+    
+    .checkout-actions {
+      padding: 10px 12px;
+    }
+    
+    .checkout-actions button {
+      font-size: 0.95rem;
+      padding: 10px;
+    }
+    
+    /* Payment modal mobile */
+    .payment-total-amount {
+      font-size: 2rem;
+    }
+    
+    .payment-method-btn {
+      padding: 8px 4px;
+      font-size: 0.75rem;
+    }
+    
+    .payment-method-icon {
+      font-size: 1.2rem;
+    }
+    
+    .payment-amount-input {
+      font-size: 1rem;
+      padding: 10px 12px 10px 4px;
+    }
+    
+    .change-amount {
+      font-size: 1.2rem;
+    }
+    
+    /* Receipt modal mobile */
+    .receipt-items-table th,
+    .receipt-items-table td {
+      padding: 6px 8px;
+      font-size: 0.8rem;
+    }
+    
+    .receipt-total-value {
+      font-size: 1.2rem;
+    }
+  }
+  
+  /* Small phones */
+  @media (max-width: 480px) {
+    .pos-left {
+      padding: 8px;
+      max-height: 45vh;
+    }
+    
+    .pos-right {
+      max-height: 55vh;
+    }
+    
+    .product-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+    }
+    
+    .product-card {
+      padding: 4px;
+    }
+    
+    .product-card .product-name {
+      font-size: 0.7rem;
+    }
+    
+    .product-card .product-price {
+      font-size: 0.85rem;
+    }
+    
+    .category-filters {
+      gap: 4px;
+    }
+    
+    .category-btn {
+      padding: 3px 10px;
+      font-size: 0.7rem;
+    }
+    
+    .cart-item .item-quantity {
+      gap: 4px;
+      margin: 0 6px;
+    }
+    
+    .totals-amount {
+      font-size: 1rem;
     }
   }
 </style>
