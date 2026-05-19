@@ -67,144 +67,121 @@ Handles:
 - frontend interactions
 
 ## Directory Structure
- appsscript.json
-|   Code.js
-|
-+---core
-|   +---auth
-|   |       authService.js
-|   |
-|   +---database
-|   |   |   db.js
-|   |   |
-|   |   +---migrations
-|   |   |       migrationHelpers.js
-|   |   |       migrationRunner.js
-|   |   |       migrationTracker.js
-|   |   |
-|   |   +---relations
-|   |   |       relations.js
-|   |   |
-|   |   +---schema
-|   |   |       categories.schema.js
-|   |   |       migrations.schema.js
-|   |   |       products.schema.js
-|   |   |       sales.schema.js
-|   |   |       sale_items.schema.js
-|   |   |       schemaRegistry.js
-|   |   |       stock_movements.schema.js
-|   |   |       units.schema.js
-|   |   |       users.schema.js
-|   |   |
-|   |   \---seeders
-|   |           categoriesSeeder.js
-|   |           seedRunner.js
-|   |           usersSeeder.js
-|   |
-|   +---middleware
-|   |       authMiddleware.js
-|   |
-|   +---router
-|   |       router.js
-|   |
-|   +---session
-|   |       sessionManager.js
-|   |
-|   \---tests
-|           productTest.js
-|           salesTest.js
-|
-+---modules
-|   +---categories
-|   |       categoryService.js
-|   |       categoryValidator.js
-|   |
-|   +---products
-|   |       productService.js
-|   |       productValidator.js
-|   |       stockService.js
-|   |
-|   +---sales
-|   |        salesService.js
-|   |       receiptService.js
-|   |
-|   +---settings
-|   |       taxService.js
-|   |
-|   +---stock
-|   |       stockMovementService.js
-|   |       stockMovementValidator.js
-|   |
-|   \---units
-|            unitService.js
-|           unitService.js
-|           unitValidator.js
-|
-\---ui
-    +---app
-    |       api.html
-    |       app.html
-    |       boot.html
-    |       index.html
-    |       router.html
-    |       state.html
-    |
-    +---components
-    |       cartItemRow.html
-    |       modal.html
-    |       sidebar.html
-    |       table.html
-    |       topbar.html
-    |
-    +---modules
-    |   +---categories
-    |   |       categories.controller.html
-    |   |       categories.modal.html
-    |   |
-    |   +---products
-    |   |       products.controller.html
-    |   |       products.modal.html
-    |   |
-    |   +---sales
-    |   |       sales.controller.html
-    |   |       sales.modal.html
-    |   |
-    |   +---settings
-    |   |       settings.controller.html
-    |   |
-    |   \---units
-    |           units.controller.html
-    |           units.modal.html
-    |
-    +---pages
-    |       categories.html
-    |       dashboard.html
-    |       login.html
-    |       pos.html
-    |       products.html
-    |       sales.html
-    |       settings.html
-    |       stockMovements.html
-    |       units.html
-    |
-    +---services
-    |       cartService.html
-    |       checkoutService.html
-    |       editService.html
-    |       modalService.html
-    |       pricingService.html
-    |       printService.html
-    |       receiptService.html
-    |       scannerService.html
-    |       searchService.html
-    |       tableService.html
-    |       toastService.html
-    |
-    +---state
-    |       cartState.html
-    |
-    \---styles
-            theme.html
+.
+├── Code.js
+├── appsscript.json
+├── core
+│   ├── auth
+│   │   └── authService.js
+│   ├── database
+│   │   ├── db.js
+│   │   ├── migrations
+│   │   │   ├── migrationHelpers.js
+│   │   │   ├── migrationRunner.js
+│   │   │   └── migrationTracker.js
+│   │   ├── relations
+│   │   │   └── relations.js
+│   │   ├── schema
+│   │   │   ├── categories.schema.js
+│   │   │   ├── migrations.schema.js
+│   │   │   ├── products.schema.js
+│   │   │   ├── sale_items.schema.js
+│   │   │   ├── sales.schema.js
+│   │   │   ├── schemaRegistry.js
+│   │   │   ├── settings.schema.js
+│   │   │   ├── stock_movements.schema.js
+│   │   │   ├── units.schema.js
+│   │   │   └── users.schema.js
+│   │   └── seeders
+│   │       ├── categoriesSeeder.js
+│   │       ├── seedRunner.js
+│   │       └── usersSeeder.js
+│   ├── middleware
+│   │   └── authMiddleware.js
+│   ├── router
+│   │   └── router.js
+│   ├── session
+│   │   └── sessionManager.js
+│   └── tests
+│       ├── productTest.js
+│       └── salesTest.js
+├── modules
+│   ├── categories
+│   │   ├── categoryService.js
+│   │   └── categoryValidator.js
+│   ├── products
+│   │   ├── productService.js
+│   │   ├── productValidator.js
+│   │   └── stockService.js
+│   ├── sales
+│   │   ├──  salesService.js
+│   │   └── receiptService.js
+│   ├── settings
+│   │   └── taxService.js
+│   ├── stock
+│   │   ├── stockMovementService.js
+│   │   └── stockMovementValidator.js
+│   └── units
+│       ├──  unitService.js
+│       ├── unitService.js
+│       └── unitValidator.js
+└── ui
+    ├── app
+    │   ├── api.html
+    │   ├── app.html
+    │   ├── boot.html
+    │   ├── index.html
+    │   ├── router.html
+    │   └── state.html
+    ├── components
+    │   ├── cartItemRow.html
+    │   ├── modal.html
+    │   ├── sidebar.html
+    │   ├── table.html
+    │   └── topbar.html
+    ├── modules
+    │   ├── categories
+    │   │   ├── categories.controller.html
+    │   │   └── categories.modal.html
+    │   ├── products
+    │   │   ├── products.controller.html
+    │   │   └── products.modal.html
+    │   ├── sales
+    │   │   ├── sales.controller.html
+    │   │   └── sales.modal.html
+    │   ├── settings
+    │   │   └── settings.controller.html
+    │   └── units
+    │       ├── units.controller.html
+    │       └── units.modal.html
+    ├── pages
+    │   ├── categories.html
+    │   ├── dashboard.html
+    │   ├── login.html
+    │   ├── pos.html
+    │   ├── products.html
+    │   ├── sales.html
+    │   ├── settings.html
+    │   ├── stockMovements.html
+    │   └── units.html
+    ├── services
+    │   ├── cartService.html
+    │   ├── checkoutService.html
+    │   ├── editService.html
+    │   ├── modalService.html
+    │   ├── pricingService.html
+    │   ├── printService.html
+    │   ├── receiptService.html
+    │   ├── scannerService.html
+    │   ├── searchService.html
+    │   ├── tableService.html
+    │   ├── toastService.html
+    │   └── uiService.html
+    ├── state
+    │   └── cartState.html
+    └── styles
+        ├── responsive.html
+        └── theme.html
 
 
 ## Runtime Flow
