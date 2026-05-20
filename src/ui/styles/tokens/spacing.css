@@ -1,0 +1,14 @@
+/* ===== SPACING TOKENS ===== */
+/* Source: UI Audit documented values (4px, 8px, 12px, 16px, 20px, 24px, 32px, 48px) */
+/* Scale covers every spacing value identified in the audit */
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+}
