@@ -1,7 +1,6 @@
-cat > /mnt/user-data/outputs/MIGRATION_PLAN.md << 'ENDOFFILE'
 # UI Migration Plan
 
-**Version:** 1.0
+**Version:** 1.1 (Apps Script Refactored)
 **Status:** Execution Blueprint
 **Depends On:** `UI_AUDIT.md`, `UI_PATTERN_REGISTRY.md`, `RESPONSIVE_PATTERNS.md`, `STYLING_ARCHITECTURE.md`
 
@@ -120,7 +119,7 @@ This phase produces no visible UI change. Its output is consumed by every subseq
 Review `theme.html` and identify all CSS custom properties currently defined. Map them against the token taxonomy defined in `STYLING_ARCHITECTURE.md`. Identify which tokens exist, which are missing, and which are defined but never consumed.
 
 **Task 1.2 — Define Color Tokens**
-Create `tokens/colors.css`. Define all color tokens required by the pattern registry. This includes:
+Create `src/ui/styles/tokens/colors.css`. Define all color tokens required by the pattern registry. This includes:
 
 - Primary color scale (`--color-primary`, `--color-primary-hover`, `--color-primary-subtle`)
 - Semantic feedback colors (`--color-success`, `--color-warning`, `--color-danger`, `--color-info` and their `-subtle` variants)
@@ -133,38 +132,38 @@ Create `tokens/colors.css`. Define all color tokens required by the pattern regi
 All values must be sourced from the audit's documented existing colors. No new colors are introduced in this phase — the goal is to name and centralize, not redesign.
 
 **Task 1.3 — Define Spacing Tokens**
-Create `tokens/spacing.css`. Define the spacing scale `--space-1` through `--space-8` (4px increments). Map against the audit-identified spacing values to ensure the scale covers all currently used values.
+Create `src/ui/styles/tokens/spacing.css`. Define the spacing scale `--space-1` through `--space-8` (4px increments). Map against the audit-identified spacing values to ensure the scale covers all currently used values.
 
 **Task 1.4 — Define Typography Tokens**
-Create `tokens/typography.css`. Define:
+Create `src/ui/styles/tokens/typography.css`. Define:
 
 - Font size scale: `--text-xs` through `--text-xl`
 - Font weight tokens: `--font-weight-normal`, `--font-weight-medium`, `--font-weight-bold`
 - Line height tokens: `--leading-tight`, `--leading-normal`, `--leading-relaxed`
 
 **Task 1.5 — Define Radius Tokens**
-Create `tokens/radius.css`. Define `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`, `--radius-full`.
+Create `src/ui/styles/tokens/radius.css`. Define `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`, `--radius-full`.
 
 **Task 1.6 — Define Shadow Tokens**
-Create `tokens/shadows.css`. Define `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`.
+Create `src/ui/styles/tokens/shadows.css`. Define `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`.
 
 **Task 1.7 — Define Z-Index Tokens**
-Create `tokens/zindex.css`. Define the complete z-index stack: `--z-base`, `--z-sticky`, `--z-topbar`, `--z-sidebar`, `--z-dropdown`, `--z-modal`, `--z-toast`.
+Create `src/ui/styles/tokens/zindex.css`. Define the complete z-index stack: `--z-base`, `--z-sticky`, `--z-topbar`, `--z-sidebar`, `--z-dropdown`, `--z-modal`, `--z-toast`.
 
 **Task 1.8 — Define Breakpoint Tokens**
-Create `tokens/breakpoints.css`. Define `--bp-mobile: 480px`, `--bp-tablet: 768px`, `--bp-desktop: 1024px`, `--bp-wide: 1280px`. These values already exist in `theme.html` but are consumed by nothing — this task moves them to a canonical location.
+Create `src/ui/styles/tokens/breakpoints.css`. Define `--bp-mobile: 480px`, `--bp-tablet: 768px`, `--bp-desktop: 1024px`, `--bp-wide: 1280px`. These values already exist in `theme.html` but are consumed by nothing — this task moves them to a canonical location.
 
 **Task 1.9 — Define Animation Tokens**
-Create `tokens/animations.css`. Define `--transition-fast` (150ms), `--transition-normal` (250ms), `--transition-slow` (400ms). Sourced from the audit's identified animation durations (modal: 200ms, toast: 300ms — normalized to system scale).
+Create `src/ui/styles/tokens/animations.css`. Define `--transition-fast` (150ms), `--transition-normal` (250ms), `--transition-slow` (400ms). Sourced from the audit's identified animation durations (modal: 200ms, toast: 300ms — normalized to system scale).
 
 **Task 1.10 — Define Layout Tokens**
-Add `--topbar-height` and `--pos-cart-width` to a new `tokens/layout.css`. These are referenced by the shell and POS layout calculations per the responsive contracts.
+Create `src/ui/styles/tokens/layout.css`. Add `--topbar-height` and `--pos-cart-width`. These are referenced by the shell and POS layout calculations per the responsive contracts.
 
-**Task 1.11 — Wire Tokens to `main.css`**
-Create or update `main.css` to import all token files in the correct order. Tokens must be imported before base, before utilities, before layout, before components.
+**Task 1.11 — Wire Tokens to `stylesLoader.html`**
+Update `src/ui/styles/stylesLoader.html` to include all token files via `<?!= HtmlService.createHtmlOutputFromFile() ?>`. The include order must match the token dependency order: colors → spacing → typography → radius → shadows → zindex → breakpoints → animations → layout.
 
 **Task 1.12 — Remove Duplicate Token Definitions from `theme.html`**
-After the token files are established and imported, remove the CSS custom property definitions from `theme.html`. The `theme.html` file's token content is now superseded by the token layer.
+After the token files are established and `stylesLoader.html` includes them, remove the CSS custom property definitions from `theme.html`. The `theme.html` file's token content is now superseded by the token layer. Retain any non-token content in `theme.html` (animations, box-sizing, body defaults) — those will be migrated in Phase 2.
 
 ### Dependencies
 
@@ -185,15 +184,15 @@ Tasks 1.1 → 1.2 through 1.10 (parallelizable after 1.1) → 1.11 → 1.12
 
 ### Validation Requirements
 
-- All token files exist in `tokens/` directory.
+- All token files exist in `src/ui/styles/tokens/` directory.
 - All tokens referenced in `RESPONSIVE_PATTERNS.md` Appendix B are defined.
 - All tokens referenced in the `UI_PATTERN_REGISTRY.md` cross-reference table are defined.
-- `main.css` imports all token files.
+- `stylesLoader.html` includes all token files via `<?!= HtmlService.createHtmlOutputFromFile() ?>`.
 - No page visual appearance has changed (this phase produces zero visible change).
 
 ### Completion Criteria
 
-All token files are created, all values are sourced from the audit, `main.css` imports are established, and `theme.html` duplicate definitions are removed. The token system is the single source of truth for all design values.
+All token files are created, all values are sourced from the audit, `stylesLoader.html` includes are established, and `theme.html` duplicate token definitions are removed. The token system is the single source of truth for all design values.
 
 ---
 
@@ -205,20 +204,20 @@ Establish global base styles and immediately eliminate the three active duplicat
 
 ### Tasks
 
-**Task 2.1 — Create `base/reset.css`**
+**Task 2.1 — Create `src/ui/styles/base/reset.css`**
 Implement CSS reset: `box-sizing: border-box`, margin/padding normalization, `inherit` for font properties on form elements, and `display: block` on media elements.
 
-**Task 2.2 — Create `base/globals.css`**
+**Task 2.2 — Create `src/ui/styles/base/globals.css`**
 Implement global body styles using tokens: `background-color`, `color`, `font-family`, `font-size`, `line-height`. Apply global scrollbar styling. Establish the `sr-only` accessibility helper class.
 
-**Task 2.3 — Create `base/animations.css`**
+**Task 2.3 — Create `src/ui/styles/base/animations.css`**
 Define global keyframe animations: `@keyframes fadeIn`, `@keyframes slideUp`, `@keyframes slideInLeft`, `@keyframes spin`. Use `--transition-*` tokens for durations.
 
 **Task 2.4 — Resolve Modal CSS Duplication**
 The modal service contains a static `<style>` block and a runtime-injected `ensureStyles()` block that are verbatim duplicates of approximately 130 lines.
 
 - Audit both blocks to confirm they are identical.
-- Move the unified CSS to `components/modals.css`.
+- Move the unified CSS to `src/ui/styles/components/modals.css`.
 - Remove the static `<style>` block from the modal service HTML template.
 - Remove the `ensureStyles()` function entirely.
 - Verify modal renders identically after removal.
@@ -239,10 +238,18 @@ The modal service contains a static `<style>` block and a runtime-injected `ensu
 - Delete the inactive implementation.
 
 **Task 2.7 — Implement `.hidden` Utility Class**
-Create `utilities/visibility.css`. Define `.hidden { display: none !important; }` — the single, system-wide visibility suppression class.
+Create `src/ui/styles/utilities/visibility.css`. Define `.hidden { display: none !important; }` — the single, system-wide visibility suppression class.
 
-**Task 2.8 — Wire `main.css` Base Imports**
-Add base layer imports to `main.css` in order: `reset.css` → `globals.css` → `animations.css`.
+**Task 2.8 — Wire Base Layer Includes to `stylesLoader.html`**
+Add base layer includes to `stylesLoader.html` after the token block. Use `<?!= HtmlService.createHtmlOutputFromFile() ?>` for each file. Include order: `base/reset.css` → `base/globals.css` → `base/animations.css`.
+
+**Task 2.9 — Migrate Non-Token Content from `theme.html` to Base Files**
+Move the following from `theme.html` to the appropriate base files:
+- `* { box-sizing: border-box; }` → `base/reset.css`
+- `body { font-family: ...; margin: 0; padding: 0; }` → `base/globals.css`
+- `@keyframes slideIn`, `@keyframes slideOut` → `base/animations.css`
+
+After migration, remove these rules from `theme.html`. The file may be deleted or reduced to a documentation stub.
 
 ### Dependencies
 
@@ -251,7 +258,7 @@ Add base layer imports to `main.css` in order: `reset.css` → `globals.css` →
 
 ### Migration Order
 
-2.1 → 2.2 → 2.3 (parallelizable) → 2.7 → 2.4 → 2.5 → 2.6 → 2.8
+2.1 → 2.2 → 2.3 (parallelizable) → 2.7 → 2.4 → 2.5 → 2.6 → 2.8 → 2.9
 
 ### Risks
 
@@ -273,7 +280,7 @@ Add base layer imports to `main.css` in order: `reset.css` → `globals.css` →
 
 ### Completion Criteria
 
-Base layer files exist. Three active duplications are resolved. `.hidden` utility is available. `main.css` imports are updated.
+Base layer files exist. Three active duplications are resolved. `.hidden` utility is available. `stylesLoader.html` includes are updated. Non-token content from `theme.html` is migrated.
 
 ---
 
@@ -285,22 +292,22 @@ Build the complete utility layer and wire breakpoint tokens to all consuming lay
 
 ### Tasks
 
-**Task 3.1 — Create `utilities/flex.css`**
+**Task 3.1 — Create `src/ui/styles/utilities/flex.css`**
 Define flex utilities: `.flex`, `.flex-col`, `.flex-row`, `.items-center`, `.items-start`, `.items-end`, `.justify-between`, `.justify-center`, `.justify-end`, `.flex-wrap`, `.flex-1`, `.flex-shrink-0`.
 
-**Task 3.2 — Create `utilities/layout.css`**
+**Task 3.2 — Create `src/ui/styles/utilities/layout.css`**
 Define layout utilities: `.w-full`, `.h-full`, `.min-h-screen`, `.block`, `.inline-block`, `.relative`, `.absolute`, `.fixed`, `.sticky`, `.overflow-hidden`, `.overflow-auto`, `.overflow-x-hidden`.
 
-**Task 3.3 — Create `utilities/spacing.css`**
+**Task 3.3 — Create `src/ui/styles/utilities/spacing.css`**
 Define spacing utilities using token scale: `.gap-1` through `.gap-6`, `.p-1` through `.p-6`, `.px-*`, `.py-*`, `.m-auto`. All values must reference spacing tokens.
 
-**Task 3.4 — Create `utilities/typography.css`**
+**Task 3.4 — Create `src/ui/styles/utilities/typography.css`**
 Define typography utilities: `.text-xs` through `.text-xl`, `.font-medium`, `.font-bold`, `.text-left`, `.text-center`, `.text-right`, `.truncate`, `.line-clamp-1`, `.line-clamp-2`, `.break-words`.
 
-**Task 3.5 — Expand `utilities/visibility.css`**
+**Task 3.5 — Expand `src/ui/styles/utilities/visibility.css`**
 Add responsive visibility utilities: `.hidden-mobile`, `.hidden-tablet`, `.visible-mobile-only`, `.visible-tablet-only`. All breakpoints must reference `--bp-tablet` and `--bp-desktop` tokens.
 
-**Task 3.6 — Create `utilities/responsive.css`**
+**Task 3.6 — Create `src/ui/styles/utilities/responsive.css`**
 Define responsive display utilities: `.flex-desktop`, `.block-mobile`, `.flex-mobile`.
 
 **Task 3.7 — Unify the Breakpoint Value**
@@ -313,8 +320,8 @@ Three locations must be updated to a single canonical value:
 **Task 3.8 — Rewrite POS Responsive Rules to Mobile-First**
 The POS page currently uses `max-width: 767px`. All POS media queries must be rewritten to `min-width` patterns referencing `--bp-tablet` and `--bp-desktop`. This task rewrites media query direction only — not POS CSS values or component structure.
 
-**Task 3.9 — Wire `main.css` Utility Imports**
-Add utility layer imports after base imports: flex → layout → spacing → typography → visibility → responsive.
+**Task 3.9 — Wire Utility Layer Includes to `stylesLoader.html`**
+Add utility layer includes after base includes. Use `<?!= HtmlService.createHtmlOutputFromFile() ?>` for each file. Include order: `utilities/flex.css` → `utilities/layout.css` → `utilities/spacing.css` → `utilities/typography.css` → `utilities/visibility.css` → `utilities/responsive.css`.
 
 ### Dependencies
 
@@ -335,7 +342,7 @@ Add utility layer imports after base imports: flex → layout → spacing → ty
 
 ### Validation Requirements
 
-- All utility files exist and are imported.
+- All utility files exist and are included in `stylesLoader.html`.
 - `min-width` used exclusively in all new and rewritten media queries.
 - POS responsive behavior is visually identical to pre-migration at all breakpoints.
 - Breakpoint value `767px` no longer appears anywhere in the codebase.
@@ -343,7 +350,7 @@ Add utility layer imports after base imports: flex → layout → spacing → ty
 
 ### Completion Criteria
 
-Full utility library exists. Breakpoint system is unified. POS media queries are mobile-first. All utilities imported and available.
+Full utility library exists. Breakpoint system is unified. POS media queries are mobile-first. All utilities included in `stylesLoader.html`.
 
 ---
 
@@ -355,10 +362,10 @@ Migrate the app shell — sidebar, topbar, and main content layout — to the ne
 
 ### Tasks
 
-**Task 4.1 — Create `layout/app-shell.css`**
-Define the root layout shell using flexbox or grid. Define the content area offset for the sidebar at `--bp-desktop`. All values reference tokens.
+**Task 4.1 — Create `src/ui/styles/layout/app-shell.css`**
+Define the root layout shell using flexbox. Define the content area offset for the sidebar at `--bp-desktop`. All values reference tokens.
 
-**Task 4.2 — Create `layout/sidebar.css`**
+**Task 4.2 — Create `src/ui/styles/layout/sidebar.css`**
 Define the sidebar in its two states:
 
 - Desktop: fixed, 256px, full height, `--z-sidebar`.
@@ -366,14 +373,14 @@ Define the sidebar in its two states:
 
 Single DOM element. `.sidebar--open` class controls open state. No duplicate DOM branches.
 
-**Task 4.3 — Create `layout/topbar.css`**
+**Task 4.3 — Create `src/ui/styles/layout/topbar.css`**
 Define the topbar: fixed to top, full width of main area, `--topbar-height`, `--z-topbar`. Hamburger toggle button: visible below `--bp-desktop`, hidden above.
 
-**Task 4.4 — Create `layout/containers.css`**
+**Task 4.4 — Create `src/ui/styles/layout/containers.css`**
 Define the page content area: padding rules per responsive tier (per `RESPONSIVE_PATTERNS.md` Section 6), `overflow-x: hidden`, content offset by `--topbar-height`.
 
 **Task 4.5 — Collapse the Dual DOM Structure in `renderAppShell()`**
-Refactor to render a single unified DOM structure. Remove conditional mobile/desktop branch. JavaScript is responsible only for:
+Refactor `src/ui/app/app.html` to render a single unified DOM structure. Remove conditional mobile/desktop branch. JavaScript is responsible only for:
 
 - Toggle button click → add/remove `.sidebar--open`.
 - Overlay click → remove `.sidebar--open`.
@@ -386,8 +393,19 @@ Define `.nav-item--active` modifier class. Update the routing layer to apply it 
 **Task 4.7 — Add Sidebar Accessibility Attributes**
 Add `aria-expanded` to the hamburger toggle. Add `aria-controls` linking to the sidebar. Implement focus trap within open drawer. Return focus to toggle on close.
 
-**Task 4.8 — Wire Layout Imports to `main.css`**
-Add layout layer imports after utility imports: `app-shell.css` → `sidebar.css` → `topbar.css` → `containers.css`.
+**Task 4.8 — Wire Layout Layer Includes to `stylesLoader.html`**
+Add layout layer includes after utility includes. Use `<?!= HtmlService.createHtmlOutputFromFile() ?>` for each file. Include order: `layout/app-shell.css` → `layout/sidebar.css` → `layout/topbar.css` → `layout/containers.css`.
+
+**Task 4.9 — Migrate Content from `responsive.html` to Layout Files**  
+Move the following from `responsive.html` to the appropriate layout files:
+- `.layout--desktop`, `.layout--mobile`, `.layout__main`, `.layout__content` → `layout/app-shell.css`
+- `.sidebar--desktop`, `.sidebar--mobile`, `.sidebar-overlay`, `.sidebar__*` → `layout/sidebar.css`
+- `.topbar`, `.topbar__*` → `layout/topbar.css`
+- `.grid-responsive` → `layout/containers.css`
+- `.toast-container` → `components/toast.css` (Phase 5)
+- `.modal-content`, `.modal-sm`, `.modal-md`, `.modal-lg` → `components/modals.css` (Phase 5)
+
+After migration, remove these rules from `responsive.html`. The file may be deleted or reduced to a documentation stub.
 
 ### Dependencies
 
@@ -397,7 +415,7 @@ Add layout layer imports after utility imports: `app-shell.css` → `sidebar.css
 
 ### Migration Order
 
-4.1 → 4.2 → 4.3 → 4.4 (parallelizable after 4.1) → 4.5 → 4.6 → 4.7 → 4.8
+4.1 → 4.2 → 4.3 → 4.4 (parallelizable after 4.1) → 4.5 → 4.6 → 4.7 → 4.8 → 4.9
 
 ### Risks
 
@@ -418,7 +436,7 @@ Add layout layer imports after utility imports: `app-shell.css` → `sidebar.css
 
 ### Completion Criteria
 
-Single DOM app shell structure. CSS-driven sidebar responsive behavior. Active nav state implemented. Accessibility attributes applied. All layout files imported.
+Single DOM app shell structure. CSS-driven sidebar responsive behavior. Active nav state implemented. Accessibility attributes applied. All layout files included in `stylesLoader.html`. Content from `responsive.html` migrated.
 
 ---
 
@@ -431,22 +449,22 @@ Build the complete shared component library, migrating each pattern from `UI_PAT
 ### Tasks
 
 **Task 5.1 — Migrate Button Component (B-01 through B-05)**
-Create `components/buttons.css`. Define all button variants using tokens. Remove independent button definitions from: modal service CSS, CRUD Tailwind strings, POS-specific button classes. Apply canonical button classes to all existing button elements.
+Create `src/ui/styles/components/buttons.css`. Define all button variants using tokens. Remove independent button definitions from: modal service CSS, CRUD Tailwind strings, POS-specific button classes. Apply canonical button classes to all existing button elements.
 
 **Task 5.2 — Migrate Form Component (F-01, F-02)**
-Create `components/forms.css`. Define base input, select, textarea, label, and form group classes. Remove per-modal repeated input styling from all entity modal templates. Apply canonical form classes to all modal forms.
+Create `src/ui/styles/components/forms.css`. Define base input, select, textarea, label, and form group classes. Remove per-modal repeated input styling from all entity modal templates. Apply canonical form classes to all modal forms.
 
 **Task 5.3 — Migrate Card Component (C-01, C-02)**
-Create `components/cards.css`. Define page header and content card wrapper. Remove the six-way duplication of page header HTML from all CRUD pages.
+Create `src/ui/styles/components/cards.css`. Define page header and content card wrapper. Remove the six-way duplication of page header HTML from all CRUD pages.
 
 **Task 5.4 — Migrate Modal Component (M-01, M-02)**
-Update `components/modals.css` (established in Phase 2). Apply token references to all modal CSS values. Define `.modal--fullscreen` (mobile) and `.modal--centered` (desktop) states per `RESPONSIVE_PATTERNS.md` Section 10.
+Update `src/ui/styles/components/modals.css` (established in Phase 2). Apply token references to all modal CSS values. Define `.modal--fullscreen` (mobile) and `.modal--centered` (desktop) states per `RESPONSIVE_PATTERNS.md` Section 10.
 
 **Task 5.5 — Migrate Toast Component (NT-01)**
-Create `components/toast.css`. Move all visual toast styling from JavaScript `style.cssText` assignments into the CSS file. Refactor the toast service to add/remove CSS classes rather than set inline styles.
+Create `src/ui/styles/components/toast.css`. Move all visual toast styling from JavaScript `style.cssText` assignments into the CSS file. Refactor the toast service to add/remove CSS classes rather than set inline styles.
 
 **Task 5.6 — Migrate Table Component (T-01, T-02)**
-Create `components/tables.css`. Define standard table styles and the complete mobile card transformation per `RESPONSIVE_PATTERNS.md` Section 8.1. Add `data-label` attributes to all `<td>` elements in all CRUD table templates.
+Create `src/ui/styles/components/tables.css`. Define standard table styles and the complete mobile card transformation per `RESPONSIVE_PATTERNS.md` Section 8.1. Add `data-label` attributes to all `<td>` elements in all CRUD table templates.
 
 **Task 5.7 — Migrate Status Badge (C-06)**
 Define badge component. Replace all Tailwind color utility strings used for status display with the canonical badge component.
@@ -458,12 +476,13 @@ Define the empty state pattern. Apply to all tables and lists that currently sho
 Define `.loading-overlay` with `.overlay--absolute` and `.overlay--fixed` variants. Replace the POS payment loading overlay's inline `display: flex` toggle with class-based activation.
 
 **Task 5.10 — Migrate Filter Bar (S-01)**
-Add filter bar to `components/forms.css`. Define layout at all responsive tiers. Apply to all CRUD pages.
+Add filter bar to `src/ui/styles/components/forms.css`. Define layout at all responsive tiers. Apply to all CRUD pages.
 
 **Task 5.11 — Migrate Dropdown / Search (S-02)**
-Create `components/dropdowns.css`. Define search input with dropdown. Apply to POS product search.
+Create `src/ui/styles/components/dropdowns.css`. Define search input with dropdown. Apply to POS product search.
 
-**Task 5.12 — Wire Component Imports to `main.css`**
+**Task 5.12 — Wire Component Layer Includes to `stylesLoader.html`**
+Add component layer includes after layout includes. Use `<?!= HtmlService.createHtmlOutputFromFile() ?>` for each file. Include order: `components/buttons.css` → `components/forms.css` → `components/cards.css` → `components/modals.css` → `components/toast.css` → `components/tables.css` → `components/dropdowns.css`.
 
 ### Migration Order Within Phase 5
 
@@ -472,7 +491,7 @@ Create `components/dropdowns.css`. Define search input with dropdown. Apply to P
                                             → 5.6 (Table) → 5.7 (Badge) → 5.8 (Empty State)
                                                           → 5.9 (Loading)
                             → 5.10 (Filter Bar) → 5.11 (Dropdown)
-→ 5.12 (Imports)
+→ 5.12 (Includes)
 ```
 
 Buttons and Forms must be complete before Modals. Cards must be complete before Tables. Toast is independent.
@@ -501,7 +520,7 @@ Buttons and Forms must be complete before Modals. Cards must be complete before 
 
 ### Completion Criteria
 
-All registry patterns implemented in the component layer. All duplicated component definitions from service files and CRUD templates removed. No raw CSS values in any component file.
+All registry patterns implemented in the component layer. All duplicated component definitions from service files and CRUD templates removed. No raw CSS values in any component file. All components included in `stylesLoader.html`.
 
 ---
 
@@ -539,10 +558,13 @@ Simpler pages first to validate the migration pattern before applying it to more
 
 ### Additional Tasks
 
-**Task 6.7 — Create `pages/` CSS Files for Residual Composition**
-If any page requires composition rules not expressible through utilities or components, create a minimal `pages/[page].css`. This file may only define page-specific layout composition — never tokens, component styles, or breakpoint rules.
+**Task 6.7 — Create `src/ui/styles/pages/` CSS Files for Residual Composition**
+If any page requires composition rules not expressible through utilities or components, create a minimal `src/ui/styles/pages/[page].css`. This file may only define page-specific layout composition — never tokens, component styles, or breakpoint rules.
 
-**Task 6.8 — Verify CRUD Responsive Behavior**
+**Task 6.8 — Wire Page Layer Includes to `stylesLoader.html`**
+Add page layer includes after component includes. Use `<?!= HtmlService.createHtmlOutputFromFile() ?>` for each file. Include order: `pages/dashboard.css` → `pages/products.css` → `pages/categories.css` → `pages/sales.css` → `pages/stock.css` → `pages/pos.css`.
+
+**Task 6.9 — Verify CRUD Responsive Behavior**
 After component migration, verify that components provide sufficient responsive behavior (table card transformation, modal fullscreen, form stacking). Add page-level composition adjustments only for gaps.
 
 ### Dependencies
@@ -569,7 +591,7 @@ After component migration, verify that components provide sufficient responsive 
 
 ### Completion Criteria
 
-All six CRUD pages use canonical components. All page-level `<style>` blocks removed. All pages responsive per `RESPONSIVE_PATTERNS.md`.
+All six CRUD pages use canonical components. All page-level `<style>` blocks removed. All pages responsive per `RESPONSIVE_PATTERNS.md`. Page CSS files included in `stylesLoader.html`.
 
 ---
 
@@ -582,7 +604,7 @@ Migrate the POS page — the most complex and highest-stakes interface in the ap
 ### Tasks
 
 **Task 7.1 — Migrate Product Grid (P-01)**
-Create `pages/pos.css`. Define POS-specific layout: product panel + cart panel split, responsive collapse. Apply grid column contracts from `RESPONSIVE_PATTERNS.md` Section 4.1.
+Create `src/ui/styles/pages/pos.css`. Define POS-specific layout: product panel + cart panel split, responsive collapse. Apply grid column contracts from `RESPONSIVE_PATTERNS.md` Section 4.1.
 
 **Task 7.2 — Namespace POS CSS**
 Rename all POS-specific classes with a `.pos-` prefix (`.spinner` → `.pos-spinner`, `.product-card` → `.pos-product-card`, etc.). Update all HTML template references and all JavaScript class references simultaneously.
@@ -681,10 +703,10 @@ Remove all remaining legacy code, dead files, and residual technical debt that d
 ### Tasks
 
 **Task 8.1 — Remove Dead `modal.html` File**
-Delete the legacy `modal.html` file that contains only a comment.
+Delete the legacy `src/ui/components/modal.html` file that contains only a comment.
 
 **Task 8.2 — Remove Tailwind CDN Dependency**
-Audit for any remaining Tailwind class usage. Remove the CDN import if no remaining usage exists.
+Audit for any remaining Tailwind class usage. Remove the CDN `<script>` tag from `src/ui/app/index.html` if no remaining usage exists.
 
 **Task 8.3 — Remove Residual `theme.html` Content**
 Audit for any remaining content. Remove or convert to a documentation stub.
@@ -710,8 +732,8 @@ Search the entire codebase for `style="` attributes in HTML and `element.style.`
 **Task 8.10 — Conduct Final Duplication Audit**
 Review the component layer for any remaining duplicate definitions — class names defined in more than one file for the same visual purpose.
 
-**Task 8.11 — Update `main.css` Import Audit**
-Verify the `main.css` import order is correct and complete: tokens → base → utilities → layout → components → pages.
+**Task 8.11 — Update `stylesLoader.html` Include Audit**
+Verify the `stylesLoader.html` include order is correct and complete: tokens → base → utilities → layout → components → pages.
 
 **Task 8.12 — Full System Regression Test**
 Execute a full regression test across all pages and user flows at 375px, 768px, and 1280px:
@@ -730,7 +752,7 @@ Execute a full regression test across all pages and user flows at 375px, 768px, 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | Removing Tailwind CDN reveals missed Tailwind classes not yet migrated | Medium | Medium | Audit Tailwind class usage exhaustively before removing CDN (Task 8.2) |
-| Removing `responsive.html` or `theme.html` removes a file still imported somewhere | Medium | High | Search all import/include statements before deletion |
+| Removing `responsive.html` or `theme.html` removes a file still imported somewhere | Medium | High | Search all `HtmlService.createHtmlOutputFromFile()` calls before deletion |
 | Token audit reveals significant migration gaps requiring rework of earlier phases | Low | High | Run partial token audits at the end of each preceding phase to catch gaps early |
 
 ### Validation Requirements
@@ -857,4 +879,3 @@ Use after every phase and as the final Phase 8 validation.
 | 6 — CRUD Page Migration | All management pages migrated | Visible | Medium |
 | 7 — POS Migration | POS fully migrated | Visible | Critical |
 | 8 — Cleanup & Legacy Removal | Zero legacy code | None | Low |
-ENDOFFILE
