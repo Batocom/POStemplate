@@ -1,7 +1,7 @@
 cat > /mnt/user-data/outputs/implementation_tasks.md << 'ENDOFFILE'
 # Implementation Tasks
 
-**Version:** 1.0
+**Version:** 1.1 (Apps Script Safe Format)
 **Status:** Execution-Ready
 **Depends On:** `UI_AUDIT.md`, `UI_PATTERN_REGISTRY.md`, `RESPONSIVE_PATTERNS.md`, `STYLING_ARCHITECTURE.md`, `MIGRATION_PLAN.md`
 
@@ -61,7 +61,7 @@ No files are modified. Nothing to roll back.
 ### TASK-002 — Create Color Token File
 
 **OBJECTIVE**
-Create `src/ui/styles/tokens/colors.css` containing all color tokens required by the pattern registry. All values must be sourced directly from the UI Audit's documented existing hex values — no new colors introduced.
+Create `src/ui/styles/tokens/colors.html` containing all color tokens required by the pattern registry. All values must be sourced directly from the UI Audit's documented existing hex values — no new colors introduced.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — Token Layer, Colors section
@@ -69,7 +69,7 @@ Create `src/ui/styles/tokens/colors.css` containing all color tokens required by
 - `UI_PATTERN_REGISTRY.md` — Pattern Token Cross-Reference table
 
 **ALLOWED FILES**
-- `src/ui/styles/tokens/colors.css` (create new)
+- `src/ui/styles/tokens/colors.html` (create new)
 
 **FORBIDDEN**
 - Do not modify any existing file
@@ -82,8 +82,18 @@ Create `src/ui/styles/tokens/colors.css` containing all color tokens required by
 - Every token name must match the naming convention in `UI_PATTERN_REGISTRY.md`
 - Required tokens include at minimum: `--color-primary`, `--color-primary-hover`, `--color-primary-subtle`, `--color-danger`, `--color-danger-hover`, `--color-danger-subtle`, `--color-success`, `--color-success-subtle`, `--color-warning`, `--color-warning-subtle`, `--color-info`, `--color-info-subtle`, `--color-bg-surface`, `--color-bg-card`, `--color-bg-subtle`, `--color-border-default`, `--color-border-subtle`, `--color-text-primary`, `--color-text-secondary`, `--color-text-disabled`, `--color-overlay`, `--color-overlay-light`, `--color-sidebar-bg`, `--color-sidebar-text`, `--color-sidebar-hover`, `--color-sidebar-active`, `--color-text-on-primary`, `--color-text-on-danger`
 
+**File Format:**
+```html
+<style>
+:root {
+  --color-primary: #2563eb;
+  /* ... all color tokens ... */
+}
+</style>
+```
+
 **SUCCESS CRITERIA**
-- `tokens/colors.css` exists and is valid CSS
+- `tokens/colors.html` exists and is valid HTML with `<style>` wrapper
 - Every token in the cross-reference table under Color is defined
 - Every value matches an audited hex value from `UI_AUDIT.md`
 - No raw hex values outside this file
@@ -95,21 +105,21 @@ Create `src/ui/styles/tokens/colors.css` containing all color tokens required by
 - [ ] No Tailwind class names appear
 
 **ROLLBACK PLAN**
-Delete `src/ui/styles/tokens/colors.css`. No other files were modified.
+Delete `src/ui/styles/tokens/colors.html`. No other files were modified.
 
 ---
 
 ### TASK-003 — Create Spacing Token File
 
 **OBJECTIVE**
-Create `src/ui/styles/tokens/spacing.css` defining the spacing scale from `--space-1` through `--space-8`.
+Create `src/ui/styles/tokens/spacing.html` defining the spacing scale from `--space-1` through `--space-8`.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — Spacing Scale section
 - `RESPONSIVE_PATTERNS.md` — Section 6, Page Padding Rules
 
 **ALLOWED FILES**
-- `src/ui/styles/tokens/spacing.css` (create new)
+- `src/ui/styles/tokens/spacing.html` (create new)
 
 **FORBIDDEN**
 - Do not modify any existing file
@@ -127,6 +137,22 @@ Create `src/ui/styles/tokens/spacing.css` defining the spacing scale from `--spa
 - `--space-8: 48px`
 - Scale must cover every spacing value documented in `UI_AUDIT.md`
 
+**File Format:**
+```html
+<style>
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+}
+</style>
+```
+
 **SUCCESS CRITERIA**
 - File exists and parses without errors
 - Scale covers every spacing value identified in the audit
@@ -137,21 +163,21 @@ Create `src/ui/styles/tokens/spacing.css` defining the spacing scale from `--spa
 - [ ] Every audited spacing value maps to a token
 
 **ROLLBACK PLAN**
-Delete `src/ui/styles/tokens/spacing.css`. No other files modified.
+Delete `src/ui/styles/tokens/spacing.html`. No other files modified.
 
 ---
 
 ### TASK-004 — Create Typography Token File
 
 **OBJECTIVE**
-Create `src/ui/styles/tokens/typography.css` defining font size, font weight, and line height tokens.
+Create `src/ui/styles/tokens/typography.html` defining font size, font weight, and line height tokens.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — Typography Scale section
 - `UI_AUDIT.md` — Inconsistent Typography Systems
 
 **ALLOWED FILES**
-- `src/ui/styles/tokens/typography.css` (create new)
+- `src/ui/styles/tokens/typography.html` (create new)
 
 **FORBIDDEN**
 - Do not modify any existing file
@@ -163,6 +189,17 @@ Create `src/ui/styles/tokens/typography.css` defining font size, font weight, an
 - Font weight: `--font-weight-normal: 400`, `--font-weight-medium: 500`, `--font-weight-semibold: 600`, `--font-weight-bold: 700`
 - Line height: `--leading-tight: 1.25`, `--leading-normal: 1.5`, `--leading-relaxed: 1.75`
 - Font family: `--font-family-base` set to the system font stack from `app-shell-style-inventory.md`
+
+**File Format:**
+```html
+<style>
+:root {
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  /* ... all typography tokens ... */
+}
+</style>
+```
 
 **SUCCESS CRITERIA**
 - File exists and parses
@@ -177,14 +214,14 @@ Create `src/ui/styles/tokens/typography.css` defining font size, font weight, an
 - [ ] Values in rem, not px
 
 **ROLLBACK PLAN**
-Delete `src/ui/styles/tokens/typography.css`. No other files modified.
+Delete `src/ui/styles/tokens/typography.html`. No other files modified.
 
 ---
 
 ### TASK-005 — Create Radius, Shadow, and Z-Index Token Files
 
 **OBJECTIVE**
-Create three token files: `tokens/radius.css`, `tokens/shadows.css`, and `tokens/zindex.css`.
+Create three token files: `tokens/radius.html`, `tokens/shadows.html`, and `tokens/zindex.html`.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — Token Layer
@@ -192,9 +229,9 @@ Create three token files: `tokens/radius.css`, `tokens/shadows.css`, and `tokens
 - `UI_PATTERN_REGISTRY.md` — Pattern Token Cross-Reference table
 
 **ALLOWED FILES**
-- `src/ui/styles/tokens/radius.css` (create new)
-- `src/ui/styles/tokens/shadows.css` (create new)
-- `src/ui/styles/tokens/zindex.css` (create new)
+- `src/ui/styles/tokens/radius.html` (create new)
+- `src/ui/styles/tokens/shadows.html` (create new)
+- `src/ui/styles/tokens/zindex.html` (create new)
 
 **FORBIDDEN**
 - Do not modify any existing file
@@ -205,14 +242,23 @@ Create three token files: `tokens/radius.css`, `tokens/shadows.css`, and `tokens
 - Shadows: `--shadow-sm: 0 1px 3px rgba(0,0,0,0.05)`, `--shadow-md: 0 2px 8px rgba(0,0,0,0.1)`, `--shadow-lg: 0 4px 12px rgba(0,0,0,0.15)`, `--shadow-xl: 0 8px 24px rgba(0,0,0,0.2)`
 - Z-index stack (ascending): `--z-base: 1`, `--z-sticky: 100`, `--z-topbar: 200`, `--z-sidebar: 300`, `--z-dropdown: 400`, `--z-modal: 500`, `--z-toast: 600`
 
+**File Format (each file):**
+```html
+<style>
+:root {
+  /* tokens */
+}
+</style>
+```
+
 **SUCCESS CRITERIA**
 - Three files exist and parse without errors
 - Z-index stack is ordered correctly: toast > modal > dropdown > sidebar > topbar > sticky > base
 
 **VERIFICATION CHECKLIST**
-- [ ] `radius.css` defines 5 tokens
-- [ ] `shadows.css` defines 4 tokens
-- [ ] `zindex.css` defines 7 tokens in ascending stack order
+- [ ] `radius.html` defines 5 tokens
+- [ ] `shadows.html` defines 4 tokens
+- [ ] `zindex.html` defines 7 tokens in ascending stack order
 
 **ROLLBACK PLAN**
 Delete the three created files. No other files modified.
@@ -222,7 +268,7 @@ Delete the three created files. No other files modified.
 ### TASK-006 — Create Breakpoint, Animation, and Layout Token Files
 
 **OBJECTIVE**
-Create `tokens/breakpoints.css`, `tokens/animations.css`, and `tokens/layout.css`. The breakpoint values must match those already declared in `theme.html` exactly.
+Create `tokens/breakpoints.html`, `tokens/animations.html`, and `tokens/layout.html`. The breakpoint values must match those already declared in `theme.html` exactly.
 
 **ARCHITECTURE REFERENCES**
 - `RESPONSIVE_PATTERNS.md` — Section 2, Breakpoint System
@@ -230,14 +276,14 @@ Create `tokens/breakpoints.css`, `tokens/animations.css`, and `tokens/layout.css
 - `MIGRATION_PLAN.md` — Task 1.8, 1.9, 1.10
 
 **ALLOWED FILES**
-- `src/ui/styles/tokens/breakpoints.css` (create new)
-- `src/ui/styles/tokens/animations.css` (create new)
-- `src/ui/styles/tokens/layout.css` (create new)
+- `src/ui/styles/tokens/breakpoints.html` (create new)
+- `src/ui/styles/tokens/animations.html` (create new)
+- `src/ui/styles/tokens/layout.html` (create new)
 
 **FORBIDDEN**
 - Do not introduce any breakpoint value other than `480px`, `768px`, `1024px`, `1280px`
 - Do not modify `theme.html` in this task — removal is handled in TASK-012
-- Do not define animation `@keyframes` here — keyframes belong in `base/animations.css`
+- Do not define animation `@keyframes` here — keyframes belong in `base/animations.html`
 
 **IMPLEMENTATION RULES**
 - Breakpoints: `--bp-mobile: 480px`, `--bp-tablet: 768px`, `--bp-desktop: 1024px`, `--bp-wide: 1280px`
@@ -250,9 +296,9 @@ Create `tokens/breakpoints.css`, `tokens/animations.css`, and `tokens/layout.css
 - `--topbar-height` is referenced in `RESPONSIVE_PATTERNS.md` Appendix B and defined here
 
 **VERIFICATION CHECKLIST**
-- [ ] `breakpoints.css` defines exactly 4 breakpoint tokens
-- [ ] `animations.css` defines 3 duration tokens and 1 easing token
-- [ ] `layout.css` defines `--topbar-height`, `--sidebar-width`, `--pos-cart-width`
+- [ ] `breakpoints.html` defines exactly 4 breakpoint tokens
+- [ ] `animations.html` defines 3 duration tokens and 1 easing token
+- [ ] `layout.html` defines `--topbar-height`, `--sidebar-width`, `--pos-cart-width`
 - [ ] Breakpoint values match existing `theme.html` values character for character
 
 **ROLLBACK PLAN**
@@ -350,7 +396,7 @@ Remove the CSS custom property declarations from `theme.html` that are now super
 - Do not modify any token files
 
 **IMPLEMENTATION RULES**
-- Before modifying, confirm every property in the `:root` block of `theme.html` has a corresponding token defined in `tokens/*.css`
+- Before modifying, confirm every property in the `:root` block of `theme.html` has a corresponding token defined in `tokens/*.html`
 - Remove only the `:root { }` block containing custom property definitions
 - Retain any other content in `theme.html` that is not a custom property
 - Test that all pages render identically after removal
@@ -374,7 +420,7 @@ Restore the `:root { }` block to `theme.html` from version control. The token fi
 
 ---
 
-### TASK-010 — Create `base/reset.css`
+### TASK-010 — Create `base/reset.html`
 
 **OBJECTIVE**
 Create a CSS reset file that establishes consistent cross-browser baseline styles: box-sizing, margin/padding normalization, and media element defaults.
@@ -384,7 +430,7 @@ Create a CSS reset file that establishes consistent cross-browser baseline style
 - `MIGRATION_PLAN.md` — Task 2.1
 
 **ALLOWED FILES**
-- `src/ui/styles/base/reset.css` (create new)
+- `src/ui/styles/base/reset.html` (create new)
 
 **FORBIDDEN**
 - Do not define any visual styles (colors, fonts, backgrounds) — this file is normalization only
@@ -400,6 +446,20 @@ Create a CSS reset file that establishes consistent cross-browser baseline style
 - `ul, ol { list-style: none; }`
 - `a { color: inherit; text-decoration: none; }`
 
+**File Format:**
+```html
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+button, input, select, textarea { font: inherit; }
+img, video { display: block; max-width: 100%; }
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: inherit; }
+p, ul, ol { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+a { color: inherit; text-decoration: none; }
+</style>
+```
+
 **SUCCESS CRITERIA**
 - File exists and parses without errors
 - No style declarations that set visual values (no colors, no font sizes)
@@ -411,11 +471,11 @@ Create a CSS reset file that establishes consistent cross-browser baseline style
 - [ ] No color or typography declarations
 
 **ROLLBACK PLAN**
-Delete `src/ui/styles/base/reset.css`. No other files modified.
+Delete `src/ui/styles/base/reset.html`. No other files modified.
 
 ---
 
-### TASK-011 — Create `base/globals.css` and `base/animations.css`
+### TASK-011 — Create `base/globals.html` and `base/animations.html`
 
 **OBJECTIVE**
 Create global body styles and shared animation keyframes using token values.
@@ -425,17 +485,17 @@ Create global body styles and shared animation keyframes using token values.
 - `MIGRATION_PLAN.md` — Tasks 2.2, 2.3
 
 **ALLOWED FILES**
-- `src/ui/styles/base/globals.css` (create new)
-- `src/ui/styles/base/animations.css` (create new)
+- `src/ui/styles/base/globals.html` (create new)
+- `src/ui/styles/base/animations.html` (create new)
 
 **FORBIDDEN**
 - Do not hardcode any color, spacing, or font value — all must reference tokens
 - Do not define component-specific styles here
 
 **IMPLEMENTATION RULES**
-- `globals.css`: set `body` background to `var(--color-bg-surface)`, color to `var(--color-text-primary)`, font-family to `var(--font-family-base)`, font-size to `var(--text-md)`, line-height to `var(--leading-normal)`
-- `globals.css`: define `.sr-only` — visually hidden but accessible to screen readers (position absolute, width/height 1px, overflow hidden, clip rect(0,0,0,0), white-space nowrap)
-- `animations.css`: define `@keyframes fadeIn` (opacity 0→1), `@keyframes slideUp` (translateY(8px)→translateY(0) + opacity 0→1), `@keyframes slideInLeft` (translateX(-100%)→translateX(0)), `@keyframes spin` (0deg→360deg). Use `var(--transition-fast)` and `var(--transition-normal)` for animation durations within component rules (keyframes themselves have no duration).
+- `globals.html`: set `body` background to `var(--color-bg-surface)`, color to `var(--color-text-primary)`, font-family to `var(--font-family-base)`, font-size to `var(--text-md)`, line-height to `var(--leading-normal)`
+- `globals.html`: define `.sr-only` — visually hidden but accessible to screen readers (position absolute, width/height 1px, overflow hidden, clip rect(0,0,0,0), white-space nowrap)
+- `animations.html`: define `@keyframes fadeIn` (opacity 0→1), `@keyframes slideUp` (translateY(8px)→translateY(0) + opacity 0→1), `@keyframes slideInLeft` (translateX(-100%)→translateX(0)), `@keyframes spin` (0deg→360deg). Use `var(--transition-fast)` and `var(--transition-normal)` for animation durations within component rules (keyframes themselves have no duration).
 
 **SUCCESS CRITERIA**
 - `body` visual appearance is unchanged from before (token values match prior hardcoded values)
@@ -443,9 +503,9 @@ Create global body styles and shared animation keyframes using token values.
 - Keyframe names `fadeIn`, `slideUp`, `slideInLeft`, `spin` defined
 
 **VERIFICATION CHECKLIST**
-- [ ] `globals.css` body styles reference tokens only
+- [ ] `globals.html` body styles reference tokens only
 - [ ] `.sr-only` defined correctly (must not collapse to 0×0 in all browsers — verify the clip pattern)
-- [ ] `animations.css` defines all 4 keyframes
+- [ ] `animations.html` defines all 4 keyframes
 - [ ] No hardcoded values in either file
 
 **ROLLBACK PLAN**
@@ -490,7 +550,7 @@ Remove the three added `@import` lines from `main.css`. No other files modified.
 ### TASK-013 — Resolve Modal CSS Duplication
 
 **OBJECTIVE**
-Eliminate the verbatim ~130-line CSS duplication in `modalService.html` by moving unified styles to `components/modals.css` and removing the duplicate `ensureStyles()` injection function.
+Eliminate the verbatim ~130-line CSS duplication in `modalService.html` by moving unified styles to `components/modals.html` and removing the duplicate `ensureStyles()` injection function.
 
 **ARCHITECTURE REFERENCES**
 - `UI_AUDIT.md` — Modal Architecture Problems
@@ -498,7 +558,7 @@ Eliminate the verbatim ~130-line CSS duplication in `modalService.html` by movin
 
 **ALLOWED FILES**
 - `src/ui/services/modalService.html`
-- `src/ui/styles/components/modals.css` (create new)
+- `src/ui/styles/components/modals.html` (create new)
 
 **FORBIDDEN**
 - Do not change any modal visual behavior or layout logic
@@ -508,15 +568,15 @@ Eliminate the verbatim ~130-line CSS duplication in `modalService.html` by movin
 **IMPLEMENTATION RULES**
 - Step 1: Diff both CSS blocks (`<style>` tag vs `ensureStyles()` string) and document any differences
 - Step 2: Resolve any differences in favor of the correct intended rendering
-- Step 3: Copy the unified CSS to `components/modals.css` — values remain as-is (token replacement is Phase 5)
+- Step 3: Copy the unified CSS to `components/modals.html` — values remain as-is (token replacement is Phase 5)
 - Step 4: Delete the static `<style>` block from `modalService.html`
 - Step 5: Delete the `ensureStyles()` function from `modalService.html`
-- Step 6: Add `<link rel="stylesheet">` for `modals.css` in the app entry point OR ensure `main.css` imports it (component imports will be added in Phase 5; for now, link it directly if needed)
+- Step 6: Add `<link rel="stylesheet">` for `modals.html` in the app entry point OR ensure `main.css` imports it (component imports will be added in Phase 5; for now, link it directly if needed)
 
 **SUCCESS CRITERIA**
 - Zero `<style>` blocks remain in `modalService.html`
 - Zero `ensureStyles()` function in `modalService.html`
-- `components/modals.css` exists with the unified CSS
+- `components/modals.html` exists with the unified CSS
 - Modal opens and closes visually identically for all modal types
 
 **VERIFICATION CHECKLIST**
@@ -528,7 +588,7 @@ Eliminate the verbatim ~130-line CSS duplication in `modalService.html` by movin
 - [ ] `Modal.setLoading()` renders correctly
 
 **ROLLBACK PLAN**
-Delete `components/modals.css`. Restore the `<style>` block and `ensureStyles()` function to `modalService.html` from version control.
+Delete `components/modals.html`. Restore the `<style>` block and `ensureStyles()` function to `modalService.html` from version control.
 
 ---
 
@@ -613,10 +673,10 @@ Restore the deleted file or function from version control.
 
 ---
 
-### TASK-016 — Create `.hidden` Utility and Implement `utilities/visibility.css`
+### TASK-016 — Create `.hidden` Utility and Implement `utilities/visibility.html`
 
 **OBJECTIVE**
-Create `utilities/visibility.css` with the `.hidden` class and the initial responsive visibility utilities.
+Create `utilities/visibility.html` with the `.hidden` class and the initial responsive visibility utilities.
 
 **ARCHITECTURE REFERENCES**
 - `RESPONSIVE_PATTERNS.md` — Section 15.1, Visibility Utilities
@@ -624,7 +684,7 @@ Create `utilities/visibility.css` with the `.hidden` class and the initial respo
 - `UI_AUDIT.md` — Inline Styling Problems (15+ inline display declarations)
 
 **ALLOWED FILES**
-- `src/ui/styles/utilities/visibility.css` (create new)
+- `src/ui/styles/utilities/visibility.html` (create new)
 
 **FORBIDDEN**
 - Do not use `max-width` media queries — `min-width` only
@@ -636,7 +696,7 @@ Create `utilities/visibility.css` with the `.hidden` class and the initial respo
 - `.hidden-mobile { }` (default: `display: none`) → `@media (min-width: var(--bp-tablet)) { .hidden-mobile { display: revert; } }`
 - `.hidden-tablet { }` (default: `display: none`) → `@media (min-width: var(--bp-desktop)) { .hidden-tablet { display: revert; } }`
 - `.visible-mobile-only { display: revert; }` → `@media (min-width: var(--bp-tablet)) { .visible-mobile-only { display: none !important; } }`
-- `.sr-only` is defined in `base/globals.css`, not here
+- `.sr-only` is defined in `base/globals.html`, not here
 
 **SUCCESS CRITERIA**
 - `.hidden` class suppresses display at all breakpoints
@@ -648,7 +708,7 @@ Create `utilities/visibility.css` with the `.hidden` class and the initial respo
 - [ ] No `max-width` media queries appear in this file
 
 **ROLLBACK PLAN**
-Delete `utilities/visibility.css`. No other files modified.
+Delete `utilities/visibility.html`. No other files modified.
 
 ---
 
@@ -656,7 +716,7 @@ Delete `utilities/visibility.css`. No other files modified.
 
 ---
 
-### TASK-017 — Create `utilities/flex.css` and `utilities/layout.css`
+### TASK-017 — Create `utilities/flex.html` and `utilities/layout.html`
 
 **OBJECTIVE**
 Create the flex and layout utility files providing single-purpose helper classes for layout composition.
@@ -666,8 +726,8 @@ Create the flex and layout utility files providing single-purpose helper classes
 - `MIGRATION_PLAN.md` — Tasks 3.1, 3.2
 
 **ALLOWED FILES**
-- `src/ui/styles/utilities/flex.css` (create new)
-- `src/ui/styles/utilities/layout.css` (create new)
+- `src/ui/styles/utilities/flex.html` (create new)
+- `src/ui/styles/utilities/layout.html` (create new)
 
 **FORBIDDEN**
 - Do not define classes with business meaning (e.g., `.cart-layout`, `.sidebar-wrapper`)
@@ -675,8 +735,8 @@ Create the flex and layout utility files providing single-purpose helper classes
 - Do not add responsive variants to utilities — components own responsive behavior
 
 **IMPLEMENTATION RULES**
-- `flex.css`: `.flex { display: flex; }`, `.flex-col { flex-direction: column; }`, `.flex-row { flex-direction: row; }`, `.items-center { align-items: center; }`, `.items-start { align-items: flex-start; }`, `.items-end { align-items: flex-end; }`, `.justify-between { justify-content: space-between; }`, `.justify-center { justify-content: center; }`, `.justify-end { justify-content: flex-end; }`, `.flex-wrap { flex-wrap: wrap; }`, `.flex-1 { flex: 1; }`, `.flex-shrink-0 { flex-shrink: 0; }`
-- `layout.css`: `.w-full { width: 100%; }`, `.h-full { height: 100%; }`, `.min-h-screen { min-height: 100dvh; }`, `.block { display: block; }`, `.inline-block { display: inline-block; }`, `.relative { position: relative; }`, `.absolute { position: absolute; }`, `.fixed { position: fixed; }`, `.sticky { position: sticky; }`, `.overflow-hidden { overflow: hidden; }`, `.overflow-auto { overflow: auto; }`, `.overflow-x-hidden { overflow-x: hidden; }`
+- `flex.html`: `.flex { display: flex; }`, `.flex-col { flex-direction: column; }`, `.flex-row { flex-direction: row; }`, `.items-center { align-items: center; }`, `.items-start { align-items: flex-start; }`, `.items-end { align-items: flex-end; }`, `.justify-between { justify-content: space-between; }`, `.justify-center { justify-content: center; }`, `.justify-end { justify-content: flex-end; }`, `.flex-wrap { flex-wrap: wrap; }`, `.flex-1 { flex: 1; }`, `.flex-shrink-0 { flex-shrink: 0; }`
+- `layout.html`: `.w-full { width: 100%; }`, `.h-full { height: 100%; }`, `.min-h-screen { min-height: 100dvh; }`, `.block { display: block; }`, `.inline-block { display: inline-block; }`, `.relative { position: relative; }`, `.absolute { position: absolute; }`, `.fixed { position: fixed; }`, `.sticky { position: sticky; }`, `.overflow-hidden { overflow: hidden; }`, `.overflow-auto { overflow: auto; }`, `.overflow-x-hidden { overflow-x: hidden; }`
 
 **SUCCESS CRITERIA**
 - Both files exist and parse without errors
@@ -692,7 +752,7 @@ Delete both files. No other files modified.
 
 ---
 
-### TASK-018 — Create `utilities/spacing.css` and `utilities/typography.css`
+### TASK-018 — Create `utilities/spacing.html` and `utilities/typography.html`
 
 **OBJECTIVE**
 Create spacing and typography utility files. All values must reference tokens.
@@ -702,24 +762,24 @@ Create spacing and typography utility files. All values must reference tokens.
 - `MIGRATION_PLAN.md` — Tasks 3.3, 3.4
 
 **ALLOWED FILES**
-- `src/ui/styles/utilities/spacing.css` (create new)
-- `src/ui/styles/utilities/typography.css` (create new)
+- `src/ui/styles/utilities/spacing.html` (create new)
+- `src/ui/styles/utilities/typography.html` (create new)
 
 **FORBIDDEN**
 - Do not hardcode any px value — reference `var(--space-*)` and `var(--text-*)` tokens
 - Do not create responsive spacing variants — see IMPLEMENTATION RULES for the architecture rule
 
 **IMPLEMENTATION RULES**
-- `spacing.css`: gap utilities `.gap-1` through `.gap-6` mapping to `var(--space-1)` through `var(--space-6)`. Padding utilities `.p-3`, `.p-4`, `.p-6`, `.px-4`, `.py-2`, `.py-3` using token values. `.m-auto { margin: auto; }`.
-- `typography.css`: `.text-xs` through `.text-xl` mapping to token font-size values. `.font-medium`, `.font-semibold`, `.font-bold` mapping to font-weight tokens. `.text-left`, `.text-center`, `.text-right`. `.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }`. `.line-clamp-1` and `.line-clamp-2` using `-webkit-line-clamp`. `.break-words { overflow-wrap: break-word; word-break: break-word; }`.
+- `spacing.html`: gap utilities `.gap-1` through `.gap-6` mapping to `var(--space-1)` through `var(--space-6)`. Padding utilities `.p-3`, `.p-4`, `.p-6`, `.px-4`, `.py-2`, `.py-3` using token values. `.m-auto { margin: auto; }`.
+- `typography.html`: `.text-xs` through `.text-xl` mapping to token font-size values. `.font-medium`, `.font-semibold`, `.font-bold` mapping to font-weight tokens. `.text-left`, `.text-center`, `.text-right`. `.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }`. `.line-clamp-1` and `.line-clamp-2` using `-webkit-line-clamp`. `.break-words { overflow-wrap: break-word; word-break: break-word; }`.
 
 **SUCCESS CRITERIA**
 - All spacing utilities reference `var(--space-*)` tokens
 - All typography utilities reference `var(--text-*)` and `var(--font-weight-*)` tokens
 
 **VERIFICATION CHECKLIST**
-- [ ] No raw `px` values in `spacing.css` (except inside token definitions, which are in a different file)
-- [ ] No raw font-size values in `typography.css`
+- [ ] No raw `px` values in `spacing.html` (except inside token definitions, which are in a different file)
+- [ ] No raw font-size values in `typography.html`
 - [ ] `.truncate` produces single-line ellipsis on overflow
 
 **ROLLBACK PLAN**
@@ -773,7 +833,7 @@ Eliminate the `767px` vs `768px` breakpoint mismatch. Every responsive rule in e
 **ALLOWED FILES**
 - `src/ui/pages/pos.html` (CSS `<style>` block only)
 - `src/ui/services/uiService.html` (JavaScript constant only)
-- `src/ui/services/modalService.html` (CSS in `modals.css` or remaining inline)
+- `src/ui/services/modalService.html` (CSS in `modals.html` or remaining inline)
 
 **FORBIDDEN**
 - Do not change any POS layout values — only direction of media queries (max→min) and breakpoint value (767→768)
@@ -783,7 +843,7 @@ Eliminate the `767px` vs `768px` breakpoint mismatch. Every responsive rule in e
 **IMPLEMENTATION RULES**
 - In `pos.html` `<style>`: convert every `@media (max-width: 767px)` block to a mobile-first equivalent. Default styles (no media query) become the mobile styles. The previous mobile-override styles become the default. Breakpoint uses `768px`.
 - In `uiService.html`: update `MOBILE_BREAKPOINT = 768` (if already 768, confirm and annotate). Add comment: `// Mirror of CSS token --bp-tablet. Must remain synchronized.`
-- In `components/modals.css` or remaining modal CSS: confirm `768px` is used (not `767px`)
+- In `components/modals.html` or remaining modal CSS: confirm `768px` is used (not `767px`)
 - After conversion, test POS layout visually at exactly `767px` and `768px` — the behavior at both must be identical to before
 
 **SUCCESS CRITERIA**
@@ -806,7 +866,7 @@ Restore `pos.html`, `uiService.html`, and `modalService.html` from version contr
 
 ---
 
-### TASK-021 — Create `layout/app-shell.css`
+### TASK-021 — Create `layout/app-shell.html`
 
 **OBJECTIVE**
 Create the root layout CSS that defines the relationship between the sidebar and the main content area at all responsive tiers.
@@ -817,7 +877,7 @@ Create the root layout CSS that defines the relationship between the sidebar and
 - `UI_PATTERN_REGISTRY.md` — Pattern L-01
 
 **ALLOWED FILES**
-- `src/ui/styles/layout/app-shell.css` (create new)
+- `src/ui/styles/layout/app-shell.html` (create new)
 
 **FORBIDDEN**
 - Do not hardcode any pixel values — reference tokens only
@@ -843,11 +903,11 @@ Create the root layout CSS that defines the relationship between the sidebar and
 - [ ] Content offset by `--sidebar-width` at desktop
 
 **ROLLBACK PLAN**
-Delete `layout/app-shell.css`. No other files modified.
+Delete `layout/app-shell.html`. No other files modified.
 
 ---
 
-### TASK-022 — Create `layout/sidebar.css`
+### TASK-022 — Create `layout/sidebar.html`
 
 **OBJECTIVE**
 Create sidebar CSS that implements both the fixed desktop state and the mobile overlay drawer state. Single DOM element; CSS handles responsive behavior entirely.
@@ -857,7 +917,7 @@ Create sidebar CSS that implements both the fixed desktop state and the mobile o
 - `UI_PATTERN_REGISTRY.md` — Pattern N-01
 
 **ALLOWED FILES**
-- `src/ui/styles/layout/sidebar.css` (create new)
+- `src/ui/styles/layout/sidebar.html` (create new)
 
 **FORBIDDEN**
 - Do not use `max-width` media queries
@@ -885,11 +945,11 @@ Create sidebar CSS that implements both the fixed desktop state and the mobile o
 - [ ] Nav items have minimum 48px height
 
 **ROLLBACK PLAN**
-Delete `layout/sidebar.css`. No other files modified.
+Delete `layout/sidebar.html`. No other files modified.
 
 ---
 
-### TASK-023 — Create `layout/topbar.css`
+### TASK-023 — Create `layout/topbar.html`
 
 **OBJECTIVE**
 Create topbar CSS. The topbar is always fixed at the top of the viewport.
@@ -899,7 +959,7 @@ Create topbar CSS. The topbar is always fixed at the top of the viewport.
 - `UI_PATTERN_REGISTRY.md` — Pattern N-02
 
 **ALLOWED FILES**
-- `src/ui/styles/layout/topbar.css` (create new)
+- `src/ui/styles/layout/topbar.html` (create new)
 
 **FORBIDDEN**
 - Do not use `max-width` media queries
@@ -923,7 +983,7 @@ Create topbar CSS. The topbar is always fixed at the top of the viewport.
 - [ ] Topbar height equals `--topbar-height` token value
 
 **ROLLBACK PLAN**
-Delete `layout/topbar.css`. No other files modified.
+Delete `layout/topbar.html`. No other files modified.
 
 ---
 
@@ -985,7 +1045,7 @@ Apply the `.nav-item--active` modifier to the current page's navigation item. Wi
 - `src/ui/styles/main.css`
 
 **FORBIDDEN**
-- Do not modify `layout/*.css` files in this task — they were created in earlier tasks
+- Do not modify `layout/*.html` files in this task — they were created in earlier tasks
 - Do not add accessibility attributes in this task — that is TASK-026
 
 **IMPLEMENTATION RULES**
@@ -1054,7 +1114,7 @@ Restore `app.html` and `topbar.html` from version control.
 
 ---
 
-### TASK-027 — Create `components/buttons.css`
+### TASK-027 — Create `components/buttons.html`
 
 **OBJECTIVE**
 Create the canonical button component file defining all button variants (B-01 through B-05). This replaces the three independent button definitions currently scattered across modal CSS, CRUD Tailwind strings, and POS-specific classes.
@@ -1064,7 +1124,7 @@ Create the canonical button component file defining all button variants (B-01 th
 - `RESPONSIVE_PATTERNS.md` — Section 12.1, Tap Target Rules
 
 **ALLOWED FILES**
-- `src/ui/styles/components/buttons.css` (create new)
+- `src/ui/styles/components/buttons.html` (create new)
 
 **FORBIDDEN**
 - Do not hardcode any values — tokens only
@@ -1097,11 +1157,11 @@ Create the canonical button component file defining all button variants (B-01 th
 - [ ] No hardcoded values in the file
 
 **ROLLBACK PLAN**
-Delete `components/buttons.css`. No other files modified.
+Delete `components/buttons.html`. No other files modified.
 
 ---
 
-### TASK-028 — Create `components/forms.css`
+### TASK-028 — Create `components/forms.html`
 
 **OBJECTIVE**
 Create the canonical form component file defining input, label, field group, and validation error styles. Replaces the repeated `w-full border p-3 rounded` pattern across all entity modal templates.
@@ -1111,11 +1171,11 @@ Create the canonical form component file defining input, label, field group, and
 - `RESPONSIVE_PATTERNS.md` — Section 9, Form Responsiveness
 
 **ALLOWED FILES**
-- `src/ui/styles/components/forms.css` (create new)
+- `src/ui/styles/components/forms.html` (create new)
 
 **FORBIDDEN**
 - Do not hardcode any values
-- Do not define modal-specific layout here (modal framing belongs in `modals.css`)
+- Do not define modal-specific layout here (modal framing belongs in `modals.html`)
 
 **IMPLEMENTATION RULES**
 - `.form-group { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-4); }`
@@ -1142,11 +1202,11 @@ Create the canonical form component file defining input, label, field group, and
 - [ ] Height ≥ 44px on mobile viewport
 
 **ROLLBACK PLAN**
-Delete `components/forms.css`. No other files modified.
+Delete `components/forms.html`. No other files modified.
 
 ---
 
-### TASK-029 — Create `components/cards.css`
+### TASK-029 — Create `components/cards.html`
 
 **OBJECTIVE**
 Create the card component file defining the page header (C-01), content card (C-02), empty state (C-03), loading overlay (C-04), info/detail row (C-05), and status badge (C-06).
@@ -1155,7 +1215,7 @@ Create the card component file defining the page header (C-01), content card (C-
 - `UI_PATTERN_REGISTRY.md` — Patterns C-01 through C-06
 
 **ALLOWED FILES**
-- `src/ui/styles/components/cards.css` (create new)
+- `src/ui/styles/components/cards.html` (create new)
 
 **FORBIDDEN**
 - Do not hardcode values
@@ -1187,21 +1247,21 @@ Create the card component file defining the page header (C-01), content card (C-
 - [ ] No hardcoded values
 
 **ROLLBACK PLAN**
-Delete `components/cards.css`. No other files modified.
+Delete `components/cards.html`. No other files modified.
 
 ---
 
-### TASK-030 — Update `components/modals.css` with Token References and Responsive Contracts
+### TASK-030 — Update `components/modals.html` with Token References and Responsive Contracts
 
 **OBJECTIVE**
-Replace all hardcoded values in `components/modals.css` (created in TASK-013) with token references. Add the fullscreen mobile modal behavior per `RESPONSIVE_PATTERNS.md` Section 10.
+Replace all hardcoded values in `components/modals.html` (created in TASK-013) with token references. Add the fullscreen mobile modal behavior per `RESPONSIVE_PATTERNS.md` Section 10.
 
 **ARCHITECTURE REFERENCES**
 - `RESPONSIVE_PATTERNS.md` — Section 10, Modal Responsiveness
 - `UI_PATTERN_REGISTRY.md` — Patterns M-01, M-02
 
 **ALLOWED FILES**
-- `src/ui/styles/components/modals.css`
+- `src/ui/styles/components/modals.html`
 
 **FORBIDDEN**
 - Do not change any class names — only values and responsive rules
@@ -1221,7 +1281,7 @@ Replace all hardcoded values in `components/modals.css` (created in TASK-013) wi
 - Body scroll lock: add `overflow: hidden` to `body` via `.modal-open` class (applied by JS on modal open)
 
 **SUCCESS CRITERIA**
-- Zero hardcoded values in `modals.css`
+- Zero hardcoded values in `modals.html`
 - Modal is fullscreen at 375px
 - Modal is centered and constrained at 768px+
 - Modal content scrolls at all viewport heights
@@ -1234,21 +1294,21 @@ Replace all hardcoded values in `components/modals.css` (created in TASK-013) wi
 - [ ] No hardcoded values
 
 **ROLLBACK PLAN**
-Restore `components/modals.css` to its state after TASK-013 from version control.
+Restore `components/modals.html` to its state after TASK-013 from version control.
 
 ---
 
-### TASK-031 — Migrate Toast to `components/toast.css`
+### TASK-031 — Migrate Toast to `components/toast.html`
 
 **OBJECTIVE**
-Move all visual toast styling from JavaScript `style.cssText` assignments in `toastService.html` into `components/toast.css`. Refactor the service to toggle CSS classes, not inline styles.
+Move all visual toast styling from JavaScript `style.cssText` assignments in `toastService.html` into `components/toast.html`. Refactor the service to toggle CSS classes, not inline styles.
 
 **ARCHITECTURE REFERENCES**
 - `UI_PATTERN_REGISTRY.md` — Pattern NT-01
 - `UI_AUDIT.md` — Inline Styling Problems (toast service)
 
 **ALLOWED FILES**
-- `src/ui/styles/components/toast.css` (create new)
+- `src/ui/styles/components/toast.html` (create new)
 - `src/ui/services/toastService.html`
 
 **FORBIDDEN**
@@ -1257,10 +1317,10 @@ Move all visual toast styling from JavaScript `style.cssText` assignments in `to
 - Do not change the toast API (`Toast.success()`, `Toast.error()`, etc.)
 
 **IMPLEMENTATION RULES**
-- `toast.css`: define `.toast-container`, `.toast`, `.toast--success`, `.toast--error`, `.toast--warning`, `.toast--info` using only token values
+- `toast.html`: define `.toast-container`, `.toast`, `.toast--success`, `.toast--error`, `.toast--warning`, `.toast--info` using only token values
 - Mobile positioning: `position: fixed; top: var(--space-2); left: var(--space-4); right: var(--space-4); z-index: var(--z-toast);`
 - At `min-width: var(--bp-tablet)`: `left: auto; right: var(--space-4); max-width: 360px;`
-- Toast entry animation uses `slideUp` keyframe from `animations.css`
+- Toast entry animation uses `slideUp` keyframe from `animations.html`
 - In `toastService.html`: remove all `element.style.*` and `style.cssText` assignments; replace with `element.classList.add('toast', 'toast--' + type)`
 
 **SUCCESS CRITERIA**
@@ -1276,11 +1336,11 @@ Move all visual toast styling from JavaScript `style.cssText` assignments in `to
 - [ ] Toasts appear full-width at 375px
 
 **ROLLBACK PLAN**
-Delete `components/toast.css`. Restore `toastService.html` from version control.
+Delete `components/toast.html`. Restore `toastService.html` from version control.
 
 ---
 
-### TASK-032 — Create `components/tables.css` with Mobile Card Transformation
+### TASK-032 — Create `components/tables.html` with Mobile Card Transformation
 
 **OBJECTIVE**
 Create the canonical table component CSS including the full mobile card transformation pattern per `RESPONSIVE_PATTERNS.md` Section 8.1.
@@ -1290,7 +1350,7 @@ Create the canonical table component CSS including the full mobile card transfor
 - `UI_PATTERN_REGISTRY.md` — Patterns T-01, T-02
 
 **ALLOWED FILES**
-- `src/ui/styles/components/tables.css` (create new)
+- `src/ui/styles/components/tables.html` (create new)
 
 **FORBIDDEN**
 - Do not use `max-width` media queries
@@ -1323,7 +1383,7 @@ Create the canonical table component CSS including the full mobile card transfor
 - [ ] No hardcoded values
 
 **ROLLBACK PLAN**
-Delete `components/tables.css`. No other files modified.
+Delete `components/tables.html`. No other files modified.
 
 ---
 
@@ -1520,7 +1580,7 @@ Migrate `settings.html` to canonical components. Settings has a distinct layout 
 **VERIFICATION CHECKLIST**
 - [ ] No `<style>` block in `settings.html`
 - [ ] Settings save operation works
-- [ ] Input fields have correct focus styles from `forms.css`
+- [ ] Input fields have correct focus styles from `forms.html`
 - [ ] Page renders correctly at 375px and 1280px
 
 **ROLLBACK PLAN**
@@ -1612,7 +1672,7 @@ Restore `pos.html` from version control.
 
 ---
 
-### TASK-040 — Create `pages/pos.css` — POS Layout Structure
+### TASK-040 — Create `pages/pos.html` — POS Layout Structure
 
 **OBJECTIVE**
 Create the POS-specific layout CSS file defining the product/cart split on desktop and the stacked layout on mobile.
@@ -1622,7 +1682,7 @@ Create the POS-specific layout CSS file defining the product/cart split on deskt
 - `UI_PATTERN_REGISTRY.md` — Pattern R-03
 
 **ALLOWED FILES**
-- `src/ui/styles/pages/pos.css` (create new)
+- `src/ui/styles/pages/pos.html` (create new)
 
 **FORBIDDEN**
 - Do not use `max-width` media queries
@@ -1649,7 +1709,7 @@ Create the POS-specific layout CSS file defining the product/cart split on deskt
 - [ ] No hardcoded values
 
 **ROLLBACK PLAN**
-Delete `pages/pos.css`. No other files modified.
+Delete `pages/pos.html`. No other files modified.
 
 ---
 
@@ -1663,16 +1723,16 @@ Apply canonical P-02 cart item styles. Ensure quantity +/- and remove buttons me
 - `RESPONSIVE_PATTERNS.md` — Section 12.1, Tap Target Rules
 
 **ALLOWED FILES**
-- `src/ui/styles/pages/pos.css`
+- `src/ui/styles/pages/pos.html`
 - `src/ui/pages/pos.html` (HTML structure only — no new styles in template)
 
 **FORBIDDEN**
 - Do not change the cart item JavaScript logic
-- Do not define cart item styles outside `pos.css`
+- Do not define cart item styles outside `pos.html`
 - Do not use values outside the token system
 
 **IMPLEMENTATION RULES**
-- In `pos.css`: define `.pos-cart-item` styles using P-02 token references
+- In `pos.html` (page styles): define `.pos-cart-item` styles using P-02 token references
 - Quantity buttons (`.pos-qty-btn` or equivalent): enforce `min-width: 44px; min-height: 44px;` via `.btn.btn--icon`
 - Remove button: enforce `min-width: 44px; min-height: 44px;`
 - Apply `.btn.btn--icon` class to all three button types (increment, decrement, remove) in the HTML
@@ -1692,7 +1752,7 @@ Apply canonical P-02 cart item styles. Ensure quantity +/- and remove buttons me
 - [ ] Cart item quantity can be incremented and decremented
 
 **ROLLBACK PLAN**
-Restore `pos.html` HTML and remove cart item styles from `pos.css` via version control.
+Restore `pos.html` HTML and remove cart item styles from `pages/pos.html` via version control.
 
 ---
 
@@ -1708,7 +1768,7 @@ Fix the active high-priority bug where payment modal content exceeds viewport he
 
 **ALLOWED FILES**
 - `src/ui/pages/pos.html` (payment modal HTML structure)
-- `src/ui/styles/pages/pos.css`
+- `src/ui/styles/pages/pos.html`
 
 **FORBIDDEN**
 - Do not change payment validation logic
@@ -1735,7 +1795,7 @@ Fix the active high-priority bug where payment modal content exceeds viewport he
 - [ ] Complete payment flow works end-to-end on mobile
 
 **ROLLBACK PLAN**
-Restore `pos.html` HTML and revert `pos.css` payment modal styles from version control.
+Restore `pos.html` HTML and revert `pages/pos.html` payment modal styles from version control.
 
 ---
 
@@ -1749,7 +1809,7 @@ Add `@media print` styles for receipt rendering so printed receipts are clean an
 - `UI_AUDIT.md` — POS-Specific UI Problems (no print styles)
 
 **ALLOWED FILES**
-- `src/ui/styles/pages/pos.css`
+- `src/ui/styles/pages/pos.html`
 
 **FORBIDDEN**
 - Do not change any screen styles
@@ -1771,14 +1831,14 @@ Add `@media print` styles for receipt rendering so printed receipts are clean an
 - [ ] No modal overlay or shadows in print output
 
 **ROLLBACK PLAN**
-Remove the `@media print` block from `pos.css`.
+Remove the `@media print` block from `pages/pos.html`.
 
 ---
 
 ### TASK-044 — Convert POS `<style>` Block to Token References and Remove It
 
 **OBJECTIVE**
-Replace every remaining hardcoded value in `pos.html`'s `<style>` block with token references, move any remaining POS-specific styles to `pages/pos.css`, then delete the `<style>` block entirely.
+Replace every remaining hardcoded value in `pos.html`'s `<style>` block with token references, move any remaining POS-specific styles to `pages/pos.html`, then delete the `<style>` block entirely.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — AI Agent Styling Rules
@@ -1786,16 +1846,16 @@ Replace every remaining hardcoded value in `pos.html`'s `<style>` block with tok
 
 **ALLOWED FILES**
 - `src/ui/pages/pos.html` (`<style>` block only)
-- `src/ui/styles/pages/pos.css`
+- `src/ui/styles/pages/pos.html`
 
 **FORBIDDEN**
-- Do not move styles that belong to a shared component into `pos.css`
+- Do not move styles that belong to a shared component into `pages/pos.html`
 - Do not change any JavaScript logic
 - Do not leave any `<style>` block in `pos.html`
 
 **IMPLEMENTATION RULES**
 - Audit every CSS rule remaining in `pos.html`'s `<style>` block
-- For each rule: if it belongs to a shared component (button, card, modal), delete it — the component CSS handles it; if it is POS-specific layout, move it to `pos.css` with values replaced by tokens
+- For each rule: if it belongs to a shared component (button, card, modal), delete it — the component CSS handles it; if it is POS-specific layout, move it to `pages/pos.html` with values replaced by tokens
 - After all rules are moved or deleted, remove the `<style>` element from `pos.html`
 
 **SUCCESS CRITERIA**
@@ -1808,7 +1868,7 @@ Replace every remaining hardcoded value in `pos.html`'s `<style>` block with tok
 - [ ] No visual regressions
 
 **ROLLBACK PLAN**
-Restore `pos.html` from version control. Remove additions to `pos.css`.
+Restore `pos.html` from version control. Remove additions to `pages/pos.html`.
 
 ---
 
@@ -2039,37 +2099,37 @@ The regression test does not modify files. Failures found become new tasks.
 | Task | Phase | Touches | Priority |
 |------|-------|---------|----------|
 | TASK-001 | P1 | Read-only audit | Critical |
-| TASK-002 | P1 | `tokens/colors.css` | Critical |
-| TASK-003 | P1 | `tokens/spacing.css` | Critical |
-| TASK-004 | P1 | `tokens/typography.css` | Critical |
-| TASK-005 | P1 | `tokens/radius.css`, `shadows.css`, `zindex.css` | Critical |
-| TASK-006 | P1 | `tokens/breakpoints.css`, `animations.css`, `layout.css` | Critical |
+| TASK-002 | P1 | `tokens/colors.html` | Critical |
+| TASK-003 | P1 | `tokens/spacing.html` | Critical |
+| TASK-004 | P1 | `tokens/typography.html` | Critical |
+| TASK-005 | P1 | `tokens/radius.html`, `shadows.html`, `zindex.html` | Critical |
+| TASK-006 | P1 | `tokens/breakpoints.html`, `animations.html`, `layout.html` | Critical |
 | TASK-007 | P1 | `main.css` | Critical |
 | TASK-008 | P1 | App entry point | Critical |
 | TASK-009 | P1 | `theme.html` | Critical |
-| TASK-010 | P2 | `base/reset.css` | Critical |
-| TASK-011 | P2 | `base/globals.css`, `base/animations.css` | Critical |
+| TASK-010 | P2 | `base/reset.html` | Critical |
+| TASK-011 | P2 | `base/globals.html`, `base/animations.html` | Critical |
 | TASK-012 | P2 | `main.css` | Critical |
-| TASK-013 | P2 | `modalService.html`, `components/modals.css` | Critical |
+| TASK-013 | P2 | `modalService.html`, `components/modals.html` | Critical |
 | TASK-014 | P2 | `sales.html`, `sales.modal.html` | Critical |
 | TASK-015 | P2 | `pos.html`, `cartItemRow.html` | Critical |
-| TASK-016 | P2 | `utilities/visibility.css` | Critical |
-| TASK-017 | P3 | `utilities/flex.css`, `utilities/layout.css` | High |
-| TASK-018 | P3 | `utilities/spacing.css`, `utilities/typography.css` | High |
+| TASK-016 | P2 | `utilities/visibility.html` | Critical |
+| TASK-017 | P3 | `utilities/flex.html`, `utilities/layout.html` | High |
+| TASK-018 | P3 | `utilities/spacing.html`, `utilities/typography.html` | High |
 | TASK-019 | P3 | `main.css` | High |
-| TASK-020 | P3 | `pos.html`, `uiService.html`, `modals.css` | Critical |
-| TASK-021 | P4 | `layout/app-shell.css` | Critical |
-| TASK-022 | P4 | `layout/sidebar.css` | Critical |
-| TASK-023 | P4 | `layout/topbar.css` | Critical |
+| TASK-020 | P3 | `pos.html`, `uiService.html`, `modals.html` | Critical |
+| TASK-021 | P4 | `layout/app-shell.html` | Critical |
+| TASK-022 | P4 | `layout/sidebar.html` | Critical |
+| TASK-023 | P4 | `layout/topbar.html` | Critical |
 | TASK-024 | P4 | `app.html` | Critical |
 | TASK-025 | P4 | `sidebar.html`, `main.css` | High |
 | TASK-026 | P4 | `app.html`, `topbar.html` | Medium |
-| TASK-027 | P5 | `components/buttons.css` | Critical |
-| TASK-028 | P5 | `components/forms.css` | Critical |
-| TASK-029 | P5 | `components/cards.css` | Critical |
-| TASK-030 | P5 | `components/modals.css` | Critical |
-| TASK-031 | P5 | `components/toast.css`, `toastService.html` | Critical |
-| TASK-032 | P5 | `components/tables.css` | High |
+| TASK-027 | P5 | `components/buttons.html` | Critical |
+| TASK-028 | P5 | `components/forms.html` | Critical |
+| TASK-029 | P5 | `components/cards.html` | Critical |
+| TASK-030 | P5 | `components/modals.html` | Critical |
+| TASK-031 | P5 | `components/toast.html`, `toastService.html` | Critical |
+| TASK-032 | P5 | `components/tables.html` | High |
 | TASK-033 | P5 | CRUD module templates | High |
 | TASK-034 | P5 | `main.css` | High |
 | TASK-035 | P6 | `categories.html`, `categories.modal.html` | High |
@@ -2077,11 +2137,11 @@ The regression test does not modify files. Failures found become new tasks.
 | TASK-037 | P6 | `settings.html` | Medium |
 | TASK-038 | P7 | `pos.html` | Critical |
 | TASK-039 | P7 | `pos.html` | Critical |
-| TASK-040 | P7 | `pages/pos.css` | Critical |
-| TASK-041 | P7 | `pos.html`, `pages/pos.css` | Critical |
-| TASK-042 | P7 | `pos.html`, `pages/pos.css` | Critical |
-| TASK-043 | P7 | `pages/pos.css` | High |
-| TASK-044 | P7 | `pos.html`, `pages/pos.css` | Critical |
+| TASK-040 | P7 | `pages/pos.html` | Critical |
+| TASK-041 | P7 | `pos.html`, `pages/pos.html` | Critical |
+| TASK-042 | P7 | `pos.html`, `pages/pos.html` | Critical |
+| TASK-043 | P7 | `pages/pos.html` | High |
+| TASK-044 | P7 | `pos.html`, `pages/pos.html` | Critical |
 | TASK-045 | P7 | `main.css` | Critical |
 | TASK-046 | P8 | Read-only audit | High |
 | TASK-047 | P8 | Varies (gap report findings) | High |
