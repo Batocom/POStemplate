@@ -1,605 +1,634 @@
-# UI Audit                                                                                           
-                                                                                                     
-## Executive Summary                                                                                 
-                                                                                                     
-The POS application's UI architecture exhibits significant systemic debt across all layers: styling, 
-component patterns, responsive behavior, and code organization. The most critical issues are the     
-complete absence of a design token system, massive duplication of CSS and component logic across     
-files, inconsistent naming conventions, and no responsive architecture for mobile devices. These     
-problems compound as the application grows, making maintenance increasingly difficult and blocking   
-future enhancements such as theming, dark mode, or mobile-first redesign.                            
-                                                                                                     
-The audits identified **10+ major architectural problem categories** with **50+ specific instances** 
-of duplication, inconsistency, or missing abstractions. The highest severity issues are: (1) no CSS  
-custom properties or design tokens, (2) duplicated CSS across files (modal styles duplicated twice in
-the same file, receipt modal styles duplicated across two files), (3) no responsive media queries in 
-CRUD pages, (4) no component scoping mechanism, and (5) inconsistent styling approaches (raw CSS,    
-Tailwind utilities, inline styles) coexisting without coordination.                                  
-                                                                                                     
-## Current UI Architecture Overview                                                                  
-                                                                                                     
-The application uses a mix of:                                                                       
-- **Raw CSS** in `<style>` blocks embedded in HTML files (POS page, modal service, sales pages)      
-- **Tailwind-like utility classes** (e.g., `bg-blue-600`, `text-gray-500`, `p-4`, `rounded`) used    
-inconsistently across CRUD pages and table service                                                   
-- **Inline styles** in toast service, topbar, sidebar, and login page                                
-- **CSS custom properties** partially defined in `theme.html` but only used for colors, not spacing, 
-typography, or breakpoints                                                                           
-- **No CSS file structure** – all styles are in `<style>` blocks within HTML files; no separate CSS  
-files exist                                                                                          
-- **No CSS loading strategy** – styles are injected via `<style>` tags, not linked stylesheets       
-- **No CSS reset or normalization**                                                                  
-                                                                                                     
-Component patterns are similarly fragmented:                                                         
-- **Modal service** is the most reusable component but has duplicate CSS (entire style block defined 
-twice)                                                                                               
-- **Table service** is feature-rich but not used by any other module                                 
-- **Edit service** exists but duplicates loading state management                                    
-- **Cart item row** has a good namespaced pattern but is duplicated in POS page                      
-- **No shared button, form, search, pagination, empty state, or loading components**                 
-                                                                                                     
-## Major Architectural Problems                                                                      
-                                                                                                     
-### Inline Styling Problems                                                                          
-                                                                                                     
-**Locations across audits:**                                                                         
-- POS page: 15+ inline `style="display:none/block/flex"` declarations for visibility toggling        
-- Topbar: inline SVG with `style="display:flex;align-items:center;gap:12px;"` and                    
-`style="width:24px;height:24px;"`                                                                    
-- Sidebar: inline SVG with `style="width:20px;height:20px;"`                                         
-- Login page: `style="background: var(--color-primary);"`                                            
-- Toast service: both `style.cssText` and inline style attributes on the same element                
-- Sales modal: `style="display:none;"` on `#salesModalContent` in two separate files                 
-                                                                                                     
-**Systemic impact:**                                                                                 
-- Bypasses any token system or utility layer                                                         
-- Creates tight coupling between markup and presentation                                             
-- Cannot be overridden by external CSS without `!important`                                          
-- Not cacheable, increases HTML size                                                                 
-- Mix of `display:none`, `display:block`, `display:flex` for the same purpose (visibility) with no   
-utility classes                                                                                      
-                                                                                                     
-### Duplicated Styling Systems                                                                       
-                                                                                                     
-**Three styling approaches coexist without coordination:**                                           
-                                                                                                     
-1. **Raw CSS** (modal service, POS page, sales pages)                                                
-   - All colors, spacing, border-radius, font sizes hardcoded as literal values                      
-   - No CSS custom properties for spacing, typography, radius, shadows, z-index, breakpoints         
-   - Animation durations hardcoded (200ms modal, 300ms toast)                                        
-                                                                                                     
-2. **Tailwind-like utility classes** (table service, CRUD pages, settings page)                      
-   - Used inconsistently: `w-32`, `px-4`, `py-3`, `rounded`, `shadow`, `gap-4`                       
-   - Mixed with raw CSS values in the same files                                                     
-   - No consistent utility class system defined                                                      
-                                                                                                     
-3. **Inline styles** (toast, topbar, sidebar, login)                                                 
-   - Highest specificity, cannot be overridden                                                       
-   - Duplicated across files                                                                         
-                                                                                                     
-**Specific duplication instances:**                                                                  
-- Modal service: entire ~130-line `<style>` block duplicated verbatim inside `ensureStyles()`        
-function                                                                                             
-- Receipt modal: two separate implementations with different class names (`receipt-*` vs `modal-*`)  
-but identical structure                                                                              
-- Animation keyframes `slideIn`/`slideOut` defined in both `theme.html` and `responsive.html`        
-- Payment method button CSS defined twice in POS page                                                
-- `.payment-method-btn` defined twice with slightly different values                                 
-- `.receipt-items-table th` and `td` padding/font-size duplicated across th/td                       
-- `.credit-customer-select` and `.credit-notes-input` border styles duplicated                       
-- `.payment-amount-input-wrapper:focus-within` and `.credit-customer-select:focus` border-color      
-duplicated                                                                                           
-                                                                                                     
-### Repeated Layout Structures                                                                       
-                                                                                                     
-**Page Header Pattern** (6 instances):                                                               
-```html                                                                                              
-<div class="flex items-center justify-between">                                                      
-  <div>                                                                                              
-    <h1 class="text-2xl font-bold">Title</h1>                                                        
-    <p class="text-gray-500">Subtitle</p>                                                            
-  </div>                                                                                             
-  <button class="bg-blue-600 text-white px-4 py-2 rounded">Action</button>                           
-</div>                                                                                               
-                                                                                                     
+ # UI Audit — Architectural Synthesis Report
 
- • Duplicated verbatim across sales, categories, units, products, settings, stockMovements pages     
- • No component abstraction                                                                          
+---
 
-Card Container Pattern (5 instances):                                                                
+## Executive Summary
 
-                                                                                                     
-<div class="bg-white rounded shadow p-4">                                                            
-  Loading...                                                                                         
-</div>                                                                                               
-                                                                                                     
+This audit consolidates findings across five distinct areas of the codebase: the App Shell (sidebar, topbar, routing, state), the POS page (product grid, cart, payment flow), the CRUD module pages (categories, units, products, sales, stock movements, settings), the Services layer (modal, table, toast, edit, UI, search), and the global styling architecture (theme, responsive, design tokens).
 
- • Duplicated across sales, categories, units, products, stockMovements pages                        
- • Inconsistent padding (p-4 vs p-6 in settings)                                                     
+The codebase exhibits systemic architectural debt that spans every layer. The most critical finding is the **complete absence of a unified design token system**: colors, spacing, typography, border radii, and breakpoints are hardcoded as raw values throughout all files, with no CSS custom properties, no shared token source, and no consistent scale. This single root deficiency causes or amplifies nearly every other problem identified.
 
-Form Input Pattern (10+ instances):                                                                  
+Layered on top of this, the codebase operates with **three competing styling approaches simultaneously**: raw custom CSS (POS page, modal service), Tailwind-like utility classes (CRUD pages, table service), and JavaScript-injected inline styles (toast service, POS visibility toggling). There is no architectural decision governing which approach applies where, and all three coexist in the same rendering context without isolation boundaries.
 
-                                                                                                     
-<input class="w-full border p-3 rounded" />                                                          
-                                                                                                     
+The result is a UI system that cannot be themed, cannot be maintained at scale, and cannot be extended without compounding duplication.
 
- • Duplicated across categories, products, units modal forms                                         
- • No shared form field component                                                                    
+---
 
-Modal Button Pattern (5 instances):                                                                  
+## Current UI Architecture Overview
 
-                                                                                                     
-<button class="bg-blue-600 text-white px-4 py-3 rounded w-full">                                     
-  Save/Update                                                                                        
-</button>                                                                                            
-                                                                                                     
+The application is structured as a modular, single-page application rendered via a JavaScript router that swaps page templates into a shared app shell. Styling is delivered through a combination of global `<style>` blocks embedded in HTML templates, Tailwind utility classes applied inline, and JavaScript that injects both `<style>` elements and inline `style` attributes at runtime.
 
- • Duplicated across categories, products, units modal forms                                         
- • Inconsistent vertical padding with page action buttons (py-3 vs py-2)                             
+The current layer structure is:
 
-Receipt Detail Row Pattern (2 instances):                                                            
+- **App Shell**: `theme.html`, `responsive.html` — global CSS variables and breakpoint rules
+- **Page Templates**: Per-page `<style>` blocks co-located with HTML (POS, CRUD pages)
+- **Service Layer**: `modalService.html`, `tableService.html`, `toastService.html` — each with its own independent styling strategy
+- **Component Layer**: `sidebar.html`, `topbar.html`, `cartItemRow.html` — rendered via string-returning functions with inline event handlers
+- **Module Layer**: Per-entity controllers and modal templates, each duplicating form, table, and button patterns
 
-                                                                                                     
-.detail-row, .receipt-field {                                                                        
-  display: flex;                                                                                     
-  justify-content: space-between;                                                                    
-  padding: 6px 0;                                                                                    
-  border-bottom: 1px solid #f0f0f0;                                                                  
-}                                                                                                    
-                                                                                                     
+There is no shared component library, no token bridge between CSS and JavaScript, no scoping mechanism, and no responsive utility layer that components can draw from.
 
- • Duplicated across sales.html and sales.modal.html with different class names                      
+---
 
-Receipt Table Pattern (2 instances):                                                                 
+## Major Architectural Problems
 
-                                                                                                     
-.modal-items-table, .receipt-items-table {                                                           
-  width: 100%;                                                                                       
-  border-collapse: collapse;                                                                         
-}                                                                                                    
-                                                                                                     
+### Inline Styling Problems
 
- • Duplicated across sales.html and sales.modal.html with different class names                      
+Inline styles are pervasive and operate as three distinct anti-patterns:
 
-Receipt Total Section Pattern (2 instances):                                                         
+The **toast service** constructs its entire visual presentation via `style.cssText` strings and inline `style` attributes set in JavaScript. This makes the toast component completely opaque to CSS overrides and untestable through standard stylesheet tooling.
 
-                                                                                                     
-.modal-totals, .receipt-total-section {                                                              
-  border-top: 2px solid #e0e0e0;                                                                     
-  padding-top: 12px;                                                                                 
-}                                                                                                    
-                                                                                                     
+The **POS page** uses 15+ inline `style="display:none"`, `style="display:block"`, and `style="display:flex"` declarations for visibility state management across elements including `#search-results`, `#cart-items-list`, `#change-row`, `#change-display`, `#credit-section`, `#credit-balance`, and `#payment-loading-overlay`. Three different display values are used interchangeably for what is conceptually a single show/hide concern.
 
- • Duplicated across sales.html and sales.modal.html with different class names                      
+The **modal service** injects a complete `<style>` block at runtime via `ensureStyles()` as a mechanism to guarantee styles are present when the modal is opened dynamically. This pattern exists alongside a static `<style>` block at the top of the same file, creating a verbatim duplication of approximately 130 lines of CSS.
 
-Repeated Component Implementations                                                                   
+No `.hidden` utility class exists. No CSS class-based visibility pattern is applied anywhere. Inline style usage is the default mechanism for state-driven UI changes across the entire application.
 
-Cart Item Display (2 implementations):                                                               
+### Duplicated Styling Systems
 
- • CartTable.render() in pos.html generates HTML directly                                            
- • CartItemRow.render() in cartItemRow.html is a separate utility                                    
- • Both produce identical HTML structure                                                             
- • cartItemRow.html is likely dead code                                                              
+The codebase maintains three parallel and incompatible styling systems with no mechanism for reconciliation:
 
-Receipt Modal (2 implementations):                                                                   
+**Raw custom CSS** is used in POS (`pos.html`), the modal service, and portions of the app shell. Colors are expressed as hex literals, spacing as pixel values, and border radii as raw numbers. No CSS variable references appear in any of these files.
 
- • sales.html uses receipt-* class naming                                                            
- • sales.modal.html uses modal-* class naming                                                        
- • Same modal ID salesModalContent in both files                                                     
- • Different styling values (border colors, font sizes, padding)                                     
+**Tailwind-like utility classes** are used across all CRUD page templates and the table service. These are class strings like `bg-white`, `rounded`, `shadow`, `px-4`, `py-2`, `text-gray-500`, and `space-y-4`. These classes use Tailwind naming conventions but share no token relationship with the raw CSS layers.
 
-Loading State (7+ instances):                                                                        
+**JavaScript-injected styles** are used in the toast service and partially in the modal service. These are style strings assembled in JavaScript and applied imperatively, bypassing the stylesheet entirely.
 
- • All show loading text in table container                                                          
- • Some use inline text in template, others set via JavaScript                                       
- • No shared loading component                                                                       
+The same visual property — the primary blue `#2563eb` — appears as a raw hex string in modal CSS, as `bg-blue-600` in CRUD button classes, and as a JavaScript color constant in the toast service. These three representations are not linked, and a change to the primary color requires three separate edits with no guarantee of completeness.
 
-Error State (6+ instances):                                                                          
+### Repeated Layout Structures
 
- • All use text-red-500 class                                                                        
- • All set container.innerHTML directly                                                              
- • Error messages vary: "Failed to load", "Invalid data", "Something went wrong"                     
+Six CRUD page templates (`sales.html`, `categories.html`, `units.html`, `products.html`, `stockMovements.html`, `settings.html`) each contain a verbatim copy of the page header pattern — a flex container with a title block on the left and an action button on the right. There is no page header component. The HTML structure, class strings, and typography values are duplicated across all six files.
 
-Empty State (2+ instances):                                                                          
+Five of those same pages contain a verbatim copy of the card container pattern — `bg-white rounded shadow p-4` — as the wrapper for their table content areas. The settings page uses `p-6` instead of `p-4`, which is the only variation and appears to be unintentional.
 
- • Both use <div class="text-gray-500">No ... found</div>                                            
- • No shared empty state component                                                                   
+The receipt display structure (detail rows, items table, totals section) is independently defined in both `sales.html` and `sales.modal.html` with different class names but identical layout logic, dimensions, and color values. These two files represent the same visual output styled twice.
 
-Table Action Links (2+ instances):                                                                   
+### Repeated Component Implementations
 
- • Both have { label: 'Edit', class: 'text-blue-600', onClick: ... }                                 
- • Both have { label: 'Delete', class: 'text-red-600', onClick: ... }                                
- • Duplicated across categories.controller.html and units.controller.html                            
+Cart item row HTML is generated in two separate places: `CartTable.render()` in `pos.html` and `CartItemRow.render()` in `cartItemRow.html`. Both produce structurally identical markup. One is likely dead code.
 
-Primary Button (9+ instances):                                                                       
+The `CheckoutService` defines a `calculateChange()` method that duplicates logic already present in `PricingService`. The `CheckoutService` also contains both `_showReceipt()` and `_showReceiptModal()` as separate methods that serve the same function.
 
- • Page action buttons use px-4 py-2                                                                 
- • Modal submit buttons use px-4 py-3                                                                
- • Settings "Save" button uses px-6 py-3 and rounded-lg                                              
- • No shared CSS class or component abstraction                                                      
+Button variants — primary, secondary, and danger — are each defined independently in the modal service's CSS. The table service defines its pagination buttons using Tailwind utility classes with no relationship to the modal's button definitions. The CRUD page templates define their action buttons using a third, independent set of class strings. No shared button component exists across any of these contexts.
 
-Responsive Architecture Problems                                                                     
+Form input styling is repeated across every modal form template — categories, products, and units — with no shared form field component or base input class. Submit button styling is similarly repeated across all three. The `Modal.open()` invocation pattern is duplicated across every entity controller with no higher-level entity modal abstraction.
 
-Complete absence of responsive design in CRUD pages:                                                 
+---
 
- • Zero media queries across sales, categories, units, products, settings, stockMovements pages      
- • All styling is static; no breakpoint handling                                                     
- • Fixed pixel values for widths, padding, font sizes                                                
+## Responsive Architecture Problems
 
-POS page has responsive logic but with issues:                                                       
+### Inconsistent Breakpoint System
 
- • Fixed width right panel (420px) causes layout shift at breakpoint boundaries                      
- • No intermediate tablet layout (768-1024px)                                                        
- • Quantity buttons (28px desktop, 24px mobile) below recommended 44px touch target                  
- • No breakpoint for very small screens (320px)                                                      
- • Payment modal content exceeds available height on mobile with no scroll container                 
- • Receipt table becomes unreadable on small screens with no horizontal scroll fallback              
+Four distinct breakpoint values appear across the codebase: `480px`, `767px` (POS), `768px` (modal service, UI service), and `1024px` (POS tablet). The difference between `767px` and `768px` means the mobile breakpoint in POS does not match the mobile breakpoint in the modal or UI service. On a viewport exactly 768px wide, the POS layout treats the device as mobile while the modal service treats it as desktop.
 
-App shell responsive issues:                                                                         
+The breakpoint value `768px` is also hardcoded as a JavaScript constant (`MOBILE_BREAKPOINT = 768`) in the UI service, creating a second representation that must be manually kept in sync with the CSS. No mechanism links these two representations.
 
- • Fixed width sidebar (256px desktop, 280px mobile) does not scale                                  
- • Sidebar overlay uses display: block/none with no transition animation                             
- • No active page indicator in sidebar                                                               
- • Sidebar closes on navigation with no transition delay                                             
- • No hover/touch distinction (hover states may "stick" on touch devices)                            
- • No :active state for touch feedback                                                               
+The app shell's `theme.html` defines CSS custom properties for breakpoints (`--bp-mobile`, `--bp-tablet`, `--bp-desktop`, `--bp-wide`) but these variables are not consumed by the responsive system, the POS page, the modal service, or any component. They exist as documentation only.
 
-Modal responsive issues:                                                                             
+### Responsive Logic Per-Component
 
- • All modal sizes except full use fixed pixel max-widths                                            
- • On viewports between breakpoint and modal width, content may overflow                             
- • No overflow-x: auto on modal content (wide forms/tables overflow horizontally)                    
- • Modal size variants lost on mobile (all collapse to 100% at 768px)                                
- • Full-width buttons on mobile may look disproportionate for short labels                           
+Every component in the POS page manages its own responsive behavior independently. The product grid, product cards, cart items, totals panel, checkout actions, payment total display, payment method buttons, payment amount input, change display, and receipt table each contain their own per-breakpoint overrides for padding, font size, and dimensions. A spacing scale change requires editing dozens of separate responsive rules across a single file.
 
-Table responsive issues:                                                                             
+The CRUD module pages contain zero responsive media queries. All styling is static. On mobile devices, the page header flex layout has no wrapping behavior and will cause the action button to overflow or collide with the title. Tables have no horizontal scroll wrapper and no column collapse strategy. Form inputs have fixed padding with no mobile reduction. This represents a complete absence of mobile design consideration across the entire management interface.
 
- • No responsive table transformation (card layout, column hiding, or horizontal scroll with sticky  
-   first column)                                                                                     
- • Pagination and search not sticky (user must scroll past all rows)                                 
- • No sticky table header (column headers scroll away)                                               
- • No visual indicator for horizontal scroll (shadow or gradient)                                    
+### Touch Target Failures
 
-Touch ergonomics:                                                                                    
+Quantity control buttons in the POS cart are 28px on desktop and 24px on mobile — both below the 44px minimum recommended by WCAG 2.5.5 and major platform human interface guidelines. This is a functional usability failure for touch users.
 
- • Buttons (32-40px) and checkboxes (~13px) below recommended 44px minimum touch target              
- • No minimum touch target sizes defined                                                             
- • No @media (hover: hover) query to distinguish hover-capable and touch devices                     
+Pagination buttons in the table service render at approximately 32–36px height. Table row checkboxes use default browser checkbox sizing, approximately 13px. Both are significantly below the recommended minimum.
 
-Viewport problems:                                                                                   
+The payment modal on mobile has no internal scroll container. The modal content — which includes the total display, payment method selector, amount input, change display, credit section, and action buttons — can exceed viewport height with no scroll fallback, causing content to be cut off.
 
- • No viewport meta tag in any provided file (assumed to be in parent HTML)                          
- • If parent HTML lacks it, mobile browsers render at desktop width                                  
+### Fixed Dimension Problems
 
-Inconsistent Spacing Systems                                                                         
+The POS right panel uses a fixed `width: 420px`. On tablet viewports (768–1024px), this consumes over 40% of the available width. The value becomes `100%` on mobile via media query, creating a sharp layout shift at the breakpoint boundary with no intermediate fluid state.
 
-No centralized spacing scale:                                                                        
+Modal size variants (`sm: 400px`, `md: 560px`, `lg: 720px`, `xl: 960px`) use fixed pixel `max-width` values. The `xl` variant will overflow horizontally on viewports narrower than 960px unless the full-size variant is selected. All size variants collapse to `100%` at 768px, making the size parameter functionally meaningless on mobile.
 
- • Values hardcoded: 4px, 6px, 8px, 12px, 16px, 20px, 24px, 32px, 48px                               
- • No CSS custom properties for spacing (--space-1 through --space-5)                                
- • Same spacing value used inconsistently (e.g., 16px appears as p-4, gap-4, space-y-4, mb-4, px-4,  
-   py-4)                                                                                             
+---
 
-Inconsistent padding across similar components:                                                      
+## Inconsistent Spacing Systems
 
- • Page action buttons: py-2 (8px vertical)                                                          
- • Modal submit buttons: py-3 (12px vertical)                                                        
- • Settings "Save" button: py-3 (12px vertical) with px-6 (24px horizontal)                          
- • Card containers: p-4 (16px) in CRUD pages, p-6 (24px) in settings                                 
- • Dashboard cards: p-6 (24px) on mobile creates 36px total horizontal padding (12px content + 24px  
-   card)                                                                                             
+The codebase operates with at least three concurrent spacing scales with no relationship between them.
 
-No responsive spacing adjustment:                                                                    
+The CRUD pages use Tailwind spacing notation: `p-3`, `p-4`, `p-6`, `px-4`, `py-2`, `py-3`, `space-y-4`. Within this system, inconsistencies appear: modal submit buttons use `py-3` while page action buttons use `py-2`; settings cards use `p-6` while table cards use `p-4`; the settings save button uses `px-6` while all others use `px-4`.
 
- • Same spacing values used across all viewport sizes                                                
- • On mobile, excessive spacing wastes vertical space                                                
- • On desktop, spacing may feel adequate but lacks responsive optimization                           
+The POS page uses raw pixel values: `16px`, `12px`, `10px`, `8px`, `4px`. These values repeat across every component's responsive overrides at every breakpoint.
 
-Inconsistent Typography Systems                                                                      
+The services layer uses a mixture: modal service uses raw pixel values, table service uses Tailwind class strings, toast service uses inline pixel values. The `16px` gap unit appears as `gap: 16px` in modal CSS and `gap-4` in table Tailwind classes with no relationship between them.
 
-No centralized typography scale:                                                                     
+There is no spacing scale token governing any of these values. The values `4px`, `6px`, `8px`, `10px`, `12px`, `16px`, `20px`, `24px`, `32px`, `48px` all appear as magic numbers across different files and representations.
 
- • Font sizes hardcoded: 0.6rem, 0.65rem, 0.7rem, 0.75rem, 0.8rem, 0.85rem, 0.875rem, 0.9rem,        
-   0.95rem, 1rem, 1.1rem, 1.125rem, 1.2rem, 1.25rem, 1.4rem, 1.5rem, 2rem, 2.5rem                    
- • No CSS custom properties for font sizes (--text-xs through --text-xl)                             
- • Non-standard sizes used: 0.9rem (14.4px), 0.85rem (13.6px), 1.1rem (17.6px), 1.4rem (22.4px)      
- • Inconsistent with Tailwind's standard scale (0.875rem for text-sm, 1.125rem for text-lg)          
+---
 
-Font weight inconsistencies:                                                                         
+## Inconsistent Typography Systems
 
- • font-bold (700) used for page titles, total labels, section titles                                
- • font-medium (500) used for button text, detail values, system info values                         
- • font-semibold (600) used for section titles in receipt modal                                      
- • No CSS custom properties for font weights                                                         
+Font sizes are expressed in incompatible units across the codebase. The CRUD pages use Tailwind text scale names (`text-sm`, `text-lg`, `text-2xl`). The POS page uses `rem` values spanning a wide and inconsistent range. The sales modal uses a mixture of raw `rem` values and Tailwind class names in the same file.
 
-Text transform inconsistencies:                                                                      
+The values `0.9rem` and `text-sm` (`0.875rem`) are used for visually equivalent text in different parts of the application without consistent mapping. Font weight is expressed as both numeric values (`500`, `600`, `700`) and Tailwind weight class names (`font-medium`, `font-semibold`, `font-bold`) in the same codebase with no consistent pattern for which representation to use in which context.
 
- • Receipt table headers in sales.html use text-transform: uppercase                                 
- • Sales modal headers in sales.modal.html do not use uppercase                                      
+Non-standard gray color values (`#666`, `#333`, `#888`, `#e0e0e0`, `#f0f0f0`, `#f8f9fa`) coexist with Tailwind gray scale values (`text-gray-500`, `text-gray-600`, `bg-gray-100`) across the CRUD pages and POS page, with no mapping between the two systems.
 
-Table Architecture Problems                                                                          
+No typographic scale is defined. The existing `theme.html` does not establish font size tokens that could unify these representations.
 
-Two table implementations coexist:                                                                   
+---
 
- 1 Table service (tableService.html): feature-rich with sorting, pagination, search, selection, bulk 
-   actions, empty state                                                                              
- 2 Manual table rendering (dashboard, sales pages): string concatenation, no XSS protection, no      
-   responsive handling                                                                               
+## Table Architecture Problems
 
-Table service issues:                                                                                
+The application has two independent table implementations that share no code.
 
- • Not used by any other module (categories, units, products use their own rendering)                
- • Pagination and search not sticky                                                                  
- • No responsive table transformation                                                                
- • No sticky table header                                                                            
- • No visual indicator for horizontal scroll                                                         
+The **table service** (`tableService.html`) is a fully featured, reusable component with sorting, pagination, search, row selection, bulk actions, and custom cell rendering. It is styled exclusively with Tailwind utility classes. Its pagination controls, search bar, and bulk action bar are embedded inside the service and cannot be extracted for use in other contexts.
 
-Manual table rendering issues:                                                                       
+The **receipt table** appears in two places — `sales.html` and `sales.modal.html` — with identical column structure and nearly identical styling but different class names and minor typographic differences. These two tables are not related to the table service and share no base styles with it.
 
- • No XSS protection (string concatenation)                                                          
- • No loading/error/empty state components                                                           
- • Duplicated across controllers                                                                     
- • No responsive handling                                                                            
+No responsive strategy exists for either table type. The table service wraps its `<table>` element in an `overflow-x: auto` container, which provides horizontal scrolling but offers no column prioritization, no card layout fallback for mobile, and no sticky header for long scroll contexts. The receipt tables have no overflow wrapper at all.
 
-Receipt table issues:                                                                                
+No sticky table header is defined anywhere. On long datasets, users lose column context while scrolling. The table service's search and pagination controls are not sticky, requiring users to scroll past all rows to reach navigation or filtering.
 
- • Duplicated across sales.html and sales.modal.html with different class names                      
- • No horizontal scroll fallback on mobile                                                           
- • No sticky headers                                                                                 
- • Column widths become extremely narrow on mobile                                                   
+---
 
-Modal Architecture Problems                                                                          
+## Modal Architecture Problems
 
-Modal service (modalService.html) is the most reusable component but has:                            
+The modal system has a functional, well-structured service (`modalService.html`) that supports five size variants, four interaction modes (open, confirm, alert, loading), keyboard dismissal, and overlay click dismissal. However, it carries architectural problems that undermine its reliability and consistency.
 
- • Duplicate CSS (entire style block defined twice)                                                  
- • No overflow-x: auto on modal content                                                              
- • Fixed pixel max-widths for all sizes except full                                                  
- • Size variants lost on mobile (all collapse to 100% at 768px)                                      
- • No responsive height handling (max-height: 90vh but no overflow-y: auto specified in              
-   responsive.html)                                                                                  
+The modal service's entire CSS ruleset is defined twice in the same file — once in a static `<style>` block at the top and again inside an `ensureStyles()` function that injects a `<style>` element at runtime. This duplication is approximately 130 lines. Any change must be made in both locations and they will inevitably diverge.
 
-Edit service (editService.html) duplicates loading state management:                                 
+The edit service (`editService.html`) uses `Modal.open()` but manages its own loading state by mutating the submit button's text content, bypassing the modal service's built-in `setLoading()` method. This creates two parallel loading state patterns for modal-hosted forms.
 
- • Uses button text change instead of Modal.setLoading()                                             
- • Does not use Modal.loading() for initial data fetch                                               
+The POS page defines its payment modal and receipt modal as hidden `<div>` elements embedded in `pos.html`, with their modal-specific styles co-located in the same `<style>` block as the POS layout. These modals are not managed through the modal service's standard patterns. The payment modal has no internal scroll container, causing content overflow on small viewports.
 
-Receipt modal duplicated across two files:                                                           
+Button ordering is inconsistent between modals. The payment modal places the cancel action first and the confirm action second. The receipt modal places the print action first and the close action second. No ordering convention is documented or enforced.
 
- • sales.html uses receipt-* class naming                                                            
- • sales.modal.html uses modal-* class naming                                                        
- • Same modal ID salesModalContent in both files                                                     
- • Different styling values                                                                          
+---
 
-Payment modal embedded in POS page:                                                                  
+## POS-Specific UI Problems
 
- • Content exceeds available height on mobile with no scroll container                               
- • No standard modal structure across the app                                                        
+The POS page concentrates the highest density of architectural problems in the codebase, combining all systemic issues with POS-specific layout concerns.
 
-POS-Specific UI Problems                                                                             
+The page embeds all styling — layout, components, responsive overrides, keyframe animations, and utility patterns — in a single `<style>` block co-located with the HTML template. There is no separation between POS layout styles and the payment/receipt modal styles that are logically independent components.
 
-Layout issues:                                                                                       
+The `@keyframes spin` animation is defined globally with a generic name. The `.spinner` class is also generic and at high risk of collision with other spinner implementations elsewhere in the application. Neither is scoped to a POS context.
 
- • Fixed width right panel (420px) causes layout shift at breakpoint boundaries                      
- • No intermediate tablet layout (768-1024px)                                                        
- • Layout assumes fixed 80px top bar offset; mobile top bar may differ (56px)                        
- • Right panel has no overflow handling for cart items                                               
+The product search (`ProductSearch`) does not use the existing search utility service (`searchService.html`). It implements its own filtering logic, performs direct DOM manipulation, and calls `CartService.add()` directly rather than through an event. This creates tight coupling between the search component and the cart layer.
 
-Touch ergonomics:                                                                                    
+Payment validation logic lives in `PaymentModal._validatePayment()`, a UI component, rather than in `CheckoutService`. The checkout service reads credit customer selection and notes directly from DOM elements rather than from application state. These patterns mix presentation and business logic in ways that make the checkout flow difficult to modify or test.
 
- • Quantity buttons: 28px desktop, 24px mobile (below 44px minimum)                                  
- • Product grid cards: touch targets too small on mobile                                             
- • No minimum touch target sizes defined                                                             
+No print styles exist. The receipt rendering relies entirely on screen styles. For a POS system where receipt printing is a core user action, this is a functional gap.
 
-Responsive issues:                                                                                   
+---
 
- • No breakpoint for very small screens (320px)                                                      
- • Payment modal content exceeds available height with no scroll                                     
- • Receipt table becomes unreadable on small screens                                                 
- • No mobile navigation pattern (hamburger menu, bottom nav)                                         
- • No way to navigate to other pages from POS on mobile                                              
+## Navigation/Layout Problems
 
-Component duplication:                                                                               
+The sidebar navigation uses emoji characters as icons. Emoji rendering is inconsistent across platforms and screen readers interpret emoji unpredictably. No SVG icon system or icon component exists.
 
- • Cart item HTML generation in pos.html and cartItemRow.html                                        
- • Payment method button CSS defined twice                                                           
- • Receipt display methods in CheckoutService duplicated                                             
+Active navigation state highlighting is not implemented. The topbar displays the current page name from `State.currentPage` but the sidebar provides no visual indication of which page is selected.
 
-Navigation/Layout Problems                                                                           
+The mobile sidebar breakpoint (`768px`) treats all tablets as mobile. On tablets in the 768–1024px range, the sidebar is hidden by default and requires a hamburger toggle — the same behavior as a 375px phone. No intermediate persistent-sidebar layout exists for the tablet range.
 
-App shell issues:                                                                                    
+From the POS page, there is no navigation element that allows mobile users to return to other sections of the application. The POS layout replaces the standard app shell's sidebar and topbar with a POS-specific header, removing navigation context entirely on mobile.
 
- • Duplicate HTML in mobile/desktop branches (sidebar and topbar rendered in both)                   
- • No loading state during page transitions                                                          
- • No error boundary (if renderSidebar() or renderTopbar() throws, entire shell breaks)              
- • Sidebar overlay uses display: block/none with no transition animation                             
- • No active page indicator in sidebar                                                               
- • Sidebar closes on navigation with no transition delay                                             
+The app shell renders the sidebar and topbar twice in its HTML output — once for the mobile layout branch and once for the desktop layout branch, conditioned on `UIService.isMobile()` at render time rather than using CSS to conditionally show and hide a single rendered instance.
 
-Router issues:                                                                                       
+---
 
- • Duplicate pattern for every page (get template, render shell, init)                               
- • Hardcoded page list (switch statement)                                                            
- • No route parameters                                                                               
- • No loading state during page transitions                                                          
+## Reusable UI Opportunities
 
-State management issues:                                                                             
+The following patterns appear with sufficient frequency and consistency to justify extraction into shared components.
 
- • Mutable state (any code can modify State properties directly)                                     
- • No validation on state changes                                                                    
- • Only token persisted to localStorage; other state lost on refresh                                 
- • EventBus error handling catches but logs errors                                                   
+**Button component with variants**: A primary/secondary/danger/text button with consistent sizing, hover states, focus states, and disabled states would replace 15+ independent button definitions across modal CSS, Tailwind utility strings in CRUD pages, and payment/receipt action buttons in the POS page.
 
+**Form field component**: A base input class covering `input`, `select`, and `textarea` elements would replace the repeated form input pattern across all modal form templates and unify the inconsistent settings form input styling.
 
-Reusable UI Opportunities                                                                            
+**Page header component**: The title + subtitle + action button layout repeated verbatim across all six CRUD pages would be consolidated into a single reusable shell.
 
-High-value reusable components that could be extracted:                                              
+**Card container component**: The table card wrapper repeated across five pages could be a single shared container with a consistent padding token.
 
- 1 Button component with variants (primary, secondary, danger, text) and disabled state              
-    • 9+ instances of primary buttons with minor variations                                          
-    • 4 instances of secondary/cancel buttons                                                        
-    • 2 instances of danger/delete buttons                                                           
- 2 Form field component with label, input, hint text, error state                                    
-    • 10+ instances of identical input styling                                                       
-    • 6 form templates with identical structure                                                      
- 3 Page header component with title, subtitle, optional action button                                
-    • 6 instances of identical header structure                                                      
- 4 Table container component with loading, error, empty states                                       
-    • 5+ instances of identical wrapper HTML                                                         
-    • 7+ loading state instances                                                                     
-     • 6+ error state instances                                                                      
-     • 2+ empty state instances                                                                      
-  5 Receipt display component                                                                        
-     • 2 instances of identical structure with different class names                                 
-  6 Search input component with debounce and clear functionality                                     
-     • Used in table service and POS page                                                            
-  7 Pagination component                                                                             
-     • Embedded in table service, could be extracted                                                 
-  8 Loading overlay component with spinner                                                           
-     • Used in payment modal, could be reused                                                        
-  9 Empty state component with icon, title, description                                              
-     • 2+ instances of identical pattern                                                             
- 10 Error state component with retry button                                                          
-     • 6+ instances of identical pattern                                                             
- 11 Action bar component for bulk selection                                                          
-     • Embedded in table service, could be extracted                                                 
- 12 Filter bar component for category/product filtering                                              
-     • Used in POS page, could be reused                                                             
+**Empty state component**: The table service's empty message, the POS cart empty state, and future empty states in other modules share the same visual grammar with no shared implementation.
 
+**Loading overlay component**: The POS payment loading overlay and the modal service's loading spinner are independent implementations of the same visual pattern.
 
-Migration Risk Areas                                                                                 
+**Info/detail row component**: The receipt detail row — a flex container with label and value, separated by a bottom border — appears in both `sales.html` and `sales.modal.html` with different class names and identical behavior.
 
-High risk areas that could break existing functionality:                                             
+**Search input component**: A search input with debounce, clear button, and result dropdown is implemented independently in POS without using the existing search utility service.
 
- 1 Modal service CSS duplication – Removing the duplicate style block in ensureStyles() could break  
-   modal rendering if the static <style> block is removed first. Must ensure styles are present      
-   before modal is opened.                                                                           
- 2 Receipt modal duplication – Two files (sales.html and sales.modal.html) contain the same modal    
-   with different class names. Consolidating requires updating all references to the modal ID and    
-   class names across JavaScript controllers.                                                        
- 3 Cart item rendering – cartItemRow.html may be dead code, but removing it could break if any module
-   still references CartItemRow.render(). Must verify usage before removal.                          
- 4 Inline style removal – Replacing inline style="display:none" with CSS classes requires updating   
-   all JavaScript that toggles visibility (15+ locations in POS page alone).                         
-  5 Tailwind class consolidation – CRUD pages use Tailwind-like classes that are not part of a       
-    defined utility system. Changing these to custom CSS or a proper utility framework requires      
-    updating all page templates.                                                                     
-  6 Responsive breakpoint changes – Adding responsive media queries to CRUD pages (currently zero)   
-    will change layout behavior on all viewport sizes. Must test across devices.                     
-  7 Button padding standardization – Changing py-2 to py-3 or vice versa affects visual appearance of
-    all buttons. Must get design approval.                                                           
-  8 Table service adoption – Replacing manual table rendering with Table service requires updating   
-    all controllers that currently render tables directly.                                           
-  9 State management refactoring – Making State immutable or adding validation could break existing  
-    code that directly mutates properties.                                                           
- 10 Router refactoring – Changing the switch statement to a registry pattern requires updating all   
-    page registration code.                                                                          
+**Pagination component**: The table service's pagination is embedded and cannot be reused outside a full table context. A standalone pagination component would enable list views without requiring the full table service.
 
+---
 
-High Priority Refactor Areas                                                                         
+## Migration Risk Areas
 
-Issues that block future development or cause immediate bugs:                                        
+**Modal CSS duplication** is the highest immediate risk. The verbatim duplication of approximately 130 lines of CSS inside `ensureStyles()` will inevitably diverge from the static block. Any visual regression from that divergence will be difficult to diagnose because both style blocks apply simultaneously.
 
- 1 Duplicate CSS in modal service – Entire style block defined twice in the same file. Any change    
-   must be made in two places; they will inevitably diverge.                                         
- 2 No CSS custom properties for spacing, typography, radius, shadows, z-index, breakpoints – Only    
-   colors are tokenized. All other values are hardcoded, making theming impossible.                  
- 3 No responsive media queries in CRUD pages – Zero breakpoints across sales, categories, units,     
-   products, settings, stockMovements pages. Application is unusable on mobile devices.              
- 4 No component scoping mechanism – All styles are global; generic class names (.product-card,       
-   .search-input, .spinner, .modal-btn) could conflict with other components.                        
- 5 Inconsistent styling approaches – Raw CSS, Tailwind utilities, and inline styles coexist without  
-    coordination. Global theming is impossible.                                                      
-  6 Touch targets below 44px minimum – Quantity buttons (24-28px), pagination buttons (32-36px),     
-    checkboxes (~13px) fail WCAG 2.5.5.                                                              
-  7 No viewport meta tag in provided files – If parent HTML lacks it, mobile rendering will be       
-    incorrect.                                                                                       
-  8 Receipt modal duplicated across two files – Same modal ID with different class names and styling 
-    values. Causes DOM ambiguity and maintenance burden.                                             
-  9 Cart item rendering duplicated – CartTable.render() in pos.html and CartItemRow.render() in      
-    cartItemRow.html produce identical HTML.                                                         
- 10 No CSS file structure – All styles in <style> blocks within HTML files; no separate CSS files, no
-    loading strategy, no FOUC prevention.                                                            
-
-
-Medium Priority Refactor Areas                                                                       
-
-Issues that increase maintenance burden but don't block immediate development:                       
-
-  1 Page header pattern duplicated 6 times – Identical HTML structure across all CRUD pages.         
-  2 Card container pattern duplicated 5 times – Identical wrapper HTML with inconsistent padding.    
-  3 Form input pattern duplicated 10+ times – Identical input styling across modal forms.            
-  4 Modal button pattern duplicated 5 times – Identical button styling with inconsistent padding.    
-  5 Loading state duplicated 7+ times – Identical pattern with no shared component.                  
-  6 Error state duplicated 6+ times – Identical pattern with no shared component.                    
-  7 Empty state duplicated 2+ times – Identical pattern with no shared component.                    
-  8 Table action links duplicated 2+ times – Identical configuration across controllers.             
-  9 Primary button styling inconsistent – 9+ instances with minor variations (py-2 vs py-3, rounded  
-    vs rounded-lg, px-4 vs px-6).                                                                    
- 10 Receipt detail row pattern duplicated – Same CSS with different class names across two files.    
- 11 Receipt table pattern duplicated – Same CSS with different class names across two files.         
- 12 Receipt total section pattern duplicated – Same CSS with different class names across two files. 
- 13 Animation keyframes duplicated – slideIn/slideOut defined in both theme.html and responsive.html.
- 14 Breakpoint value 768px duplicated in CSS and JavaScript – Hardcoded in both modal service and    
-    uiService.                                                                                       
- 15 No CSS reset or normalization – Cross-browser inconsistencies may appear.                        
-
-
-Low Priority Refactor Areas                                                                          
-
-Issues that are cosmetic or have minimal impact:                                                     
-
- 1 Dead file modal.html – Contains only a comment and legacy support script tag.                     
-  2 Chart color tokens unused in CSS – Defined as CSS variables but consumed programmatically in     
-    JavaScript canvas drawing.                                                                       
-  3 Inconsistent animation durations – Modal uses 200ms, toast uses 300ms.                           
-  4 No print styles – Receipt printing relies on screen styles.                                      
-  5 No dark mode support – All colors are hardcoded light-mode values.                               
-  6 No @media (hover: hover) query – Hover states may "stick" on touch devices.                      
-  7 No :active state for touch feedback – Users receive no visual confirmation when tapping buttons  
-    on mobile.                                                                                       
-  8 Sidebar overlay no animation – Appears/disappears instantly without fade.                        
-  9 No active page indicator in sidebar – Users cannot easily identify current page.                 
- 10 Sidebar closes on navigation with no transition delay – Users see new page content before sidebar
-    finishes closing.                                                                                
-
-
-Recommended Migration Sequence                                                                       
-
-Phase 1 – Foundation (High Priority)                                                                 
-
- 1 Define CSS custom properties for all design tokens (colors, spacing, typography, radius, shadows, 
-   z-index, breakpoints)                                                                             
- 2 Remove duplicate CSS in modal service (consolidate to single <style> block)                       
- 3 Add viewport meta tag to parent HTML                                                              
- 4 Add responsive media queries to CRUD pages (at minimum 768px and 480px breakpoints)               
- 5 Increase touch targets to minimum 44px (quantity buttons, pagination buttons, checkboxes)         
- 6 Create CSS utility classes for common patterns (.hidden, .flex, .gap-*, .text-center, .font-bold) 
-
-Phase 2 – Component Extraction (Medium Priority) 7. Extract button component with variants (primary, 
-secondary, danger, text) 8. Extract page header component with title, subtitle, optional action      
-button 9. Extract table container component with loading, error, empty states 10. Extract form field 
-component with label, input, hint text, error state 11. Consolidate receipt modal into single        
-component 12. Consolidate cart item rendering into single component                                  
-
-Phase 3 – Responsive Architecture (High Priority) 13. Implement responsive table pattern (horizontal 
-scroll with sticky first column, or card layout on mobile) 14. Add sticky table headers and sticky   
-pagination/search 15. Add visual indicator for horizontal scroll (shadow/gradient) 16. Implement     
-responsive modal sizing (fluid widths instead of fixed pixel max-widths) 17. Add overflow-x: auto to 
-modal content 18. Implement responsive sidebar behavior for tablet (768-1024px)                      
-
-Phase 4 – Architecture Consolidation (Medium Priority) 19. Create CSS file structure per architecture
-(tokens, base, utilities, layout, components, pages) 20. Move styles from <style> blocks to separate 
-CSS files 21. Implement CSS loading strategy (main.css entry point) 22. Replace inline styles with   
-CSS classes 23. Standardize styling approach (choose raw CSS with tokens or Tailwind utilities, not  
-both)                                                                                                
-
-Phase 5 – Service Refactoring (Low Priority) 24. Refactor edit service to use Modal.setLoading() and 
-Modal.loading() 25. Refactor router to support route parameters and abstract page registration 26.   
-Improve state management with validation and persistence 27. Add error boundaries to app shell and   
-page rendering 28. Add loading states to all pages (skeleton loaders or spinners)                    
-
-Phase 6 – Polish (Low Priority) 29. Add print styles for receipt printing 30. Add dark mode support  
-31. Add @media (hover: hover) query for hover states 32. Add :active state for touch feedback 33. Add
-sidebar overlay animation 34. Add active page indicator in sidebar 35. Remove dead file modal.html   
-36. Remove unused chart color tokens from CSS 
+**Receipt modal duplication** across `sales.html` and `sales.modal.html` with different class names means a bug fix or visual change to the receipt display must be applied in two places and will silently diverge.
+
+**Cart item row duplication** between `CartTable.render()` and `CartItemRow.render()` means a change to cart item layout may only be applied to one implementation.
+
+**POS CSS scope contamination**: Generic class names including `.spinner`, `.product-card`, `.search-input`, `.modal-btn`, and `.payment-method-btn` are defined globally with no scoping prefix. These will collide as new pages or features are added.
+
+**JS/CSS breakpoint mismatch**: The `MOBILE_BREAKPOINT = 768` constant in the UI service and the `max-width: 767px` media query in the POS page use adjacent values that are currently functionally compatible but logically inconsistent. A future change to either without updating both will create a layout gap at the breakpoint.
+
+**Tailwind dependency ambiguity**: CRUD pages and the table service use Tailwind utility class names, but the build pipeline for these classes is not evident from the audit files. If served via CDN, production optimization is unavailable. If compiled, the pipeline is disconnected from the files that consume it, and the mixed raw-CSS + Tailwind approach makes a future migration to either system exclusively more difficult.
+
+---
+
+## High Priority Refactor Areas
+
+These issues are blocking correct behavior, creating active maintenance risk, or producing user-facing failures on supported device types.
+
+**Establish a CSS custom property token system.** No other architectural improvement is durable without this foundation. The primary color, border color, base spacing unit, font scale, and breakpoints must be defined as named variables. The existing `theme.html` breakpoint variables must be wired to all consuming layers.
+
+**Resolve the modal CSS duplication.** The static `<style>` block and `ensureStyles()` must be unified into a single source.
+
+**Implement a `.hidden` utility class and eliminate all inline visibility styles.** The 15+ inline display declarations in POS must be replaced with class-toggled state.
+
+**Apply mobile overflow handling to the payment modal.** The payment modal content exceeds viewport height on mobile with no scroll fallback. This is a functional regression for mobile POS operations.
+
+**Increase touch target sizes for quantity controls.** The 24–28px quantity buttons are below the 44px minimum and represent a real usability failure for touch-based POS operations.
+
+**Unify the receipt modal.** The duplicated receipt display in `sales.html` and `sales.modal.html` must be consolidated into a single implementation.
+
+**Resolve the cart item row duplication.** Determine which rendering path is active and remove the other.
+
+---
+
+## Medium Priority Refactor Areas
+
+These issues compound maintenance cost and inhibit future feature development but do not currently produce functional failures.
+
+**Define a shared button component.** Replace independent button definitions in modal CSS, CRUD Tailwind strings, and POS-specific classes with a single set of variant classes.
+
+**Define a shared form input component.** Replace the repeated form input pattern across modal templates with a single base class covering input, select, and textarea.
+
+**Add responsive styles to CRUD pages.** The six management pages have zero media queries. At minimum, the page header flex layout, table overflow handling, and modal content sizing need mobile breakpoints.
+
+**Unify the mobile breakpoint value.** Align the POS `767px` media query, the modal `768px` media query, and the JS `MOBILE_BREAKPOINT = 768` to a single token value.
+
+**Namespace POS-specific CSS.** Prefix POS component class names to prevent collision with global styles and future components.
+
+**Extract the page header and card container patterns** from all six CRUD page templates into shared components.
+
+**Move payment validation into `CheckoutService`.** Business logic in a UI component cannot be tested in isolation and makes the checkout flow opaque.
+
+**Remove DOM access from `CheckoutService`.** The service should receive credit customer and notes from application state, not by querying DOM elements directly.
+
+**Add print styles for receipt rendering.** Print media styles must be defined independently of screen styles for a POS receipt context.
+
+---
+
+## Low Priority Refactor Areas
+
+These issues represent technical debt that reduces long-term code quality with minimal immediate user impact.
+
+**Replace emoji navigation icons with SVG.** Improve cross-platform consistency and screen reader accessibility.
+
+**Add active state highlighting to sidebar navigation.**
+
+**Implement a tablet-range sidebar layout.** The current binary mobile/desktop behavior does not account for tablets in the 768–1024px range.
+
+**Implement sticky table headers** for long management tables.
+
+**Add a visual scroll affordance** to horizontally scrollable table containers.
+
+**Remove the dead `modal.html` component file.** It contains only a legacy comment and confuses the component boundary.
+
+**Normalize the font-size representation system** toward a single scale defined in tokens.
+
+**Add debounce to the product search input.** The current implementation fires on every keystroke.
+
+**Define consistent animation duration tokens.** Modal animations (200ms) and toast animations (300ms) are defined independently.
+
+---
+
+## Recommended Migration Sequence
+
+The dependencies between these problems suggest the following order to minimize rework.
+
+**Phase 1 — Foundation**: Establish the CSS custom property token system (colors, spacing scale, typography scale, breakpoints, border radii, animation durations). All subsequent work draws from this foundation. The existing `theme.html` is the correct location for expansion.
+
+**Phase 2 — Eliminate Active Duplication**: Resolve the modal CSS duplication, the receipt modal duplication, and the cart item row duplication. These will diverge and produce bugs independently of other work.
+
+**Phase 3 — Inline Style Elimination**: Implement the `.hidden` utility and replace all inline visibility declarations. This unlocks CSS-based transitions and removes presentation logic from markup.
+
+**Phase 4 — Shared Component Extraction**: Build the button component, form input component, page header component, and card container component. Apply them to replace existing duplicated patterns across CRUD pages.
+
+**Phase 5 — Responsive Remediation**: Apply mobile breakpoints to CRUD pages, fix the payment modal overflow, increase touch target sizes, and unify breakpoint values across CSS and JavaScript.
+
+**Phase 6 — Architecture Cleanup**: Namespace POS CSS, move business logic out of UI components, add print styles, remove dead files, and replace emoji icons with SVG.
+ # UI Audit — Architectural Synthesis Report
+
+---
+
+## Executive Summary
+
+This audit consolidates findings across five distinct areas of the codebase: the App Shell (sidebar, topbar, routing, state), the POS page (product grid, cart, payment flow), the CRUD module pages (categories, units, products, sales, stock movements, settings), the Services layer (modal, table, toast, edit, UI, search), and the global styling architecture (theme, responsive, design tokens).
+
+The codebase exhibits systemic architectural debt that spans every layer. The most critical finding is the **complete absence of a unified design token system**: colors, spacing, typography, border radii, and breakpoints are hardcoded as raw values throughout all files, with no CSS custom properties, no shared token source, and no consistent scale. This single root deficiency causes or amplifies nearly every other problem identified.
+
+Layered on top of this, the codebase operates with **three competing styling approaches simultaneously**: raw custom CSS (POS page, modal service), Tailwind-like utility classes (CRUD pages, table service), and JavaScript-injected inline styles (toast service, POS visibility toggling). There is no architectural decision governing which approach applies where, and all three coexist in the same rendering context without isolation boundaries.
+
+The result is a UI system that cannot be themed, cannot be maintained at scale, and cannot be extended without compounding duplication.
+
+---
+
+## Current UI Architecture Overview
+
+The application is structured as a modular, single-page application rendered via a JavaScript router that swaps page templates into a shared app shell. Styling is delivered through a combination of global `<style>` blocks embedded in HTML templates, Tailwind utility classes applied inline, and JavaScript that injects both `<style>` elements and inline `style` attributes at runtime.
+
+The current layer structure is:
+
+- **App Shell**: `theme.html`, `responsive.html` — global CSS variables and breakpoint rules
+- **Page Templates**: Per-page `<style>` blocks co-located with HTML (POS, CRUD pages)
+- **Service Layer**: `modalService.html`, `tableService.html`, `toastService.html` — each with its own independent styling strategy
+- **Component Layer**: `sidebar.html`, `topbar.html`, `cartItemRow.html` — rendered via string-returning functions with inline event handlers
+- **Module Layer**: Per-entity controllers and modal templates, each duplicating form, table, and button patterns
+
+There is no shared component library, no token bridge between CSS and JavaScript, no scoping mechanism, and no responsive utility layer that components can draw from.
+
+---
+
+## Major Architectural Problems
+
+### Inline Styling Problems
+
+Inline styles are pervasive and operate as three distinct anti-patterns:
+
+The **toast service** constructs its entire visual presentation via `style.cssText` strings and inline `style` attributes set in JavaScript. This makes the toast component completely opaque to CSS overrides and untestable through standard stylesheet tooling.
+
+The **POS page** uses 15+ inline `style="display:none"`, `style="display:block"`, and `style="display:flex"` declarations for visibility state management across elements including `#search-results`, `#cart-items-list`, `#change-row`, `#change-display`, `#credit-section`, `#credit-balance`, and `#payment-loading-overlay`. Three different display values are used interchangeably for what is conceptually a single show/hide concern.
+
+The **modal service** injects a complete `<style>` block at runtime via `ensureStyles()` as a mechanism to guarantee styles are present when the modal is opened dynamically. This pattern exists alongside a static `<style>` block at the top of the same file, creating a verbatim duplication of approximately 130 lines of CSS.
+
+No `.hidden` utility class exists. No CSS class-based visibility pattern is applied anywhere. Inline style usage is the default mechanism for state-driven UI changes across the entire application.
+
+### Duplicated Styling Systems
+
+The codebase maintains three parallel and incompatible styling systems with no mechanism for reconciliation:
+
+**Raw custom CSS** is used in POS (`pos.html`), the modal service, and portions of the app shell. Colors are expressed as hex literals, spacing as pixel values, and border radii as raw numbers. No CSS variable references appear in any of these files.
+
+**Tailwind-like utility classes** are used across all CRUD page templates and the table service. These are class strings like `bg-white`, `rounded`, `shadow`, `px-4`, `py-2`, `text-gray-500`, and `space-y-4`. These classes use Tailwind naming conventions but share no token relationship with the raw CSS layers.
+
+**JavaScript-injected styles** are used in the toast service and partially in the modal service. These are style strings assembled in JavaScript and applied imperatively, bypassing the stylesheet entirely.
+
+The same visual property — the primary blue `#2563eb` — appears as a raw hex string in modal CSS, as `bg-blue-600` in CRUD button classes, and as a JavaScript color constant in the toast service. These three representations are not linked, and a change to the primary color requires three separate edits with no guarantee of completeness.
+
+### Repeated Layout Structures
+
+Six CRUD page templates (`sales.html`, `categories.html`, `units.html`, `products.html`, `stockMovements.html`, `settings.html`) each contain a verbatim copy of the page header pattern — a flex container with a title block on the left and an action button on the right. There is no page header component. The HTML structure, class strings, and typography values are duplicated across all six files.
+
+Five of those same pages contain a verbatim copy of the card container pattern — `bg-white rounded shadow p-4` — as the wrapper for their table content areas. The settings page uses `p-6` instead of `p-4`, which is the only variation and appears to be unintentional.
+
+The receipt display structure (detail rows, items table, totals section) is independently defined in both `sales.html` and `sales.modal.html` with different class names but identical layout logic, dimensions, and color values. These two files represent the same visual output styled twice.
+
+### Repeated Component Implementations
+
+Cart item row HTML is generated in two separate places: `CartTable.render()` in `pos.html` and `CartItemRow.render()` in `cartItemRow.html`. Both produce structurally identical markup. One is likely dead code.
+
+The `CheckoutService` defines a `calculateChange()` method that duplicates logic already present in `PricingService`. The `CheckoutService` also contains both `_showReceipt()` and `_showReceiptModal()` as separate methods that serve the same function.
+
+Button variants — primary, secondary, and danger — are each defined independently in the modal service's CSS. The table service defines its pagination buttons using Tailwind utility classes with no relationship to the modal's button definitions. The CRUD page templates define their action buttons using a third, independent set of class strings. No shared button component exists across any of these contexts.
+
+Form input styling is repeated across every modal form template — categories, products, and units — with no shared form field component or base input class. Submit button styling is similarly repeated across all three. The `Modal.open()` invocation pattern is duplicated across every entity controller with no higher-level entity modal abstraction.
+
+---
+
+## Responsive Architecture Problems
+
+### Inconsistent Breakpoint System
+
+Four distinct breakpoint values appear across the codebase: `480px`, `767px` (POS), `768px` (modal service, UI service), and `1024px` (POS tablet). The difference between `767px` and `768px` means the mobile breakpoint in POS does not match the mobile breakpoint in the modal or UI service. On a viewport exactly 768px wide, the POS layout treats the device as mobile while the modal service treats it as desktop.
+
+The breakpoint value `768px` is also hardcoded as a JavaScript constant (`MOBILE_BREAKPOINT = 768`) in the UI service, creating a second representation that must be manually kept in sync with the CSS. No mechanism links these two representations.
+
+The app shell's `theme.html` defines CSS custom properties for breakpoints (`--bp-mobile`, `--bp-tablet`, `--bp-desktop`, `--bp-wide`) but these variables are not consumed by the responsive system, the POS page, the modal service, or any component. They exist as documentation only.
+
+### Responsive Logic Per-Component
+
+Every component in the POS page manages its own responsive behavior independently. The product grid, product cards, cart items, totals panel, checkout actions, payment total display, payment method buttons, payment amount input, change display, and receipt table each contain their own per-breakpoint overrides for padding, font size, and dimensions. A spacing scale change requires editing dozens of separate responsive rules across a single file.
+
+The CRUD module pages contain zero responsive media queries. All styling is static. On mobile devices, the page header flex layout has no wrapping behavior and will cause the action button to overflow or collide with the title. Tables have no horizontal scroll wrapper and no column collapse strategy. Form inputs have fixed padding with no mobile reduction. This represents a complete absence of mobile design consideration across the entire management interface.
+
+### Touch Target Failures
+
+Quantity control buttons in the POS cart are 28px on desktop and 24px on mobile — both below the 44px minimum recommended by WCAG 2.5.5 and major platform human interface guidelines. This is a functional usability failure for touch users.
+
+Pagination buttons in the table service render at approximately 32–36px height. Table row checkboxes use default browser checkbox sizing, approximately 13px. Both are significantly below the recommended minimum.
+
+The payment modal on mobile has no internal scroll container. The modal content — which includes the total display, payment method selector, amount input, change display, credit section, and action buttons — can exceed viewport height with no scroll fallback, causing content to be cut off.
+
+### Fixed Dimension Problems
+
+The POS right panel uses a fixed `width: 420px`. On tablet viewports (768–1024px), this consumes over 40% of the available width. The value becomes `100%` on mobile via media query, creating a sharp layout shift at the breakpoint boundary with no intermediate fluid state.
+
+Modal size variants (`sm: 400px`, `md: 560px`, `lg: 720px`, `xl: 960px`) use fixed pixel `max-width` values. The `xl` variant will overflow horizontally on viewports narrower than 960px unless the full-size variant is selected. All size variants collapse to `100%` at 768px, making the size parameter functionally meaningless on mobile.
+
+---
+
+## Inconsistent Spacing Systems
+
+The codebase operates with at least three concurrent spacing scales with no relationship between them.
+
+The CRUD pages use Tailwind spacing notation: `p-3`, `p-4`, `p-6`, `px-4`, `py-2`, `py-3`, `space-y-4`. Within this system, inconsistencies appear: modal submit buttons use `py-3` while page action buttons use `py-2`; settings cards use `p-6` while table cards use `p-4`; the settings save button uses `px-6` while all others use `px-4`.
+
+The POS page uses raw pixel values: `16px`, `12px`, `10px`, `8px`, `4px`. These values repeat across every component's responsive overrides at every breakpoint.
+
+The services layer uses a mixture: modal service uses raw pixel values, table service uses Tailwind class strings, toast service uses inline pixel values. The `16px` gap unit appears as `gap: 16px` in modal CSS and `gap-4` in table Tailwind classes with no relationship between them.
+
+There is no spacing scale token governing any of these values. The values `4px`, `6px`, `8px`, `10px`, `12px`, `16px`, `20px`, `24px`, `32px`, `48px` all appear as magic numbers across different files and representations.
+
+---
+
+## Inconsistent Typography Systems
+
+Font sizes are expressed in incompatible units across the codebase. The CRUD pages use Tailwind text scale names (`text-sm`, `text-lg`, `text-2xl`). The POS page uses `rem` values spanning a wide and inconsistent range. The sales modal uses a mixture of raw `rem` values and Tailwind class names in the same file.
+
+The values `0.9rem` and `text-sm` (`0.875rem`) are used for visually equivalent text in different parts of the application without consistent mapping. Font weight is expressed as both numeric values (`500`, `600`, `700`) and Tailwind weight class names (`font-medium`, `font-semibold`, `font-bold`) in the same codebase with no consistent pattern for which representation to use in which context.
+
+Non-standard gray color values (`#666`, `#333`, `#888`, `#e0e0e0`, `#f0f0f0`, `#f8f9fa`) coexist with Tailwind gray scale values (`text-gray-500`, `text-gray-600`, `bg-gray-100`) across the CRUD pages and POS page, with no mapping between the two systems.
+
+No typographic scale is defined. The existing `theme.html` does not establish font size tokens that could unify these representations.
+
+---
+
+## Table Architecture Problems
+
+The application has two independent table implementations that share no code.
+
+The **table service** (`tableService.html`) is a fully featured, reusable component with sorting, pagination, search, row selection, bulk actions, and custom cell rendering. It is styled exclusively with Tailwind utility classes. Its pagination controls, search bar, and bulk action bar are embedded inside the service and cannot be extracted for use in other contexts.
+
+The **receipt table** appears in two places — `sales.html` and `sales.modal.html` — with identical column structure and nearly identical styling but different class names and minor typographic differences. These two tables are not related to the table service and share no base styles with it.
+
+No responsive strategy exists for either table type. The table service wraps its `<table>` element in an `overflow-x: auto` container, which provides horizontal scrolling but offers no column prioritization, no card layout fallback for mobile, and no sticky header for long scroll contexts. The receipt tables have no overflow wrapper at all.
+
+No sticky table header is defined anywhere. On long datasets, users lose column context while scrolling. The table service's search and pagination controls are not sticky, requiring users to scroll past all rows to reach navigation or filtering.
+
+---
+
+## Modal Architecture Problems
+
+The modal system has a functional, well-structured service (`modalService.html`) that supports five size variants, four interaction modes (open, confirm, alert, loading), keyboard dismissal, and overlay click dismissal. However, it carries architectural problems that undermine its reliability and consistency.
+
+The modal service's entire CSS ruleset is defined twice in the same file — once in a static `<style>` block at the top and again inside an `ensureStyles()` function that injects a `<style>` element at runtime. This duplication is approximately 130 lines. Any change must be made in both locations and they will inevitably diverge.
+
+The edit service (`editService.html`) uses `Modal.open()` but manages its own loading state by mutating the submit button's text content, bypassing the modal service's built-in `setLoading()` method. This creates two parallel loading state patterns for modal-hosted forms.
+
+The POS page defines its payment modal and receipt modal as hidden `<div>` elements embedded in `pos.html`, with their modal-specific styles co-located in the same `<style>` block as the POS layout. These modals are not managed through the modal service's standard patterns. The payment modal has no internal scroll container, causing content overflow on small viewports.
+
+Button ordering is inconsistent between modals. The payment modal places the cancel action first and the confirm action second. The receipt modal places the print action first and the close action second. No ordering convention is documented or enforced.
+
+---
+
+## POS-Specific UI Problems
+
+The POS page concentrates the highest density of architectural problems in the codebase, combining all systemic issues with POS-specific layout concerns.
+
+The page embeds all styling — layout, components, responsive overrides, keyframe animations, and utility patterns — in a single `<style>` block co-located with the HTML template. There is no separation between POS layout styles and the payment/receipt modal styles that are logically independent components.
+
+The `@keyframes spin` animation is defined globally with a generic name. The `.spinner` class is also generic and at high risk of collision with other spinner implementations elsewhere in the application. Neither is scoped to a POS context.
+
+The product search (`ProductSearch`) does not use the existing search utility service (`searchService.html`). It implements its own filtering logic, performs direct DOM manipulation, and calls `CartService.add()` directly rather than through an event. This creates tight coupling between the search component and the cart layer.
+
+Payment validation logic lives in `PaymentModal._validatePayment()`, a UI component, rather than in `CheckoutService`. The checkout service reads credit customer selection and notes directly from DOM elements rather than from application state. These patterns mix presentation and business logic in ways that make the checkout flow difficult to modify or test.
+
+No print styles exist. The receipt rendering relies entirely on screen styles. For a POS system where receipt printing is a core user action, this is a functional gap.
+
+---
+
+## Navigation/Layout Problems
+
+The sidebar navigation uses emoji characters as icons. Emoji rendering is inconsistent across platforms and screen readers interpret emoji unpredictably. No SVG icon system or icon component exists.
+
+Active navigation state highlighting is not implemented. The topbar displays the current page name from `State.currentPage` but the sidebar provides no visual indication of which page is selected.
+
+The mobile sidebar breakpoint (`768px`) treats all tablets as mobile. On tablets in the 768–1024px range, the sidebar is hidden by default and requires a hamburger toggle — the same behavior as a 375px phone. No intermediate persistent-sidebar layout exists for the tablet range.
+
+From the POS page, there is no navigation element that allows mobile users to return to other sections of the application. The POS layout replaces the standard app shell's sidebar and topbar with a POS-specific header, removing navigation context entirely on mobile.
+
+The app shell renders the sidebar and topbar twice in its HTML output — once for the mobile layout branch and once for the desktop layout branch, conditioned on `UIService.isMobile()` at render time rather than using CSS to conditionally show and hide a single rendered instance.
+
+---
+
+## Reusable UI Opportunities
+
+The following patterns appear with sufficient frequency and consistency to justify extraction into shared components.
+
+**Button component with variants**: A primary/secondary/danger/text button with consistent sizing, hover states, focus states, and disabled states would replace 15+ independent button definitions across modal CSS, Tailwind utility strings in CRUD pages, and payment/receipt action buttons in the POS page.
+
+**Form field component**: A base input class covering `input`, `select`, and `textarea` elements would replace the repeated form input pattern across all modal form templates and unify the inconsistent settings form input styling.
+
+**Page header component**: The title + subtitle + action button layout repeated verbatim across all six CRUD pages would be consolidated into a single reusable shell.
+
+**Card container component**: The table card wrapper repeated across five pages could be a single shared container with a consistent padding token.
+
+**Empty state component**: The table service's empty message, the POS cart empty state, and future empty states in other modules share the same visual grammar with no shared implementation.
+
+**Loading overlay component**: The POS payment loading overlay and the modal service's loading spinner are independent implementations of the same visual pattern.
+
+**Info/detail row component**: The receipt detail row — a flex container with label and value, separated by a bottom border — appears in both `sales.html` and `sales.modal.html` with different class names and identical behavior.
+
+**Search input component**: A search input with debounce, clear button, and result dropdown is implemented independently in POS without using the existing search utility service.
+
+**Pagination component**: The table service's pagination is embedded and cannot be reused outside a full table context. A standalone pagination component would enable list views without requiring the full table service.
+
+---
+
+## Migration Risk Areas
+
+**Modal CSS duplication** is the highest immediate risk. The verbatim duplication of approximately 130 lines of CSS inside `ensureStyles()` will inevitably diverge from the static block. Any visual regression from that divergence will be difficult to diagnose because both style blocks apply simultaneously.
+
+**Receipt modal duplication** across `sales.html` and `sales.modal.html` with different class names means a bug fix or visual change to the receipt display must be applied in two places and will silently diverge.
+
+**Cart item row duplication** between `CartTable.render()` and `CartItemRow.render()` means a change to cart item layout may only be applied to one implementation.
+
+**POS CSS scope contamination**: Generic class names including `.spinner`, `.product-card`, `.search-input`, `.modal-btn`, and `.payment-method-btn` are defined globally with no scoping prefix. These will collide as new pages or features are added.
+
+**JS/CSS breakpoint mismatch**: The `MOBILE_BREAKPOINT = 768` constant in the UI service and the `max-width: 767px` media query in the POS page use adjacent values that are currently functionally compatible but logically inconsistent. A future change to either without updating both will create a layout gap at the breakpoint.
+
+**Tailwind dependency ambiguity**: CRUD pages and the table service use Tailwind utility class names, but the build pipeline for these classes is not evident from the audit files. If served via CDN, production optimization is unavailable. If compiled, the pipeline is disconnected from the files that consume it, and the mixed raw-CSS + Tailwind approach makes a future migration to either system exclusively more difficult.
+
+---
+
+## High Priority Refactor Areas
+
+These issues are blocking correct behavior, creating active maintenance risk, or producing user-facing failures on supported device types.
+
+**Establish a CSS custom property token system.** No other architectural improvement is durable without this foundation. The primary color, border color, base spacing unit, font scale, and breakpoints must be defined as named variables. The existing `theme.html` breakpoint variables must be wired to all consuming layers.
+
+**Resolve the modal CSS duplication.** The static `<style>` block and `ensureStyles()` must be unified into a single source.
+
+**Implement a `.hidden` utility class and eliminate all inline visibility styles.** The 15+ inline display declarations in POS must be replaced with class-toggled state.
+
+**Apply mobile overflow handling to the payment modal.** The payment modal content exceeds viewport height on mobile with no scroll fallback. This is a functional regression for mobile POS operations.
+
+**Increase touch target sizes for quantity controls.** The 24–28px quantity buttons are below the 44px minimum and represent a real usability failure for touch-based POS operations.
+
+**Unify the receipt modal.** The duplicated receipt display in `sales.html` and `sales.modal.html` must be consolidated into a single implementation.
+
+**Resolve the cart item row duplication.** Determine which rendering path is active and remove the other.
+
+---
+
+## Medium Priority Refactor Areas
+
+These issues compound maintenance cost and inhibit future feature development but do not currently produce functional failures.
+
+**Define a shared button component.** Replace independent button definitions in modal CSS, CRUD Tailwind strings, and POS-specific classes with a single set of variant classes.
+
+**Define a shared form input component.** Replace the repeated form input pattern across modal templates with a single base class covering input, select, and textarea.
+
+**Add responsive styles to CRUD pages.** The six management pages have zero media queries. At minimum, the page header flex layout, table overflow handling, and modal content sizing need mobile breakpoints.
+
+**Unify the mobile breakpoint value.** Align the POS `767px` media query, the modal `768px` media query, and the JS `MOBILE_BREAKPOINT = 768` to a single token value.
+
+**Namespace POS-specific CSS.** Prefix POS component class names to prevent collision with global styles and future components.
+
+**Extract the page header and card container patterns** from all six CRUD page templates into shared components.
+
+**Move payment validation into `CheckoutService`.** Business logic in a UI component cannot be tested in isolation and makes the checkout flow opaque.
+
+**Remove DOM access from `CheckoutService`.** The service should receive credit customer and notes from application state, not by querying DOM elements directly.
+
+**Add print styles for receipt rendering.** Print media styles must be defined independently of screen styles for a POS receipt context.
+
+---
+
+## Low Priority Refactor Areas
+
+These issues represent technical debt that reduces long-term code quality with minimal immediate user impact.
+
+**Replace emoji navigation icons with SVG.** Improve cross-platform consistency and screen reader accessibility.
+
+**Add active state highlighting to sidebar navigation.**
+
+**Implement a tablet-range sidebar layout.** The current binary mobile/desktop behavior does not account for tablets in the 768–1024px range.
+
+**Implement sticky table headers** for long management tables.
+
+**Add a visual scroll affordance** to horizontally scrollable table containers.
+
+**Remove the dead `modal.html` component file.** It contains only a legacy comment and confuses the component boundary.
+
+**Normalize the font-size representation system** toward a single scale defined in tokens.
+
+**Add debounce to the product search input.** The current implementation fires on every keystroke.
+
+**Define consistent animation duration tokens.** Modal animations (200ms) and toast animations (300ms) are defined independently.
+
+---
+
+## Recommended Migration Sequence
+
+The dependencies between these problems suggest the following order to minimize rework.
+
+**Phase 1 — Foundation**: Establish the CSS custom property token system (colors, spacing scale, typography scale, breakpoints, border radii, animation durations). All subsequent work draws from this foundation. The existing `theme.html` is the correct location for expansion.
+
+**Phase 2 — Eliminate Active Duplication**: Resolve the modal CSS duplication, the receipt modal duplication, and the cart item row duplication. These will diverge and produce bugs independently of other work.
+
+**Phase 3 — Inline Style Elimination**: Implement the `.hidden` utility and replace all inline visibility declarations. This unlocks CSS-based transitions and removes presentation logic from markup.
+
+**Phase 4 — Shared Component Extraction**: Build the button component, form input component, page header component, and card container component. Apply them to replace existing duplicated patterns across CRUD pages.
+
+**Phase 5 — Responsive Remediation**: Apply mobile breakpoints to CRUD pages, fix the payment modal overflow, increase touch target sizes, and unify breakpoint values across CSS and JavaScript.
+
+**Phase 6 — Architecture Cleanup**: Namespace POS CSS, move business logic out of UI components, add print styles, remove dead files, and replace emoji icons with SVG.
