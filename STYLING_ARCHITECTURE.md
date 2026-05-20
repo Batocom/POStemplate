@@ -267,12 +267,6 @@ Breakpoints
 
 Breakpoints are centralized.
 
-:root {
-  --bp-mobile: 480px;
-  --bp-tablet: 768px;
-  --bp-desktop: 1024px;
-  --bp-wide: 1280px;
-}
 
 All responsive behavior must use standardized breakpoints.
 
