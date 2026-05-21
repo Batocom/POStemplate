@@ -1,6 +1,12 @@
 <script>
 
 function renderSidebar() {
+  const currentPage = State.currentPage || '';
+  
+  function isActive(route) {
+    return currentPage === route ? ' nav-item--active' : '';
+  }
+  
   return `
     <div class="sidebar-header">
       <span class="sidebar-logo">Batocom POS</span>
@@ -16,7 +22,7 @@ function renderSidebar() {
     </div>
 
     <nav class="sidebar-nav">
-      <button onclick="Router.go('dashboard'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('dashboard'); UIService.closeSidebar();" class="nav-item${isActive('dashboard')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7"></rect>
@@ -27,7 +33,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">Dashboard</span>
       </button>
-      <button onclick="Router.go('pos'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('pos'); UIService.closeSidebar();" class="nav-item${isActive('pos')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
@@ -37,7 +43,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">Point of Sale</span>
       </button>
-      <button onclick="Router.go('products'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('products'); UIService.closeSidebar();" class="nav-item${isActive('products')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path>
@@ -45,7 +51,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">Products</span>
       </button>
-      <button onclick="Router.go('categories'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('categories'); UIService.closeSidebar();" class="nav-item${isActive('categories')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 4h16v16H4z"></path>
@@ -55,7 +61,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">Categories</span>
       </button>
-      <button onclick="Router.go('stock'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('stock'); UIService.closeSidebar();" class="nav-item${isActive('stock')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
@@ -63,7 +69,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">Stock Movements</span>
       </button>
-      <button onclick="Router.go('sales'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('sales'); UIService.closeSidebar();" class="nav-item${isActive('sales')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
@@ -72,7 +78,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">POS Sales</span>
       </button>
-      <button onclick="Router.go('units'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('units'); UIService.closeSidebar();" class="nav-item${isActive('units')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -82,7 +88,7 @@ function renderSidebar() {
         </span>
         <span class="nav-item-label">Units</span>
       </button>
-      <button onclick="Router.go('settings'); UIService.closeSidebar();" class="nav-item">
+      <button onclick="Router.go('settings'); UIService.closeSidebar();" class="nav-item${isActive('settings')}">
         <span class="nav-item-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
