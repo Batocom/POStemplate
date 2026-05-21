@@ -11,6 +11,11 @@
   <!-- Token system (must be first) -->
   <?!= HtmlService.createHtmlOutputFromFile('ui/styles/stylesLoader').getContent(); ?>
 
+  <!-- Base layer (reset, globals, animations) -->
+  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/base/reset').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/base/globals').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/base/animations').getContent(); ?>
+
   <?!= HtmlService.createHtmlOutputFromFile('ui/styles/theme').getContent(); ?>
 
   <!-- Responsive styles -->
