@@ -261,53 +261,15 @@ All CSS must be served as a single `<style>` block in the HTML head.
 ```html
 <style>
 /* ===== TOKENS ===== */
-<?!= include('tokens/colors.css'); ?>
-<?!= include('tokens/spacing.css'); ?>
-<?!= include('tokens/typography.css'); ?>
-<?!= include('tokens/radius.css'); ?>
-<?!= include('tokens/shadows.css'); ?>
-<?!= include('tokens/zindex.css'); ?>
-<?!= include('tokens/breakpoints.css'); ?>
-<?!= include('tokens/animations.css'); ?>
-<?!= include('tokens/layout.css'); ?>
-
-/* ===== BASE ===== */
-<?!= include('base/reset.css'); ?>
-<?!= include('base/globals.css'); ?>
-<?!= include('base/animations.css'); ?>
-
-/* ===== UTILITIES ===== */
-<?!= include('utilities/flex.css'); ?>
-<?!= include('utilities/layout.css'); ?>
-<?!= include('utilities/spacing.css'); ?>
-<?!= include('utilities/typography.css'); ?>
-<?!= include('utilities/visibility.css'); ?>
-<?!= include('utilities/responsive.css'); ?>
-
-/* ===== LAYOUT ===== */
-<?!= include('layout/app-shell.css'); ?>
-<?!= include('layout/sidebar.css'); ?>
-<?!= include('layout/topbar.css'); ?>
-<?!= include('layout/grid.css'); ?>
-<?!= include('layout/containers.css'); ?>
-
-/* ===== COMPONENTS ===== */
-<?!= include('components/buttons.css'); ?>
-<?!= include('components/forms.css'); ?>
-<?!= include('components/cards.css'); ?>
-<?!= include('components/tables.css'); ?>
-<?!= include('components/modals.css'); ?>
-<?!= include('components/dropdowns.css'); ?>
-<?!= include('components/toast.css'); ?>
-<?!= include('components/cart.css'); ?>
-
-/* ===== PAGES ===== */
-<?!= include('pages/dashboard.css'); ?>
-<?!= include('pages/products.css'); ?>
-<?!= include('pages/categories.css'); ?>
-<?!= include('pages/sales.css'); ?>
-<?!= include('pages/stock.css'); ?>
-<?!= include('pages/pos.css'); ?>
+<?!= include('tokens/colors.html'); ?>
+<?!= include('tokens/spacing.html'); ?>
+<?!= include('tokens/typography.html'); ?>
+<?!= include('tokens/radius.html'); ?>
+<?!= include('tokens/shadows.html'); ?>
+<?!= include('tokens/zindex.html'); ?>
+<?!= include('tokens/breakpoints.html'); ?>
+<?!= include('tokens/animations.html'); ?>
+<?!= include('tokens/layout.html'); ?>
 </style>
 ```
 
