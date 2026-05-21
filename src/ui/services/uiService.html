@@ -19,9 +19,13 @@ const UIService = (function() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
     
-    if (sidebar) {
-      sidebar.classList.toggle('sidebar--open', open);
+    // Guard: sidebar may not exist yet if called before renderAppShell
+    if (!sidebar) {
+      console.warn('UIService: sidebar element not found in DOM');
+      return;
     }
+    
+    sidebar.classList.toggle('sidebar--open', open);
     
     if (overlay) {
       overlay.classList.toggle('sidebar-overlay--visible', open);
@@ -52,8 +56,18 @@ const UIService = (function() {
     
     // Log sidebar state for debugging
     console.log('UIService initialized');
-    console.log('Sidebar element:', document.querySelector('.sidebar'));
-    console.log('Hamburger button:', document.getElementById('hamburgerBtn'));
+    
+    // Check for sidebar after a short delay to allow DOM to be rendered
+    setTimeout(function() {
+      const sidebar = document.querySelector('.sidebar');
+      const hamburger = document.getElementById('hamburgerBtn');
+      console.log('Sidebar element:', sidebar);
+      console.log('Hamburger button:', hamburger);
+      
+      if (!sidebar) {
+        console.warn('UIService: sidebar not found after init. Will retry on toggle.');
+      }
+    }, 500);
   }
   
   function toggleSidebar() {

@@ -28,6 +28,11 @@ function renderAppShell(content) {
       </div>
     </div>
   `;
+  
+  // Initialize UIService after the sidebar DOM is present
+  if (typeof UIService !== 'undefined' && UIService.init) {
+    UIService.init();
+  }
 }
 
 function renderPOSPage() {
