@@ -133,18 +133,4 @@
   border-top: 1px solid var(--color-sidebar-hover);
 }
 
-/* ===== DESKTOP: SIDEBAR PERMANENTLY VISIBLE ===== */
-/* Note: Using raw pixel value because CSS custom properties in media queries are not supported in all browsers */
-@media (min-width: 1024px) {
-  .sidebar {
-    transform: translateX(0);
-    position: fixed;
-    top: 0;  /* Full height on desktop */
-    height: 100dvh;
-  }
-
-  .sidebar-overlay {
-    display: none;
-  }
-}
 </style>
