@@ -133,4 +133,17 @@
   border-top: 1px solid var(--color-sidebar-hover);
 }
 
+/* ===== DESKTOP: SIDEBAR PERMANENTLY VISIBLE ===== */
+@media (min-width: 1024px) {
+  .sidebar {
+    transform: translateX(0);
+    position: fixed;
+    top: 0;
+    height: 100dvh;
+  }
+
+  .sidebar-overlay {
+    display: none;
+  }
+}
 </style>
