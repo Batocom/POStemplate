@@ -1,3 +1,4 @@
+                                                                                                                              
 <style>                                                                                                                       
 /* ===== TOKENS ===== */                                                                                                      
                                                                                                                               
@@ -42,14 +43,42 @@
   --color-sidebar-text: #ffffff;                                                                                              
   --color-sidebar-hover: rgba(255, 255, 255, 0.1);                                                                            
   --color-sidebar-active: #2563eb;                                                                                            
+  --color-sidebar-close: #9ca3af;                                                                                             
+  --color-sidebar-close-hover: #ffffff;                                                                                       
+                                                                                                                              
+  /* ===== TOPBAR COLORS ===== */                                                                                             
+  --color-topbar-bg: #ffffff;                                                                                                 
+  --color-topbar-shadow: rgba(0, 0, 0, 0.1);                                                                                  
+  --color-topbar-hamburger: #374151;                                                                                          
+  --color-topbar-hamburger-hover-bg: #f3f4f6;                                                                                 
+  --color-topbar-title: #111827;                                                                                              
+  --color-topbar-user: #374151;                                                                                               
+                                                                                                                              
+  /* ===== LOGOUT BUTTON COLORS ===== */                                                                                      
+  --color-logout-bg: #ef4444;                                                                                                 
+  --color-logout-hover-bg: #dc2626;                                                                                           
+  --color-logout-text: #ffffff;                                                                                               
+                                                                                                                              
+  /* ===== CHART COLORS ===== */                                                                                              
+  --color-chart-blue: #3b82f6;                                                                                                
+  --color-chart-blue-light: #93c5fd;                                                                                          
+  --color-chart-emerald: #10b981;                                                                                             
+  --color-chart-amber: #f59e0b;                                                                                               
+  --color-chart-violet: #8b5cf6;                                                                                              
+  --color-chart-pink: #ec4899;                                                                                                
+  --color-chart-teal: #14b8a6;                                                                                                
+  --color-chart-orange: #f97316;                                                                                              
+  --color-chart-white: #ffffff;                                                                                               
+  --color-chart-grid: #e5e7eb;                                                                                                
+  --color-chart-label: #6b7280;                                                                                               
+  --color-chart-text: #374151;                                                                                                
+  --color-chart-subtext: #9ca3af;                                                                                             
                                                                                                                               
   /* ===== TEXT ON COLORED BACKGROUNDS ===== */                                                                               
   --color-text-on-primary: #ffffff;                                                                                           
   --color-text-on-danger: #ffffff;                                                                                            
-}                                                                                                                             
                                                                                                                               
-/* spacing.html */                                                                                                            
-:root {                                                                                                                       
+  /* spacing.html */                                                                                                          
   --space-1: 4px;                                                                                                             
   --space-2: 8px;                                                                                                             
   --space-3: 12px;                                                                                                            
@@ -58,10 +87,8 @@
   --space-6: 24px;                                                                                                            
   --space-7: 32px;                                                                                                            
   --space-8: 48px;                                                                                                            
-}                                                                                                                             
                                                                                                                               
-/* typography.html */                                                                                                         
-:root {                                                                                                                       
+  /* typography.html */                                                                                                       
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;                      
   --text-xs: 0.75rem;                                                                                                         
   --text-sm: 0.875rem;                                                                                                        
@@ -77,27 +104,21 @@
   --leading-tight: 1.25;                                                                                                      
   --leading-normal: 1.5;                                                                                                      
   --leading-relaxed: 1.75;                                                                                                    
-}                                                                                                                             
                                                                                                                               
-/* radius.html */                                                                                                             
-:root {                                                                                                                       
+  /* radius.html */                                                                                                           
   --radius-sm: 4px;                                                                                                           
   --radius-md: 8px;                                                                                                           
   --radius-lg: 12px;                                                                                                          
   --radius-xl: 16px;                                                                                                          
   --radius-full: 9999px;                                                                                                      
-}                                                                                                                             
                                                                                                                               
-/* shadows.html */                                                                                                            
-:root {                                                                                                                       
+  /* shadows.html */                                                                                                          
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);                                                                                    
   --shadow-md: 0 2px 8px rgba(0,0,0,0.1);                                                                                     
   --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);                                                                                   
   --shadow-xl: 0 8px 24px rgba(0,0,0,0.2);                                                                                    
-}                                                                                                                             
                                                                                                                               
-/* zindex.html */                                                                                                             
-:root {                                                                                                                       
+  /* zindex.html */                                                                                                           
   --z-base: 1;                                                                                                                
   --z-sticky: 100;                                                                                                            
   --z-topbar: 200;                                                                                                            
@@ -105,28 +126,22 @@
   --z-dropdown: 400;                                                                                                          
   --z-modal: 500;                                                                                                             
   --z-toast: 600;                                                                                                             
-}                                                                                                                             
                                                                                                                               
-/* breakpoints.html */                                                                                                        
-:root {                                                                                                                       
+  /* breakpoints.html */                                                                                                      
   --bp-mobile: 480px;                                                                                                         
   --bp-tablet: 768px;                                                                                                         
   --bp-desktop: 1024px;                                                                                                       
   --bp-wide: 1280px;                                                                                                          
-}                                                                                                                             
                                                                                                                               
-/* animations.html */                                                                                                         
-:root {                                                                                                                       
+  /* animations.html */                                                                                                       
   --transition-fast: 150ms;                                                                                                   
   --transition-normal: 250ms;                                                                                                 
   --transition-slow: 400ms;                                                                                                   
   --easing-default: ease;                                                                                                     
-}                                                                                                                             
                                                                                                                               
-/* layout.html */                                                                                                             
-:root {                                                                                                                       
+  /* layout.html */                                                                                                           
   --topbar-height: 56px;                                                                                                      
-  --sidebar-width: 256px;                                                                                                     
+  --sidebar-width: 280px;                                                                                                     
   --pos-cart-width: 360px;                                                                                                    
 }                                                                                                                             
-</style>                      
+</style>         
