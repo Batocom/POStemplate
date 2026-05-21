@@ -1,0 +1,100 @@
+<style>
+/* ===== FORM COMPONENT ===== */
+/* Patterns: F-01, F-02 — Standard CRUD Form, Modal Form */
+/* UI_PATTERN_REGISTRY.md — Form Patterns */
+/* RESPONSIVE_PATTERNS.md Section 9 — Form Responsiveness */
+
+/* ===== FORM GROUP ===== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+/* ===== FORM LABEL ===== */
+.form-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* ===== FORM INPUT (Base) ===== */
+.form-input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-3);
+  font-size: var(--text-md);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast) var(--easing-default);
+  font-family: var(--font-family-base);
+  line-height: var(--leading-normal);
+  box-sizing: border-box;
+}
+
+/* Focus state */
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+}
+
+/* Disabled state */
+.form-input:disabled,
+.form-input[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-bg-subtle);
+}
+
+/* Placeholder */
+.form-input::placeholder {
+  color: var(--color-text-disabled);
+}
+
+/* ===== FORM INPUT — SELECT ===== */
+select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  padding-right: var(--space-7);
+  cursor: pointer;
+}
+
+/* ===== FORM INPUT — TEXTAREA ===== */
+textarea.form-input {
+  min-height: 100px;
+  resize: vertical;
+  line-height: var(--leading-relaxed);
+}
+
+/* ===== FORM INPUT — ERROR STATE ===== */
+.form-input--error {
+  border-color: var(--color-danger);
+}
+
+.form-input--error:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px var(--color-danger-subtle);
+}
+
+/* ===== FORM ERROR MESSAGE ===== */
+.form-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  margin-top: var(--space-1);
+}
+
+/* ===== DESKTOP: Slightly more compact inputs ===== */
+@media (min-width: 1024px) {
+  .form-input {
+    min-height: 40px;
+  }
+}
+</style>
