@@ -18,7 +18,8 @@
 }
 
 /* Desktop: offset content by sidebar width */
-@media (min-width: var(--bp-desktop)) {
+/* Note: Using raw pixel value because CSS custom properties in media queries are not supported in all browsers */
+@media (min-width: 1024px) {
   .app-content {
     margin-left: var(--sidebar-width);
   }
@@ -31,14 +32,16 @@
 }
 
 /* Tablet: increase padding */
-@media (min-width: var(--bp-tablet)) {
+/* Note: Using raw pixel value because CSS custom properties in media queries are not supported in all browsers */
+@media (min-width: 768px) {
   .page-content {
     padding: var(--space-4);
   }
 }
 
 /* Desktop: increase padding further */
-@media (min-width: var(--bp-desktop)) {
+/* Note: Using raw pixel value because CSS custom properties in media queries are not supported in all browsers */
+@media (min-width: 1024px) {
   .page-content {
     padding: var(--space-6) var(--space-6) var(--space-5);
   }

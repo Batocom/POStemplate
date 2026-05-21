@@ -133,7 +133,8 @@
 }
 
 /* ===== DESKTOP: SIDEBAR PERMANENTLY VISIBLE ===== */
-@media (min-width: var(--bp-desktop)) {
+/* Note: Using raw pixel value because CSS custom properties in media queries are not supported in all browsers */
+@media (min-width: 1024px) {
   .sidebar {
     transform: translateX(0);
     position: fixed;
