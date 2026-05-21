@@ -125,6 +125,12 @@ const Modal = (function() {
       
       overlay.appendChild(content);
       document.body.appendChild(overlay);
+
+      // Add open class to trigger animation
+      requestAnimationFrame(function() {
+        content.classList.add('modal--open');
+      });
+
       attachEvents(overlay, currentOptions);
     },
     
@@ -133,7 +139,10 @@ const Modal = (function() {
       if (!overlay) return;
       
       const content = document.getElementById('modal-content');
-      if (content) content.classList.add('closing');
+      if (content) {
+        content.classList.remove('modal--open');
+        content.classList.add('closing');
+      }
       overlay.classList.add('closing');
       
       setTimeout(function() {
