@@ -7,9 +7,9 @@
 /* Default (mobile): off-screen, fixed position, full height */
 .sidebar {
   position: fixed;
-  top: 0;
+  top: var(--topbar-height);  /* Offset by topbar height */
   left: 0;
-  height: 100dvh;
+  height: calc(100dvh - var(--topbar-height));  /* Subtract topbar height */
   width: min(var(--sidebar-width), 80vw);
   background: var(--color-sidebar-bg);
   z-index: var(--z-sidebar);
@@ -137,6 +137,8 @@
   .sidebar {
     transform: translateX(0);
     position: fixed;
+    top: 0;  /* Full height on desktop */
+    height: 100dvh;
   }
 
   .sidebar-overlay {
