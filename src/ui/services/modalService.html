@@ -11,7 +11,11 @@
  *   Modal.setLoading(state)
  */
 const Modal = (function() {
-  const ANIMATION_DURATION = 200;
+  function getAnimationDuration() {
+    const style = getComputedStyle(document.documentElement);
+    const transitionFast = style.getPropertyValue('--transition-fast').trim();
+    return parseInt(transitionFast) || 200;
+  }
   
   const SIZES = {
     sm: 'sm',
@@ -139,15 +143,15 @@ const Modal = (function() {
           onCloseCallback = null;
         }
         currentOptions = null;
-      }, ANIMATION_DURATION);
+      }, getAnimationDuration());
     },
     
     confirm: function(message) {
       return new Promise(function(resolve) {
         const content = `
-          <div class="text-center py-4">
-            <p class="text-lg mb-6">${message}</p>
-            <div class="modal-actions justify-center">
+          <div class="modal-confirm-content">
+            <p class="modal-confirm-message">${message}</p>
+            <div class="modal-actions modal-actions--center">
               <button onclick="Modal._confirmResolve(false)" class="modal-btn modal-btn-secondary">Cancel</button>
               <button onclick="Modal._confirmResolve(true)" class="modal-btn modal-btn-danger">Confirm</button>
             </div>
@@ -175,8 +179,8 @@ const Modal = (function() {
     
     alert: function(message) {
       const content = `
-        <div class="text-center py-4">
-          <p class="text-lg mb-6">${message}</p>
+        <div class="modal-alert-content">
+          <p class="modal-alert-message">${message}</p>
           <button onclick="Modal.close()" class="modal-btn modal-btn-primary">OK</button>
         </div>
       `;
@@ -195,7 +199,7 @@ const Modal = (function() {
       const content = `
         <div class="modal-loading">
           <div class="modal-spinner"></div>
-          <p class="text-gray-600">${message || 'Loading...'}</p>
+          <p class="modal-loading-text">${message || 'Loading...'}</p>
         </div>
       `;
       
@@ -217,7 +221,7 @@ const Modal = (function() {
         body.innerHTML = `
           <div class="modal-loading">
             <div class="modal-spinner"></div>
-            <p class="text-gray-600">Processing...</p>
+            <p class="modal-loading-text">Processing...</p>
           </div>
         `;
       }
