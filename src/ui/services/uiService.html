@@ -49,6 +49,11 @@ const UIService = (function() {
         closeSidebar();
       }
     });
+    
+    // Log sidebar state for debugging
+    console.log('UIService initialized');
+    console.log('Sidebar element:', document.querySelector('.sidebar'));
+    console.log('Hamburger button:', document.getElementById('hamburgerBtn'));
   }
   
   function toggleSidebar() {
