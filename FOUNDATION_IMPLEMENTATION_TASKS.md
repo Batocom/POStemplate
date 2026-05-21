@@ -344,10 +344,10 @@ Delete `src/ui/styles/main.css`. No other files modified.
 
 ---
 
-### TASK-008 — Wire `main.css` to the Application Entry Point
+### TASK-008 — Wire `stylesLoader.html` to the Application Entry Point
 
 **OBJECTIVE**
-Import `main.css` into the application's HTML entry point so that tokens are available globally throughout the application.
+Import `stylesLoader.html` into the application's HTML entry point so that tokens are available globally throughout the application.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — Styling Layers
@@ -356,12 +356,12 @@ Import `main.css` into the application's HTML entry point so that tokens are ava
 - The application's main HTML file or shell template that is loaded on every page (likely `src/ui/app/app.html` or equivalent)
 
 **FORBIDDEN**
-- Do not add `<link>` or `@import` for individual token files — only `main.css`
-- Do not modify `main.css` in this task
+- Do not add `<link>` or `@import` for individual token files — only `stylesLoader.html`
+- Do not modify `stylesLoader.html` in this task
 - Do not remove any existing stylesheet imports yet — additions only
 
 **IMPLEMENTATION RULES**
-- Add `<link rel="stylesheet" href="/path/to/main.css">` (or equivalent `@import`) before any other stylesheet link
+- Add `<link rel="stylesheet" href="/path/to/stylesLoader.html">` (or equivalent `@import`) before any other stylesheet link
 - Verify the path resolves correctly in the application's file serving context
 
 **SUCCESS CRITERIA**
@@ -369,7 +369,7 @@ Import `main.css` into the application's HTML entry point so that tokens are ava
 - No existing stylesheet import is removed or broken
 
 **VERIFICATION CHECKLIST**
-- [ ] `main.css` is linked in the application entry point
+- [ ] `stylesLoader.html` is linked in the application entry point
 - [ ] `document.documentElement` style shows `--color-primary` when inspected in browser DevTools
 - [ ] No existing page renders broken
 
