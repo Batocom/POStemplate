@@ -23,29 +23,29 @@
 
 <!-- Receipt Modal Content (hidden, used by viewSaleReceipt) -->
 <div id="salesModalContent" style="display:none;">
-  <div class="receipt-modal">
-    <div class="receipt-header-info">
-      <div class="receipt-field">
-        <span class="receipt-label">Invoice:</span>
-        <span id="modal-invoice" class="receipt-value"></span>
+  <div class="receipt">
+    <div class="receipt__header">
+      <div class="receipt__field">
+        <span class="receipt__label">Invoice:</span>
+        <span id="modal-invoice" class="receipt__value"></span>
       </div>
-      <div class="receipt-field">
-        <span class="receipt-label">Customer:</span>
-        <span id="modal-customer" class="receipt-value"></span>
+      <div class="receipt__field">
+        <span class="receipt__label">Customer:</span>
+        <span id="modal-customer" class="receipt__value"></span>
       </div>
-      <div class="receipt-field">
-        <span class="receipt-label">Date:</span>
-        <span id="modal-date" class="receipt-value"></span>
+      <div class="receipt__field">
+        <span class="receipt__label">Date:</span>
+        <span id="modal-date" class="receipt__value"></span>
       </div>
-      <div class="receipt-field">
-        <span class="receipt-label">Payment:</span>
-        <span id="modal-payment" class="receipt-value"></span>
+      <div class="receipt__field">
+        <span class="receipt__label">Payment:</span>
+        <span id="modal-payment" class="receipt__value"></span>
       </div>
     </div>
     
-    <div class="receipt-items-section">
-      <h4 class="receipt-section-title">Items</h4>
-      <table class="receipt-items-table">
+    <div class="receipt__items">
+      <h4 class="receipt__section-title">Items</h4>
+      <table class="receipt__table">
         <thead>
           <tr>
             <th>Product</th>
@@ -60,14 +60,14 @@
       </table>
     </div>
     
-    <div class="receipt-total-section">
-      <div class="receipt-total-row">
-        <span class="receipt-total-label">Total Amount</span>
-        <span id="modal-total" class="receipt-total-value"></span>
+    <div class="receipt__totals">
+      <div class="receipt__total-row">
+        <span class="receipt__total-label">Total Amount</span>
+        <span id="modal-total" class="receipt__total-value"></span>
       </div>
     </div>
     
-    <div class="receipt-actions">
+    <div class="receipt__actions">
       <button onclick="printCurrentReceipt()" class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
         <span>&#128424;</span> Print Receipt
       </button>
@@ -76,105 +76,106 @@
 </div>
 
 <style>
-  .receipt-modal {
-    padding: 0;
-  }
-  
-  .receipt-header-info {
-    background: #f8f9fa;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-  }
-  
-  .receipt-field {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    font-size: 0.9rem;
-  }
-  
-  .receipt-label {
-    color: #666;
-    font-weight: 500;
-  }
-  
-  .receipt-value {
-    font-weight: 600;
-    color: #333;
-  }
-  
-  .receipt-section-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #333;
-  }
-  
-  .receipt-items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16px;
-  }
-  
-  .receipt-items-table th {
-    text-align: left;
-    padding: 8px 12px;
-    border-bottom: 2px solid #e0e0e0;
-    font-size: 0.85rem;
-    color: #666;
-    text-transform: uppercase;
-  }
-  
-  .receipt-items-table th:not(:first-child) {
-    text-align: right;
-  }
-  
-  .receipt-items-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 0.9rem;
-  }
-  
-  .receipt-items-table td:not(:first-child) {
-    text-align: right;
-  }
-  
-  .receipt-total-section {
-    border-top: 2px solid #333;
-    padding-top: 12px;
-    margin-bottom: 16px;
-  }
-  
-  .receipt-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .receipt-total-label {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-  }
-  
-  .receipt-total-value {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #2563eb;
-  }
-  
-  .receipt-actions {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
-  }
-  
-  .receipt-actions button {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+/* ===== RECEIPT DISPLAY (P-06) ===== */
+.receipt {
+  padding: 0;
+}
+
+.receipt__header {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.receipt__field {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.9rem;
+}
+
+.receipt__label {
+  color: #666;
+  font-weight: 500;
+}
+
+.receipt__value {
+  font-weight: 600;
+  color: #333;
+}
+
+.receipt__section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.receipt__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.receipt__table th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.receipt__table th:not(:first-child) {
+  text-align: right;
+}
+
+.receipt__table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.receipt__table td:not(:first-child) {
+  text-align: right;
+}
+
+.receipt__totals {
+  border-top: 2px solid #333;
+  padding-top: 12px;
+  margin-bottom: 16px;
+}
+
+.receipt__total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.receipt__total-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.receipt__total-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.receipt__actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.receipt__actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 </style>
