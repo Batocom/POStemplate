@@ -1,0 +1,41 @@
+<style>
+/* ===== VISIBILITY UTILITIES ===== */
+
+/* Global hide — suppresses display at all breakpoints */
+.hidden {
+  display: none !important;
+}
+
+/* Hidden below tablet (768px) — visible at tablet and above */
+.hidden-mobile {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .hidden-mobile {
+    display: revert;
+  }
+}
+
+/* Hidden below desktop (1024px) — visible at desktop and above */
+.hidden-tablet {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .hidden-tablet {
+    display: revert;
+  }
+}
+
+/* Visible only below tablet (768px) — hidden at tablet and above */
+.visible-mobile-only {
+  display: revert;
+}
+
+@media (min-width: 768px) {
+  .visible-mobile-only {
+    display: none !important;
+  }
+}
+</style>
