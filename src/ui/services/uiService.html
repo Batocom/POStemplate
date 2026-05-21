@@ -18,6 +18,7 @@ const UIService = (function() {
   function updateSidebarDOM(open) {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
+    const hamburger = document.getElementById('hamburgerBtn');
     
     // Guard: sidebar may not exist yet if called before renderAppShell
     if (!sidebar) {
@@ -32,6 +33,28 @@ const UIService = (function() {
     }
     
     document.body.style.overflow = open ? 'hidden' : '';
+    
+    // Update aria-expanded on hamburger button
+    if (hamburger) {
+      hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      hamburger.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    }
+    
+    // Focus management
+    if (open) {
+      // Move focus to the first focusable element inside the sidebar
+      const firstFocusable = sidebar.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (firstFocusable) {
+        setTimeout(function() {
+          firstFocusable.focus();
+        }, 100); // Small delay to allow CSS transition to start
+      }
+    } else {
+      // Return focus to the hamburger button
+      if (hamburger) {
+        hamburger.focus();
+      }
+    }
   }
   
   function handleResize() {
@@ -47,10 +70,16 @@ const UIService = (function() {
   function init() {
     window.addEventListener('resize', handleResize);
     
-    // Close sidebar on Escape key
+    // Close sidebar on Escape key and return focus to hamburger
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
-        closeSidebar();
+        if (state.sidebarOpen) {
+          closeSidebar();
+          const hamburger = document.getElementById('hamburgerBtn');
+          if (hamburger) {
+            hamburger.focus();
+          }
+        }
       }
     });
     

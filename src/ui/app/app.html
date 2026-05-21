@@ -18,7 +18,7 @@ function renderAppShell(content) {
     <div class="app-shell">
       ${renderTopbar()}
       <div class="sidebar-overlay" onclick="UIService.closeSidebar()"></div>
-      <aside class="sidebar">
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         ${renderSidebar()}
       </aside>
       <div class="app-content">
