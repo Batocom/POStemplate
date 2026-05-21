@@ -8,3 +8,13 @@
 @import 'tokens/breakpoints.html';
 @import 'tokens/animations.html';
 @import 'tokens/layout.html';
+/* === TOKENS === */
+@import 'tokens/colors.css';
+@import 'tokens/spacing.css';
+@import 'tokens/typography.css';
+@import 'tokens/radius.css';
+@import 'tokens/shadows.css';
+@import 'tokens/zindex.css';
+@import 'tokens/breakpoints.css';
+@import 'tokens/animations.css';
+@import 'tokens/layout.css';
