@@ -8,28 +8,8 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Token system (must be first) -->
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/stylesLoader').getContent(); ?>
-
-  <!-- Base layer (reset, globals, animations) -->
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/base/reset').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/base/globals').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/base/animations').getContent(); ?>
-
-  <!-- Utility layer -->
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/utilities/visibility').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/utilities/flex').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/utilities/layout').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/utilities/spacing').getContent(); ?>
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/utilities/typography').getContent(); ?>
-
-  <!-- Component styles -->
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/components/modals').getContent(); ?>
-
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/theme').getContent(); ?>
-
-  <!-- Responsive styles -->
-  <?!= HtmlService.createHtmlOutputFromFile('ui/styles/responsive').getContent(); ?>
+  <!-- Token system (must be first) — includes all CSS layers via stylesLoader.html -->
+  <?!= HtmlService.createTemplateFromFile('ui/styles/stylesLoader').evaluate().getContent(); ?>
 
 </head>
 
