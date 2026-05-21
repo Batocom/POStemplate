@@ -14,36 +14,20 @@ function closeMobileSidebar() {
 }
 
 function renderAppShell(content) {
-  const isMobile = UIService.isMobile();
-  
-  if (isMobile) {
-    document.getElementById("app").innerHTML = `
-      <div id="sidebarOverlay" class="sidebar-overlay" onclick="UIService.closeSidebar()"></div>
-      <div id="mobileSidebar" class="sidebar--mobile">
+  document.getElementById("app").innerHTML = `
+    <div class="app-shell">
+      <div class="sidebar-overlay" onclick="UIService.closeSidebar()"></div>
+      <aside class="sidebar">
         ${renderSidebar()}
-      </div>
-      <div class="layout--mobile">
+      </aside>
+      <div class="app-content">
         ${renderTopbar()}
-        <main class="layout__content">
+        <main class="page-content">
           ${content}
         </main>
       </div>
-    `;
-  } else {
-    document.getElementById("app").innerHTML = `
-      <div class="layout--desktop">
-        <aside class="sidebar--desktop">
-          ${renderSidebar()}
-        </aside>
-        <div class="layout__main">
-          ${renderTopbar()}
-          <main class="layout__content">
-            ${content}
-          </main>
-        </div>
-      </div>
-    `;
-  }
+    </div>
+  `;
 }
 
 function renderPOSPage() {
