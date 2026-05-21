@@ -16,12 +16,12 @@ function closeMobileSidebar() {
 function renderAppShell(content) {
   document.getElementById("app").innerHTML = `
     <div class="app-shell">
+      ${renderTopbar()}
       <div class="sidebar-overlay" onclick="UIService.closeSidebar()"></div>
       <aside class="sidebar">
         ${renderSidebar()}
       </aside>
       <div class="app-content">
-        ${renderTopbar()}
         <main class="page-content">
           ${content}
         </main>

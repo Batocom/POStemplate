@@ -1,0 +1,85 @@
+<style>
+/* ===== TOPBAR ===== */
+/* Pattern: N-02 — Topbar */
+/* RESPONSIVE_PATTERNS.md Section 7.3 — Topbar Behavior */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--topbar-height);
+  background: var(--color-topbar-bg);
+  box-shadow: 0 1px 3px var(--color-topbar-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  z-index: var(--z-topbar);
+}
+
+/* Desktop: offset topbar by sidebar width */
+@media (min-width: 1024px) {
+  .topbar {
+    left: var(--sidebar-width);
+  }
+}
+
+.topbar__hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--color-topbar-hamburger);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast) var(--easing-default);
+}
+
+.topbar__hamburger:hover {
+  background: var(--color-topbar-hamburger-hover-bg);
+}
+
+/* Desktop: hide hamburger */
+@media (min-width: 1024px) {
+  .topbar__hamburger {
+    display: none;
+  }
+}
+
+.topbar__title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-topbar-title);
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.topbar__user {
+  font-size: var(--text-sm);
+  color: var(--color-topbar-user);
+}
+
+.topbar__logout {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-logout-bg);
+  color: var(--color-logout-text);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  transition: background var(--transition-fast) var(--easing-default);
+}
+
+.topbar__logout:hover {
+  background: var(--color-logout-hover-bg);
+}
+</style>
