@@ -106,7 +106,7 @@ const Table = (function() {
           <input
             type="text"
             placeholder="Search..."
-            class="w-full border p-2 rounded"
+            class="form-input"
             value="${escapeHtml(searchQuery)}"
             oninput="Table._handleSearch('${tableId}', this.value)"
           />
@@ -183,9 +183,11 @@ const Table = (function() {
         });
         if (actions && actions.length > 0) {
           html += '<td class="py-2" data-label="Actions">';
+          html += '<div class="flex gap-2">';
           actions.forEach(action => {
-            html += `<button class="btn btn--sm ${action.class || 'text-blue-600'}" onclick="Table._handleAction('${tableId}', ${index}, '${action.label}')">${escapeHtml(action.label)}</button>`;
+            html += `<button class="btn btn--sm ${action.class || 'btn--primary'}" onclick="Table._handleAction('${tableId}', ${index}, '${action.label}')">${escapeHtml(action.label)}</button>`;
           });
+          html += '</div>';
           html += '</td>';
         }
         html += '</tr>';

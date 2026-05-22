@@ -149,7 +149,7 @@ async function loadSales() {
       ],
       data: sales,
       actions: [
-        { label: 'Receipt', class: 'text-blue-600', onClick: function(row) { viewSaleReceipt(row.id); } }
+        { label: 'Receipt', class: 'btn--primary', onClick: function(row) { viewSaleReceipt(row.id); } }
       ],
       pageSize: 10,
       searchable: true,
@@ -403,8 +403,8 @@ async function renderProductsTable(products) {
     ],
     data: products,
     actions: [
-      { label: 'Edit', class: 'text-blue-600', onClick: function(row) { editProduct(row.id); } },
-      { label: 'Delete', class: 'text-red-600', onClick: function(row) { deleteProduct(row.id); } }
+      { label: 'Edit', class: 'btn--primary', onClick: function(row) { editProduct(row.id); } },
+      { label: 'Delete', class: 'btn--danger', onClick: function(row) { deleteProduct(row.id); } }
     ],
     selectable: true,
     onSelectionChange: function(selectedIds) {
