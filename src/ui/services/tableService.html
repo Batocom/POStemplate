@@ -200,7 +200,7 @@ const Table = (function() {
       html += '<div class="flex items-center gap-2">';
     
       // Page size selector
-      html += `<select class="border rounded px-2 py-1 text-sm bg-white" onchange="Table._handlePageSize('${tableId}', this.value)">
+      html += `<select class="form-input" onchange="Table._handlePageSize('${tableId}', this.value)">
         <option value="5" ${pageSize === 5 ? 'selected' : ''}>5 / page</option>
         <option value="10" ${pageSize === 10 ? 'selected' : ''}>10 / page</option>
         <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 / page</option>
@@ -209,7 +209,7 @@ const Table = (function() {
       </select>`;
     
       // Previous button
-      html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage <= 1 ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
+      html += `<button class="btn btn--sm btn--secondary" 
         onclick="Table._handlePage('${tableId}', ${safePage - 1})" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>`;
     
       // Page numbers
@@ -221,22 +221,22 @@ const Table = (function() {
       }
     
       if (startPage > 1) {
-        html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', 1)">1</button>`;
+        html += `<button class="btn btn--sm btn--secondary" onclick="Table._handlePage('${tableId}', 1)">1</button>`;
         if (startPage > 2) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
       }
     
       for (let i = startPage; i <= endPage; i++) {
-        html += `<button class="px-3 py-1 rounded border text-sm font-medium ${i === safePage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-100'}" 
+        html += `<button class="btn btn--sm ${i === safePage ? 'btn--primary' : 'btn--secondary'}" 
           onclick="Table._handlePage('${tableId}', ${i})">${i}</button>`;
       }
     
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
-        html += `<button class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-100" onclick="Table._handlePage('${tableId}', ${totalPages})">${totalPages}</button>`;
+        html += `<button class="btn btn--sm btn--secondary" onclick="Table._handlePage('${tableId}', ${totalPages})">${totalPages}</button>`;
       }
     
       // Next button
-      html += `<button class="px-3 py-1 rounded border text-sm font-medium ${safePage >= totalPages ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : 'hover:bg-gray-100 bg-white text-gray-700'}" 
+      html += `<button class="btn btn--sm btn--secondary" 
         onclick="Table._handlePage('${tableId}', ${safePage + 1})" ${safePage >= totalPages ? 'disabled' : ''}>Next</button>`;
       html += '</div></div>';
     }
