@@ -96,10 +96,14 @@ const UIService = (function() {
       if (!sidebar) {
         console.warn('UIService: sidebar not found after init. Will retry on toggle.');
       } else {
-        // Ensure sidebar starts closed on mobile
+        // Ensure sidebar starts closed on mobile, open on desktop
         const isDesktop = window.innerWidth >= 1024;
         if (!isDesktop) {
-          sidebar.classList.remove('sidebar--open');
+          state.sidebarOpen = false;
+          updateSidebarDOM(false);
+        } else {
+          state.sidebarOpen = true;
+          updateSidebarDOM(true);
         }
       }
     }, 500);
