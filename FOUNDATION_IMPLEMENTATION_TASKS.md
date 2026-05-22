@@ -409,7 +409,7 @@ Remove the CSS custom property declarations from `theme.html` that are now super
 **VERIFICATION CHECKLIST**
 - [ ] `theme.html` no longer contains a `:root { }` block with CSS properties
 - [ ] Visual snapshot comparison shows zero difference at 375px, 768px, 1280px
-- [ ] Browser DevTools shows tokens resolving from `main.css`, not from `theme.html`
+- [ ] Browser DevTools shows tokens resolving from `stylesLoader.html`, not from `theme.html`
 
 **ROLLBACK PLAN**
 Restore the `:root { }` block to `theme.html` from version control. The token files are not modified and remain in place — both sources coexist without conflict (the token files take precedence due to import order in `main.css`).
@@ -513,17 +513,17 @@ Delete both files. No other files modified.
 
 ---
 
-### TASK-012 — Add Base Layer Imports to `main.css`
+### TASK-012 — Add Base Layer Imports to `stylesLoader.html`
 
 **OBJECTIVE**
-Add the base layer imports to `main.css` in the correct order after the token imports.
+Add the base layer imports to `stylesLoader.html` in the correct order after the token imports.
 
 **ARCHITECTURE REFERENCES**
 - `STYLING_ARCHITECTURE.md` — Styling Layers (tokens → base → utilities → layout → components)
 - `MIGRATION_PLAN.md` — Task 2.8
 
 **ALLOWED FILES**
-- `src/ui/styles/main.css`
+- `src/ui/styles/stylesLoader.html`
 
 **FORBIDDEN**
 - Do not reorder existing token imports
@@ -531,19 +531,19 @@ Add the base layer imports to `main.css` in the correct order after the token im
 
 **IMPLEMENTATION RULES**
 - Add a `/* === BASE === */` comment block after the tokens block
-- Import in order: `base/reset.css`, `base/globals.css`, `base/animations.css`
+- Import in order: `base/reset.html`, `base/globals.html`, `base/animations.html`
 
 **SUCCESS CRITERIA**
 - Three base imports added after token imports
 - Import order: tokens first, base second
 
 **VERIFICATION CHECKLIST**
-- [ ] `main.css` has 12 `@import` statements total (9 tokens + 3 base)
+- [ ] `stylesLoader.html` has 12 `@import` statements total (9 tokens + 3 base)
 - [ ] Order is tokens → base
-- [ ] No CSS rules in `main.css`
+- [ ] No CSS rules in `stylesLoader.html`
 
 **ROLLBACK PLAN**
-Remove the three added `@import` lines from `main.css`. No other files modified.
+Remove the three added `@import` lines from `stylesLoader.html`. No other files modified.
 
 ---
 
@@ -1031,10 +1031,10 @@ Restore `app.html` from version control.
 
 ---
 
-### TASK-025 — Implement Active Nav State and Add Layout Imports to `main.css`
+### TASK-025 — Implement Active Nav State and Add Layout Imports to `stylesLoader.html`
 
 **OBJECTIVE**
-Apply the `.nav-item--active` modifier to the current page's navigation item. Wire all layout files into `main.css`.
+Apply the `.nav-item--active` modifier to the current page's navigation item. Wire all layout files into `stylesLoader.html`.
 
 **ARCHITECTURE REFERENCES**
 - `UI_PATTERN_REGISTRY.md` — Pattern N-01
@@ -1042,7 +1042,7 @@ Apply the `.nav-item--active` modifier to the current page's navigation item. Wi
 
 **ALLOWED FILES**
 - `src/ui/components/sidebar.html`
-- `src/ui/styles/main.css`
+- `src/ui/styles/stylesLoader.html`
 
 **FORBIDDEN**
 - Do not modify `layout/*.html` files in this task — they were created in earlier tasks
@@ -1051,12 +1051,12 @@ Apply the `.nav-item--active` modifier to the current page's navigation item. Wi
 **IMPLEMENTATION RULES**
 - In `renderSidebar()` (or equivalent), for each nav item, compare its route against `State.currentPage`
 - Apply `nav-item--active` class when the route matches
-- In `main.css`: add `/* === LAYOUT === */` block after utilities and import: `layout/app-shell.css`, `layout/sidebar.css`, `layout/topbar.css`
+- In `stylesLoader.html`: add `/* === LAYOUT === */` block after utilities and import: `layout/app-shell.html`, `layout/sidebar.html`, `layout/topbar.html`
 
 **SUCCESS CRITERIA**
 - Active nav item is visually distinct on every page
 - Active state updates correctly when navigating between pages
-- 3 layout imports added to `main.css`
+- 3 layout imports added to `stylesLoader.html`
 
 **VERIFICATION CHECKLIST**
 - [ ] Navigate to Dashboard — Dashboard nav item highlighted
