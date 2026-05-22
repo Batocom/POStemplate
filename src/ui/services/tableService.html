@@ -136,7 +136,7 @@ const Table = (function() {
     if (pageData.length === 0) {
       html += `<div class="text-gray-500 text-center py-8">${emptyMessage}</div>`;
     } else {
-      html += '<div class="overflow-x-auto"><table class="w-full text-left">';
+      html += '<div class="overflow-x-auto"><table class="table w-full text-left">';
       
       // Header
       html += '<thead><tr class="border-b">';
@@ -184,7 +184,7 @@ const Table = (function() {
         if (actions && actions.length > 0) {
           html += '<td class="py-2" data-label="Actions">';
           actions.forEach(action => {
-            html += `<button class="${action.class || 'text-blue-600'} mr-2" onclick="Table._handleAction('${tableId}', ${index}, '${action.label}')">${escapeHtml(action.label)}</button>`;
+            html += `<button class="btn btn--sm ${action.class || 'text-blue-600'}" onclick="Table._handleAction('${tableId}', ${index}, '${action.label}')">${escapeHtml(action.label)}</button>`;
           });
           html += '</td>';
         }
