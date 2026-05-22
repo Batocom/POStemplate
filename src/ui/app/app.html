@@ -97,19 +97,19 @@ async function loadSales() {
     const response = typeof raw === "string" ? JSON.parse(raw) : raw;
 
     if (!response || !response.success) {
-      container.innerHTML = '<div class="text-red-500">Failed to load sales</div>';
+      container.innerHTML = '<div class="error-state">Failed to load sales</div>';
       return;
     }
 
     const sales = response.data;
 
     if (!Array.isArray(sales)) {
-      container.innerHTML = '<div class="text-red-500">Invalid sales data</div>';
+      container.innerHTML = '<div class="error-state">Invalid sales data</div>';
       return;
     }
 
     if (!sales.length) {
-      container.innerHTML = '<div class="text-gray-500">No sales found</div>';
+      container.innerHTML = '<div class="empty-state">No sales found</div>';
       return;
     }
 
@@ -129,18 +129,18 @@ async function loadSales() {
         },
         { key: 'payment_method', label: 'Payment', sortable: true,
           render: function(val, row) {
-            const colors = {
-              'cash': 'text-green-600',
-              'mpesa': 'text-blue-600',
-              'credit': 'text-orange-600',
-              'card': 'text-purple-600',
-              'transfer': 'text-purple-600'
+            const badgeVariants = {
+              'cash': 'badge--success',
+              'mpesa': 'badge--info',
+              'credit': 'badge--warning',
+              'card': 'badge--info',
+              'transfer': 'badge--info'
             };
             let label = val;
             if (val === 'credit') {
               label = 'Credit ' + (row.is_paid ? '(Paid)' : '(Due)');
             }
-            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + label + '</span>';
+            return '<span class="badge ' + (badgeVariants[val] || 'badge--neutral') + '">' + label + '</span>';
           }
         },
         { key: 'created_at', label: 'Date', sortable: true,
@@ -158,7 +158,7 @@ async function loadSales() {
 
   } catch (error) {
     console.error(error);
-    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+    container.innerHTML = '<div class="error-state">Something went wrong</div>';
   }
 }
 
@@ -207,7 +207,7 @@ async function loadProducts() {
 
     if (!response || !response.success) {
       container.innerHTML = `
-        <div class="text-red-500">
+        <div class="error-state">
           Failed to load products
         </div>
       `;
@@ -218,7 +218,7 @@ async function loadProducts() {
 
     if (!Array.isArray(products)) {
       container.innerHTML = `
-        <div class="text-red-500">
+        <div class="error-state">
           Invalid products data
         </div>
       `;
@@ -238,7 +238,7 @@ async function loadProducts() {
     console.error(error);
 
     container.innerHTML = `
-      <div class="text-red-500">
+      <div class="error-state">
         Something went wrong
       </div>
     `;
@@ -264,7 +264,7 @@ async function loadStockMovements() {
     const productsResponse = typeof productsRaw === "string" ? JSON.parse(productsRaw) : productsRaw;
 
     if (!movementsResponse || !movementsResponse.success) {
-      container.innerHTML = '<div class="text-red-500">Failed to load stock movements</div>';
+      container.innerHTML = '<div class="error-state">Failed to load stock movements</div>';
       return;
     }
 
@@ -278,12 +278,12 @@ async function loadStockMovements() {
     });
 
     if (!Array.isArray(movements)) {
-      container.innerHTML = '<div class="text-red-500">Invalid stock movements data</div>';
+      container.innerHTML = '<div class="error-state">Invalid stock movements data</div>';
       return;
     }
 
     if (!movements.length) {
-      container.innerHTML = '<div class="text-gray-500">No stock movements found</div>';
+      container.innerHTML = '<div class="empty-state">No stock movements found</div>';
       return;
     }
 
@@ -299,17 +299,17 @@ async function loadStockMovements() {
         },
         { key: 'type', label: 'Type', sortable: true,
           render: function(val) {
-            const colors = {
-              'SALE': 'text-red-600',
-              'PURCHASE': 'text-green-600',
-              'ADJUSTMENT': 'text-blue-600',
-              'RETURN': 'text-yellow-600',
-              'DAMAGE': 'text-red-800',
-              'TRANSFER': 'text-purple-600',
-              'MANUAL_IN': 'text-green-800',
-              'MANUAL_OUT': 'text-orange-600'
+            const badgeVariants = {
+              'SALE': 'badge--danger',
+              'PURCHASE': 'badge--success',
+              'ADJUSTMENT': 'badge--info',
+              'RETURN': 'badge--warning',
+              'DAMAGE': 'badge--danger',
+              'TRANSFER': 'badge--info',
+              'MANUAL_IN': 'badge--success',
+              'MANUAL_OUT': 'badge--warning'
             };
-            return '<span class="' + (colors[val] || 'text-gray-600') + ' font-medium">' + val + '</span>';
+            return '<span class="badge ' + (badgeVariants[val] || 'badge--neutral') + '">' + val + '</span>';
           }
         },
         { key: 'quantity', label: 'Quantity', sortable: true,
@@ -330,7 +330,7 @@ async function loadStockMovements() {
 
   } catch (error) {
     console.error(error);
-    container.innerHTML = '<div class="text-red-500">Something went wrong</div>';
+    container.innerHTML = '<div class="error-state">Something went wrong</div>';
   }
 }
 
@@ -339,7 +339,7 @@ async function renderProductsTable(products) {
 
   if (!products.length) {
     container.innerHTML = `
-      <div class="text-gray-500">No products found</div>
+      <div class="empty-state">No products found</div>
     `;
     return;
   }
@@ -359,7 +359,7 @@ async function renderProductsTable(products) {
   // Add bulk delete button above the table
   const bulkHtml = `
     <div class="mb-4">
-      <button id="bulkDeleteBtn" onclick="bulkDeleteProducts()" class="bg-red-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled>
+      <button id="bulkDeleteBtn" onclick="bulkDeleteProducts()" class="btn btn--danger" disabled>
         Delete Selected
       </button>
     </div>
@@ -388,16 +388,16 @@ async function renderProductsTable(products) {
       { key: 'stock', label: 'Status', sortable: false,
         render: function(val) {
           const stock = Number(val);
-          let statusClass = 'bg-red-100 text-red-800';
+          let badgeClass = 'badge--danger';
           let statusText = 'Out of Stock';
           if (stock > 10) {
-            statusClass = 'bg-green-100 text-green-800';
+            badgeClass = 'badge--success';
             statusText = 'In Stock';
           } else if (stock > 0) {
-            statusClass = 'bg-yellow-100 text-yellow-800';
+            badgeClass = 'badge--warning';
             statusText = 'Low Stock';
           }
-          return '<span class="px-2 py-1 rounded text-sm ' + statusClass + '">' + statusText + '</span>';
+          return '<span class="badge ' + badgeClass + '">' + statusText + '</span>';
         }
       }
     ],
