@@ -164,7 +164,7 @@ const Table = (function() {
         const isSelected = state.selectedIds.includes(row.id);
         html += `<tr class="border-b hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}">`;
         if (selectable) {
-          html += `<td class="py-2">
+          html += `<td class="py-2" data-label="Select">
             <input
               type="checkbox"
               ${isSelected ? 'checked' : ''}
@@ -174,14 +174,15 @@ const Table = (function() {
         }
         columns.forEach(col => {
           const val = getValue(row, col.key);
+          const label = escapeHtml(col.label);
           if (col.render) {
-            html += `<td class="py-2">${col.render(val, row)}</td>`;
+            html += `<td class="py-2" data-label="${label}">${col.render(val, row)}</td>`;
           } else {
-            html += `<td class="py-2">${escapeHtml(val)}</td>`;
+            html += `<td class="py-2" data-label="${label}">${escapeHtml(val)}</td>`;
           }
         });
         if (actions && actions.length > 0) {
-          html += '<td class="py-2">';
+          html += '<td class="py-2" data-label="Actions">';
           actions.forEach(action => {
             html += `<button class="${action.class || 'text-blue-600'} mr-2" onclick="Table._handleAction('${tableId}', ${index}, '${action.label}')">${escapeHtml(action.label)}</button>`;
           });
