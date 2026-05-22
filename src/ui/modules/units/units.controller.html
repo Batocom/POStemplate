@@ -110,8 +110,8 @@ async function loadUnits() {
       ],
       data: units,
       actions: [
-        { label: 'Edit', class: 'text-blue-600', onClick: function(row) { openEditUnitModal(row.id); } },
-        { label: 'Delete', class: 'text-red-600', onClick: function(row) { deleteUnit(row.id); } }
+        { label: 'Edit', class: 'btn--primary', onClick: function(row) { openEditUnitModal(row.id); } },
+        { label: 'Delete', class: 'btn--danger', onClick: function(row) { deleteUnit(row.id); } }
       ],
       pageSize: 10,
       searchable: true,
