@@ -127,14 +127,14 @@ const Table = (function() {
             />
             Select All
           </label>
-          ${selectedCount > 0 ? `<span class="text-sm text-gray-500">${selectedCount} selected</span>` : ''}
+          ${selectedCount > 0 ? `<span class="text-sm text-secondary">${selectedCount} selected</span>` : ''}
         </div>
       `;
     }
     
     // Table
     if (pageData.length === 0) {
-      html += `<div class="text-gray-500 text-center py-8">${emptyMessage}</div>`;
+      html += `<div class="empty-state">${emptyMessage}</div>`;
     } else {
       html += '<div class="overflow-x-auto"><table class="table w-full text-left">';
       
@@ -145,7 +145,7 @@ const Table = (function() {
       }
       columns.forEach(col => {
         const sortable = col.sortable !== false;
-        html += `<th class="py-2 ${col.width ? 'w-' + col.width : ''} ${sortable ? 'cursor-pointer hover:text-blue-600' : ''}" 
+        html += `<th class="table__header ${col.width ? 'table__header--' + col.width : ''} ${sortable ? 'table__header--sortable' : ''}" 
           onclick="${sortable ? `Table._handleSort('${tableId}', '${col.key}')` : ''}">
           <div class="flex items-center">
             ${escapeHtml(col.label)}
@@ -162,7 +162,7 @@ const Table = (function() {
       html += '<tbody>';
       pageData.forEach((row, index) => {
         const isSelected = state.selectedIds.includes(row.id);
-        html += `<tr class="border-b hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}">`;
+        html += `<tr class="table__row ${isSelected ? 'table__row--selected' : ''}">`;
         if (selectable) {
           html += `<td class="py-2" data-label="Select">
             <input
@@ -176,9 +176,9 @@ const Table = (function() {
           const val = getValue(row, col.key);
           const label = escapeHtml(col.label);
           if (col.render) {
-            html += `<td class="py-2" data-label="${label}">${col.render(val, row)}</td>`;
+            html += `<td class="table__cell" data-label="${label}">${col.render(val, row)}</td>`;
           } else {
-            html += `<td class="py-2" data-label="${label}">${escapeHtml(val)}</td>`;
+            html += `<td class="table__cell" data-label="${label}">${escapeHtml(val)}</td>`;
           }
         });
         if (actions && actions.length > 0) {
@@ -196,7 +196,7 @@ const Table = (function() {
       
       // Pagination - always show
       html += '<div class="flex items-center justify-between mt-4 pt-4 border-t">';
-      html += `<div class="text-sm text-gray-500">Showing ${start + 1}-${Math.min(start + pageSize, totalItems)} of ${totalItems}</div>`;
+      html += `<div class="text-sm text-secondary">Showing ${start + 1}-${Math.min(start + pageSize, totalItems)} of ${totalItems}</div>`;
       html += '<div class="flex items-center gap-2">';
     
       // Page size selector
@@ -222,7 +222,7 @@ const Table = (function() {
     
       if (startPage > 1) {
         html += `<button class="btn btn--sm btn--secondary" onclick="Table._handlePage('${tableId}', 1)">1</button>`;
-        if (startPage > 2) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
+        if (startPage > 2) html += '<span class="pagination-ellipsis">...</span>';
       }
     
       for (let i = startPage; i <= endPage; i++) {
@@ -231,7 +231,7 @@ const Table = (function() {
       }
     
       if (endPage < totalPages) {
-        if (endPage < totalPages - 1) html += '<span class="px-2 text-gray-500 font-bold">...</span>';
+        if (endPage < totalPages - 1) html += '<span class="pagination-ellipsis">...</span>';
         html += `<button class="btn btn--sm btn--secondary" onclick="Table._handlePage('${tableId}', ${totalPages})">${totalPages}</button>`;
       }
     
