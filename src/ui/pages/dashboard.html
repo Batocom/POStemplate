@@ -1,57 +1,190 @@
 <template id="dashboardPageTemplate">
-  <div class="space-y-6">
+  <!-- TEMPORARY: Dashboard-specific utility classes using tokens.
+       Will be replaced by shared component classes in Phase 6. -->
+  <style>
+    .dash-card {
+      background: var(--color-bg-card);
+      padding: var(--space-6);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+    }
+    .dash-card__title {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--space-4);
+    }
+    .dash-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+    @media (min-width: 768px) {
+      .dash-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (min-width: 1024px) {
+      .dash-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .dash-charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    @media (min-width: 1024px) {
+      .dash-charts-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .dash-stat-icon {
+      padding: var(--space-3);
+      border-radius: var(--radius-full);
+    }
+    .dash-stat-icon--blue {
+      background: var(--color-primary-subtle);
+    }
+    .dash-stat-icon--green {
+      background: var(--color-success-subtle);
+    }
+    .dash-stat-icon--purple {
+      background: var(--color-info-subtle);
+    }
+    .dash-stat-icon--red {
+      background: var(--color-danger-subtle);
+    }
+    .dash-stat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    .dash-stat-icon--blue svg { color: var(--color-primary); }
+    .dash-stat-icon--green svg { color: var(--color-success); }
+    .dash-stat-icon--purple svg { color: var(--color-info); }
+    .dash-stat-icon--red svg { color: var(--color-danger); }
+    .dash-stat-label {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+    .dash-stat-value {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-bold);
+      margin-top: var(--space-1);
+    }
+    .dash-table {
+      width: 100%;
+      text-align: left;
+    }
+    .dash-table th {
+      padding: var(--space-2);
+      border-bottom: 1px solid var(--color-border-default);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+    .dash-table td {
+      padding: var(--space-2);
+      border-bottom: 1px solid var(--color-border-subtle);
+      font-size: var(--text-sm);
+    }
+    .dash-table tr:hover {
+      background: var(--color-bg-subtle);
+    }
+    .dash-badge {
+      display: inline-block;
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: var(--font-weight-medium);
+    }
+    .dash-badge--danger {
+      background: var(--color-danger-subtle);
+      color: var(--color-danger);
+    }
+    .dash-badge--warning {
+      background: var(--color-warning-subtle);
+      color: var(--color-warning);
+    }
+    .dash-badge--success {
+      background: var(--color-success-subtle);
+      color: var(--color-success);
+    }
+    .dash-badge--info {
+      background: var(--color-info-subtle);
+      color: var(--color-info);
+    }
+    .dash-text-muted {
+      color: var(--color-text-secondary);
+    }
+    .dash-text-danger {
+      color: var(--color-danger);
+    }
+    .dash-text-success {
+      color: var(--color-success);
+    }
+    .dash-text-info {
+      color: var(--color-info);
+    }
+    .dash-text-warning {
+      color: var(--color-warning);
+    }
+    .dash-space-y-6 > * + * {
+      margin-top: var(--space-6);
+    }
+  </style>
+
+  <div class="dash-space-y-6">
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white p-6 rounded-xl shadow">
+    <div class="dash-stats-grid">
+      <div class="dash-card">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-500">Today's Sales</p>
-            <p id="todaySales" class="text-2xl font-bold mt-1">KES 0</p>
+            <p class="dash-stat-label">Today's Sales</p>
+            <p id="todaySales" class="dash-stat-value">KES 0</p>
           </div>
-          <div class="bg-blue-100 p-3 rounded-full">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="dash-stat-icon dash-stat-icon--blue">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow">
+      <div class="dash-card">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-500">Total Products</p>
-            <p id="totalProducts" class="text-2xl font-bold mt-1">0</p>
+            <p class="dash-stat-label">Total Products</p>
+            <p id="totalProducts" class="dash-stat-value">0</p>
           </div>
-          <div class="bg-green-100 p-3 rounded-full">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="dash-stat-icon dash-stat-icon--green">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
             </svg>
           </div>
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow">
+      <div class="dash-card">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-500">Total Profit</p>
-            <p id="totalProfit" class="text-2xl font-bold mt-1">KES 0</p>
+            <p class="dash-stat-label">Total Profit</p>
+            <p id="totalProfit" class="dash-stat-value">KES 0</p>
           </div>
-          <div class="bg-purple-100 p-3 rounded-full">
-            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="dash-stat-icon dash-stat-icon--purple">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
           </div>
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow">
+      <div class="dash-card">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-500">Low Stock Alerts</p>
-            <p id="lowStockCount" class="text-2xl font-bold mt-1">0</p>
+            <p class="dash-stat-label">Low Stock Alerts</p>
+            <p id="lowStockCount" class="dash-stat-value">0</p>
           </div>
-          <div class="bg-red-100 p-3 rounded-full">
-            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="dash-stat-icon dash-stat-icon--red">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
           </div>
@@ -60,18 +193,18 @@
     </div>
 
     <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="dash-charts-grid">
       <!-- Sales Chart -->
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h3 class="text-lg font-semibold mb-4">Sales (Last 7 Days)</h3>
+      <div class="dash-card">
+        <h3 class="dash-card__title">Sales (Last 7 Days)</h3>
         <div id="salesChartContainer" class="h-64">
           <canvas id="salesChart"></canvas>
         </div>
       </div>
 
       <!-- Stock Levels Donut -->
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h3 class="text-lg font-semibold mb-4">Stock Levels by Category</h3>
+      <div class="dash-card">
+        <h3 class="dash-card__title">Stock Levels by Category</h3>
         <div id="stockChartContainer" class="h-64 flex items-center justify-center">
           <canvas id="stockChart"></canvas>
         </div>
@@ -79,18 +212,18 @@
     </div>
 
     <!-- Low Stock Products -->
-    <div class="bg-white p-6 rounded-xl shadow">
-      <h3 class="text-lg font-semibold mb-4">Low Stock Products</h3>
+    <div class="dash-card">
+      <h3 class="dash-card__title">Low Stock Products</h3>
       <div id="lowStockContainer">
-        <p class="text-gray-500">No low stock products</p>
+        <p class="dash-text-muted">No low stock products</p>
       </div>
     </div>
 
     <!-- Recent Transactions -->
-    <div class="bg-white p-6 rounded-xl shadow">
-      <h3 class="text-lg font-semibold mb-4">Recent Transactions</h3>
+    <div class="dash-card">
+      <h3 class="dash-card__title">Recent Transactions</h3>
       <div id="recentTransactionsContainer">
-        <p class="text-gray-500">No recent transactions</p>
+        <p class="dash-text-muted">No recent transactions</p>
       </div>
     </div>
   </div>
@@ -143,6 +276,10 @@ async function loadDashboardData() {
   }
 }
 
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 function renderSalesChart(chartData) {
   const canvas = document.getElementById('salesChart');
   if (!canvas || !chartData || chartData.length === 0) return;
@@ -162,11 +299,18 @@ function renderSalesChart(chartData) {
   const barWidth = chartWidth / chartData.length * 0.6;
   const gap = chartWidth / chartData.length * 0.4;
   
+  // Read token colors
+  const gridColor = getCSSVar('--color-chart-grid') || '#e5e7eb';
+  const labelColor = getCSSVar('--color-chart-label') || '#9ca3af';
+  const barStart = getCSSVar('--color-chart-blue') || '#3b82f6';
+  const barEnd = getCSSVar('--color-chart-blue-light') || '#93c5fd';
+  const xLabelColor = getCSSVar('--color-chart-subtext') || '#6b7280';
+  
   // Clear
   ctx.clearRect(0, 0, width, height);
   
   // Draw grid lines
-  ctx.strokeStyle = '#e5e7eb';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   for (var i = 0; i <= 4; i++) {
     var y = padding.top + (chartHeight / 4) * i;
@@ -176,7 +320,7 @@ function renderSalesChart(chartData) {
     ctx.stroke();
     
     // Y-axis labels
-    ctx.fillStyle = '#9ca3af';
+    ctx.fillStyle = labelColor;
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText('KES ' + Math.round((maxValue / 4) * (4 - i)), padding.left - 8, y + 4);
@@ -190,13 +334,13 @@ function renderSalesChart(chartData) {
     
     // Bar
     var gradient = ctx.createLinearGradient(x, y, x, padding.top + chartHeight);
-    gradient.addColorStop(0, '#3b82f6');
-    gradient.addColorStop(1, '#93c5fd');
+    gradient.addColorStop(0, barStart);
+    gradient.addColorStop(1, barEnd);
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, barWidth, barHeight);
     
     // X-axis labels
-    ctx.fillStyle = '#6b7280';
+    ctx.fillStyle = xLabelColor;
     ctx.font = '10px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(item.date.split(',')[0], x + barWidth / 2, height - padding.bottom + 16);
@@ -216,11 +360,21 @@ function renderStockChart(stockData) {
   const centerY = canvas.height / 2;
   const radius = 90;
   
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+  // Read token colors for chart slices
+  const chartColors = [
+    getCSSVar('--color-chart-blue') || '#3b82f6',
+    getCSSVar('--color-chart-emerald') || '#10b981',
+    getCSSVar('--color-chart-amber') || '#f59e0b',
+    getCSSVar('--color-chart-orange') || '#f97316',
+    getCSSVar('--color-chart-violet') || '#8b5cf6',
+    getCSSVar('--color-chart-pink') || '#ec4899',
+    getCSSVar('--color-chart-teal') || '#14b8a6',
+    getCSSVar('--color-chart-white') || '#ffffff'
+  ];
   
   var totalStock = stockData.reduce(function(sum, d) { return sum + d.stock; }, 0);
   if (totalStock === 0) {
-    ctx.fillStyle = '#9ca3af';
+    ctx.fillStyle = getCSSVar('--color-chart-label') || '#9ca3af';
     ctx.font = '14px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('No stock data', centerX, centerY);
@@ -236,7 +390,7 @@ function renderStockChart(stockData) {
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
     ctx.closePath();
-    ctx.fillStyle = colors[index % colors.length];
+    ctx.fillStyle = chartColors[index % chartColors.length];
     ctx.fill();
     
     startAngle += sliceAngle;
@@ -245,24 +399,24 @@ function renderStockChart(stockData) {
   // Center hole (donut)
   ctx.beginPath();
   ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = getCSSVar('--color-bg-card') || '#ffffff';
   ctx.fill();
   
   // Center text
-  ctx.fillStyle = '#374151';
+  ctx.fillStyle = getCSSVar('--color-chart-text') || '#374151';
   ctx.font = 'bold 16px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(totalStock, centerX, centerY - 4);
-  ctx.fillStyle = '#9ca3af';
+  ctx.fillStyle = getCSSVar('--color-chart-subtext') || '#9ca3af';
   ctx.font = '11px sans-serif';
   ctx.fillText('Total Stock', centerX, centerY + 14);
   
   // Legend
   var legendY = 10;
   stockData.forEach(function(item, index) {
-    ctx.fillStyle = colors[index % colors.length];
+    ctx.fillStyle = chartColors[index % chartColors.length];
     ctx.fillRect(10, legendY, 12, 12);
-    ctx.fillStyle = '#374151';
+    ctx.fillStyle = getCSSVar('--color-chart-text') || '#374151';
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(item.name + ' (' + item.stock + ')', 28, legendY + 10);
@@ -275,26 +429,26 @@ function renderLowStockProducts(products) {
   if (!container) return;
   
   if (!products || products.length === 0) {
-    container.innerHTML = '<p class="text-gray-500">No low stock products</p>';
+    container.innerHTML = '<p class="dash-text-muted">No low stock products</p>';
     return;
   }
   
-  var html = '<div class="overflow-x-auto"><table class="w-full text-left">';
-  html += '<thead><tr class="border-b">';
-  html += '<th class="py-2">Product</th>';
-  html += '<th class="py-2">Stock</th>';
-  html += '<th class="py-2">Status</th>';
+  var html = '<div class="overflow-x-auto"><table class="dash-table">';
+  html += '<thead><tr>';
+  html += '<th>Product</th>';
+  html += '<th>Stock</th>';
+  html += '<th>Status</th>';
   html += '</tr></thead><tbody>';
   
   products.forEach(function(product) {
     var stock = Number(product.stock || 0);
-    var statusClass = stock === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800';
+    var badgeClass = stock === 0 ? 'dash-badge--danger' : 'dash-badge--warning';
     var statusText = stock === 0 ? 'Out of Stock' : 'Low Stock';
     
-    html += '<tr class="border-b hover:bg-gray-50">';
-    html += '<td class="py-2">' + product.name + '</td>';
-    html += '<td class="py-2">' + stock + '</td>';
-    html += '<td class="py-2"><span class="px-2 py-1 rounded text-sm ' + statusClass + '">' + statusText + '</span></td>';
+    html += '<tr>';
+    html += '<td>' + product.name + '</td>';
+    html += '<td>' + stock + '</td>';
+    html += '<td><span class="dash-badge ' + badgeClass + '">' + statusText + '</span></td>';
     html += '</tr>';
   });
   
@@ -307,33 +461,31 @@ function renderRecentTransactions(sales) {
   if (!container) return;
   
   if (!sales || sales.length === 0) {
-    container.innerHTML = '<p class="text-gray-500">No recent transactions</p>';
+    container.innerHTML = '<p class="dash-text-muted">No recent transactions</p>';
     return;
   }
   
-  var html = '<div class="overflow-x-auto"><table class="w-full text-left">';
-  html += '<thead><tr class="border-b">';
-  html += '<th class="py-2">Invoice</th>';
-  html += '<th class="py-2">Customer</th>';
-  html += '<th class="py-2">Amount</th>';
-  html += '<th class="py-2">Payment</th>';
-  html += '<th class="py-2">Date</th>';
+  var html = '<div class="overflow-x-auto"><table class="dash-table">';
+  html += '<thead><tr>';
+  html += '<th>Invoice</th>';
+  html += '<th>Customer</th>';
+  html += '<th>Amount</th>';
+  html += '<th>Payment</th>';
+  html += '<th>Date</th>';
   html += '</tr></thead><tbody>';
   
   sales.forEach(function(sale) {
-    var paymentColors = {
-      'cash': 'text-green-600',
-      'card': 'text-blue-600',
-      'transfer': 'text-purple-600'
-    };
-    var paymentClass = paymentColors[sale.payment_method] || 'text-gray-600';
+    var paymentBadgeClass = 'dash-badge--info';
+    if (sale.payment_method === 'cash') paymentBadgeClass = 'dash-badge--success';
+    else if (sale.payment_method === 'card') paymentBadgeClass = 'dash-badge--info';
+    else if (sale.payment_method === 'transfer') paymentBadgeClass = 'dash-badge--warning';
     
-    html += '<tr class="border-b hover:bg-gray-50">';
-    html += '<td class="py-2 font-medium">' + sale.invoice_no + '</td>';
-    html += '<td class="py-2">' + sale.customer_name + '</td>';
-    html += '<td class="py-2">KES ' + Number(sale.total_amount).toFixed(2) + '</td>';
-    html += '<td class="py-2"><span class="' + paymentClass + ' font-medium">' + sale.payment_method + '</span></td>';
-    html += '<td class="py-2 text-gray-500">' + new Date(sale.created_at).toLocaleDateString() + '</td>';
+    html += '<tr>';
+    html += '<td class="font-medium">' + sale.invoice_no + '</td>';
+    html += '<td>' + sale.customer_name + '</td>';
+    html += '<td>KES ' + Number(sale.total_amount).toFixed(2) + '</td>';
+    html += '<td><span class="dash-badge ' + paymentBadgeClass + '">' + sale.payment_method + '</span></td>';
+    html += '<td class="dash-text-muted">' + new Date(sale.created_at).toLocaleDateString() + '</td>';
     html += '</tr>';
   });
   
