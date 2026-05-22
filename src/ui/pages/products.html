@@ -1,23 +1,18 @@
 <template id="productsPageTemplate">
-  <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">Products</h1>
-        <p class="text-gray-500">Manage inventory products</p>
-      </div>
-      <button
-        onclick="openCreateProductModal()"
-        class="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Add Product
-      </button>
+  <div class="page-header">
+    <div>
+      <h1 class="page-header__title">Products</h1>
+      <p class="page-header__subtitle">Manage inventory products</p>
     </div>
-    <div
-      id="productsTableContainer"
-      class="bg-white rounded shadow p-4"
+    <button
+      onclick="openCreateProductModal()"
+      class="btn btn--primary"
     >
-      Loading products...
-    </div>
+      Add Product
+    </button>
+  </div>
+  <div class="card" id="productsTableContainer">
+    Loading products...
   </div>
 </template>
 

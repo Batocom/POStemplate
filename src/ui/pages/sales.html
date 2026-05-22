@@ -1,23 +1,18 @@
 <template id="salesPageTemplate">
-  <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">Sales History</h1>
-        <p class="text-gray-500">View all completed sales</p>
-      </div>
-      <button
-        onclick="Router.go('pos')"
-        class="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        New Sale
-      </button>
+  <div class="page-header">
+    <div>
+      <h1 class="page-header__title">Sales History</h1>
+      <p class="page-header__subtitle">View all completed sales</p>
     </div>
-    <div
-      id="salesTableContainer"
-      class="bg-white rounded shadow p-4"
+    <button
+      onclick="Router.go('pos')"
+      class="btn btn--primary"
     >
-      Loading sales...
-    </div>
+      New Sale
+    </button>
+  </div>
+  <div class="card" id="salesTableContainer">
+    Loading sales...
   </div>
 </template>
 
@@ -68,114 +63,9 @@
     </div>
     
     <div class="receipt__actions">
-      <button onclick="printCurrentReceipt()" class="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
-        <span>&#128424;</span> Print Receipt
+      <button onclick="printCurrentReceipt()" class="btn btn--primary">
+        Print Receipt
       </button>
     </div>
   </div>
 </div>
-
-<style>
-/* ===== RECEIPT DISPLAY (P-06) ===== */
-.receipt {
-  padding: 0;
-}
-
-.receipt__header {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.receipt__field {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  font-size: 0.9rem;
-}
-
-.receipt__label {
-  color: #666;
-  font-weight: 500;
-}
-
-.receipt__value {
-  font-weight: 600;
-  color: #333;
-}
-
-.receipt__section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.receipt__table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 16px;
-}
-
-.receipt__table th {
-  text-align: left;
-  padding: 8px 12px;
-  border-bottom: 2px solid #e0e0e0;
-  font-size: 0.85rem;
-  color: #666;
-  text-transform: uppercase;
-}
-
-.receipt__table th:not(:first-child) {
-  text-align: right;
-}
-
-.receipt__table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 0.9rem;
-}
-
-.receipt__table td:not(:first-child) {
-  text-align: right;
-}
-
-.receipt__totals {
-  border-top: 2px solid #333;
-  padding-top: 12px;
-  margin-bottom: 16px;
-}
-
-.receipt__total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.receipt__total-label {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.receipt__total-value {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #2563eb;
-}
-
-.receipt__actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.receipt__actions button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-</style>
