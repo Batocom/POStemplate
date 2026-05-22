@@ -1,87 +1,129 @@
 <template id="createProductModalTemplate">
-  <form class="space-y-4" onsubmit="submitCreateProduct(event)">
-    <input
-      id="productName"
-      type="text"
-      placeholder="Product name"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <input
-      id="sellPrice"
-      type="number"
-      placeholder="Sell price"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <input
-      id="buyPrice"
-      type="number"
-      placeholder="Buy price"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <input
-      id="stockQty"
-      type="number"
-      placeholder="Opening stock"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <select id="unitSelect" class="w-full border p-3 rounded">
-      <option value="">Loading units...</option>
-    </select>
-    <select id="categorySelect" class="w-full border p-3 rounded">
-      <option value="">Loading categories...</option>
-    </select>
-    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
-      Save Product
-    </button>
+  <form class="form" onsubmit="submitCreateProduct(event)">
+    <div class="form-group">
+      <label for="productName" class="form-label">Product Name</label>
+      <input
+        id="productName"
+        type="text"
+        placeholder="Product name"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="sellPrice" class="form-label">Sell Price</label>
+      <input
+        id="sellPrice"
+        type="number"
+        placeholder="Sell price"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="buyPrice" class="form-label">Buy Price</label>
+      <input
+        id="buyPrice"
+        type="number"
+        placeholder="Buy price"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="stockQty" class="form-label">Opening Stock</label>
+      <input
+        id="stockQty"
+        type="number"
+        placeholder="Opening stock"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="unitSelect" class="form-label">Unit</label>
+      <select id="unitSelect" class="form-input">
+        <option value="">Loading units...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="categorySelect" class="form-label">Category</label>
+      <select id="categorySelect" class="form-input">
+        <option value="">Loading categories...</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn--secondary" onclick="closeModal()">Cancel</button>
+      <button type="submit" class="btn btn--primary btn--lg btn--full">
+        Save Product
+      </button>
+    </div>
   </form>
 </template>
 
 <template id="editProductModalTemplate">
-  <form class="space-y-4" onsubmit="Edit.submit(event)">
+  <form class="form" onsubmit="Edit.submit(event)">
     <input
       id="editProductId"
       type="hidden"
     />
-    <input
-      id="editProductName"
-      type="text"
-      placeholder="Product name"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <input
-      id="editSellPrice"
-      type="number"
-      placeholder="Sell price"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <input
-      id="editBuyPrice"
-      type="number"
-      placeholder="Buy price"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <input
-      id="editStockQty"
-      type="number"
-      placeholder="Stock quantity"
-      class="w-full border p-3 rounded"
-      required
-    />
-    <select id="editUnitSelect" class="w-full border p-3 rounded">
-      <option value="">Loading units...</option>
-    </select>
-    <select id="editCategorySelect" class="w-full border p-3 rounded">
-      <option value="">Loading categories...</option>
-    </select>
-    <button type="submit" class="bg-blue-600 text-white px-4 py-3 rounded w-full">
-      Update Product
-    </button>
+    <div class="form-group">
+      <label for="editProductName" class="form-label">Product Name</label>
+      <input
+        id="editProductName"
+        type="text"
+        placeholder="Product name"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="editSellPrice" class="form-label">Sell Price</label>
+      <input
+        id="editSellPrice"
+        type="number"
+        placeholder="Sell price"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="editBuyPrice" class="form-label">Buy Price</label>
+      <input
+        id="editBuyPrice"
+        type="number"
+        placeholder="Buy price"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="editStockQty" class="form-label">Stock Quantity</label>
+      <input
+        id="editStockQty"
+        type="number"
+        placeholder="Stock quantity"
+        class="form-input"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="editUnitSelect" class="form-label">Unit</label>
+      <select id="editUnitSelect" class="form-input">
+        <option value="">Loading units...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="editCategorySelect" class="form-label">Category</label>
+      <select id="editCategorySelect" class="form-input">
+        <option value="">Loading categories...</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn--secondary" onclick="closeModal()">Cancel</button>
+      <button type="submit" class="btn btn--primary btn--lg btn--full">
+        Update Product
+      </button>
+    </div>
   </form>
 </template>
