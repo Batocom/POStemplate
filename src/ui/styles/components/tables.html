@@ -114,13 +114,29 @@
       padding: var(--space-2) var(--space-3);
       background: var(--color-bg-subtle);
       font-weight: var(--font-weight-semibold);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       text-align: left;
       border-bottom: 2px solid var(--color-border-default);
+    }
+
+    /* Cursor pointer for sortable headers */
+    .table th[onclick] {
+      cursor: pointer;
+      user-select: none;
     }
 
     /* Remove last-child border override from mobile */
     .table td:last-child {
       border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    /* Desktop row hover effect */
+    .table tbody tr:hover {
+      background: var(--color-bg-subtle);
+      transition: background var(--transition-fast) var(--easing-default);
     }
   }
 
