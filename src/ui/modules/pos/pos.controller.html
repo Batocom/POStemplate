@@ -143,9 +143,9 @@ const POSPage = {
           }
         }
 
-        // 300 ms > 200 ms payment modal close animation — receipt overlay
+        // 400 ms > 200 ms payment modal close animation — receipt overlay
         // is created only after removeExisting() has already fired.
-        openSalesModal('Sale Receipt', 320);
+        openSalesModal('Sale Receipt', 400);
       };
       EventBus.on("saleCompleted", POSPage._onSaleCompleted);
 

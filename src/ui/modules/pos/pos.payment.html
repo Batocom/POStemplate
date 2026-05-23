@@ -369,15 +369,7 @@ const PaymentModal = {
       // Close the payment modal.
       // The onClose callback in openPaymentModal() will reset the DOM guard
       // flag and return #paymentModalContent to its home wrapper.
-      // As a safety net we also call _returnNodeHome after the modal's
-      // animation delay (220 ms) in case onClose doesn't fire cleanly.
       Modal.close();
-      setTimeout(function() {
-        if (typeof _setPaymentModalOpen === 'function') _setPaymentModalOpen(false);
-        if (typeof _returnNodeHome === 'function') {
-          _returnNodeHome('paymentModalContent', 'paymentModalContent-home');
-        }
-      }, 220);
 
       // CheckoutService.process() already emitted saleCompleted and set
       // saleResult._saleCompletedEmitted = true. Only emit here as a

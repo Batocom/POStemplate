@@ -63,6 +63,13 @@ const CheckoutService = {
       // Clear cart after the event so receipt population has cart data
       CartService.clear();
 
+      // Reset payment state for next sale
+      CartState.payment.method = 'cash';
+      CartState.payment.amountPaid = 0;
+      CartState.payment.splits = [];
+      CartState.payment.ledger = 0;
+      CartState.customer = null;
+
       return saleData;
       
     } catch (error) {

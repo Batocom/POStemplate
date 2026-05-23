@@ -408,6 +408,18 @@
     // DOM-based guard — immune to GAS multi-render script duplication.
     if (_isPaymentModalOpen()) {
       console.warn('openPaymentModal: already open, ignoring duplicate call.');
+      // Force reset the guard if it's been stuck for more than 5 seconds
+      var home = document.getElementById('paymentModalContent-home');
+      if (home) {
+        var stuckTime = home.getAttribute('data-modal-stuck-since');
+        if (stuckTime && (Date.now() - parseInt(stuckTime)) > 5000) {
+          console.warn('Guard stuck for >5s, force resetting');
+          _setPaymentModalOpen(false);
+          home.removeAttribute('data-modal-stuck-since');
+        } else if (!stuckTime) {
+          home.setAttribute('data-modal-stuck-since', Date.now().toString());
+        }
+      }
       return;
     }
 
@@ -417,7 +429,7 @@
       // next attempt can recover without a page reload.
       console.error('openPaymentModal: #paymentModalContent not found — resetting state.');
       _setPaymentModalOpen(false);
-      return;
+      return;  // <-- ADD THIS RETURN
     }
 
     _setPaymentModalOpen(true);
