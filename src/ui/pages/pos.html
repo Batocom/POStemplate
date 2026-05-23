@@ -460,13 +460,22 @@
     paymentNode.style.display = 'block';
     modalBody.appendChild(paymentNode);
 
-    // 3. Safe to init now.
-    PaymentModal.init();
-
-    // 4. Notify controller to (re-)attach input listeners.
-    if (typeof EventBus !== 'undefined') {
-      EventBus.emit('paymentModalReady');
-    }
+    // 3. Wait a tiny bit for DOM to settle, then init
+    setTimeout(function() {
+      // Reset payment state to prevent default cash with 0
+      CartState.payment.method = 'cash';
+      CartState.payment.amountPaid = 0;
+      CartState.payment.splits = [];
+      CartState.payment.ledger = 0;
+      
+      // Safe to init now
+      PaymentModal.init();
+      
+      // 4. Notify controller to (re-)attach input listeners.
+      if (typeof EventBus !== 'undefined') {
+        EventBus.emit('paymentModalReady');
+      }
+    }, 50);
   }
 
   /**
@@ -512,6 +521,31 @@
         size: 'md',
         onClose: function() {
           _returnNodeHome('salesModalContent', 'salesModalContent-home');
+          // Re-render POS page after receipt modal closes
+          // This ensures all state is fresh for the next sale
+          setTimeout(function() {
+            // Reset payment state
+            CartState.payment.method = 'cash';
+            CartState.payment.amountPaid = 0;
+            CartState.payment.splits = [];
+            CartState.payment.ledger = 0;
+            CartState.customer = null;
+            
+            // Re-render cart and totals
+            CartTable.render();
+            TotalsPanel.render();
+            
+            // Update checkout button
+            if (typeof POSPage !== 'undefined' && POSPage.updateCheckoutButton) {
+              POSPage.updateCheckoutButton();
+            }
+            
+            // Force reset the payment modal guard
+            _setPaymentModalOpen(false);
+            
+            // Ensure payment node is back in its home
+            _returnNodeHome('paymentModalContent', 'paymentModalContent-home');
+          }, 100);
         }
       });
 

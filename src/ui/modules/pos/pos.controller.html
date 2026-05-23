@@ -144,7 +144,20 @@ const POSPage = {
             : CartState.items || [];
           if (items.length > 0) {
             tbody.innerHTML = items.map(function(item) {
-              var name     = item.name     || item.productName || '';
+              // Get product name - try multiple sources
+              var name = item.name || item.productName || '';
+              
+              // If name is still empty and we have a product_id, try to look it up
+              if (!name && item.product_id) {
+                // Check if we have a product map from the sale data
+                if (d.productMap && d.productMap[item.product_id]) {
+                  name = d.productMap[item.product_id];
+                } else {
+                  // Fall back to showing the product_id as a last resort
+                  name = 'Product #' + item.product_id;
+                }
+              }
+              
               var qty      = item.quantity || item.qty         || 1;
               var price    = item.price    || item.sell_price  || item.unitPrice || 0;
               var subtotal = item.subtotal || item.total       || (qty * price);
