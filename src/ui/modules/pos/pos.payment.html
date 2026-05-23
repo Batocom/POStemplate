@@ -49,8 +49,10 @@ const PaymentModal = {
     // Render payment methods dynamically
     this._renderPaymentMethods();
     
-    // Reset all sections to hidden
-    document.querySelectorAll('.payment-section').forEach(s => {
+    // Reset all sections to hidden — scope to payment container only
+    // so the hidden home wrapper's copy is never accidentally targeted
+    const paymentRoot = document.getElementById('paymentModalContent') || document;
+    paymentRoot.querySelectorAll('.payment-section').forEach(s => {
       s.style.display = 'none';
       s.style.opacity = '0';
       s.style.transform = 'translateY(10px)';
@@ -125,8 +127,9 @@ const PaymentModal = {
       }
     });
     
-    // Hide all sections first
-    document.querySelectorAll('.payment-section').forEach(s => {
+    // Hide all sections first — scope to payment container only
+    const paymentRoot = document.getElementById('paymentModalContent') || document;
+    paymentRoot.querySelectorAll('.payment-section').forEach(s => {
       s.style.display = 'none';
       s.style.opacity = '0';
       s.style.transform = 'translateY(10px)';
@@ -355,17 +358,38 @@ const PaymentModal = {
         };
       }
       
-      await CheckoutService.process(paymentData);
-      
-      // Show success briefly before closing
+      const saleResult = await CheckoutService.process(paymentData);
+
+      // Show success state on button briefly
       const confirmBtn = document.getElementById("confirm-payment-btn");
       const btnText = confirmBtn?.querySelector('.btn-text');
       if (btnText) btnText.textContent = "✓ Sale Complete!";
-      
-      // Brief delay to show success
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Close the payment modal.
+      // The onClose callback in openPaymentModal() will reset the DOM guard
+      // flag and return #paymentModalContent to its home wrapper.
+      // As a safety net we also call _returnNodeHome after the modal's
+      // animation delay (220 ms) in case onClose doesn't fire cleanly.
       Modal.close();
+      setTimeout(function() {
+        if (typeof _setPaymentModalOpen === 'function') _setPaymentModalOpen(false);
+        if (typeof _returnNodeHome === 'function') {
+          _returnNodeHome('paymentModalContent', 'paymentModalContent-home');
+        }
+      }, 220);
+
+      // CheckoutService.process() already emitted saleCompleted and set
+      // saleResult._saleCompletedEmitted = true. Only emit here as a
+      // fallback if somehow it didn't (e.g. a custom CheckoutService).
+      if (typeof EventBus !== 'undefined' && !(saleResult && saleResult._saleCompletedEmitted)) {
+        EventBus.emit('saleCompleted', {
+          _saleCompletedEmitted: true,
+          paymentMethod: paymentData.method,
+          total: CartState.summary.total,
+          date: new Date().toLocaleString()
+        });
+      }
       
     } catch (error) {
       this._setLoading(false);

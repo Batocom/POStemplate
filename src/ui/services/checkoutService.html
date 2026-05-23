@@ -42,20 +42,27 @@ const CheckoutService = {
       
       const saleData = response.data;
       
-      // Show success
+      // Show success toast
       Toast.success("Sale completed successfully!");
-      
-      // Show receipt modal with print option
-      if (saleData && saleData.saleId) {
-        await ReceiptService.show(saleData.saleId);
-      }
-      
-      // Clear cart
-      CartService.clear();
-      
+
       CartState.status = "completed";
+
+      // Mark the flag ON saleData itself so the return value carries it.
+      // confirm() checks saleResult._saleCompletedEmitted to avoid a
+      // second emit — it must see the flag on the returned object.
+      saleData._saleCompletedEmitted = true;
+
+      // Emit BEFORE clearing the cart so the controller's saleCompleted
+      // listener can still read CartState.items for the receipt table.
+      // DO NOT call Modal.open() or ReceiptService.show() here — opening
+      // a modal while the payment overlay is active causes modalService's
+      // removeExisting() to destroy #paymentModalContent without running
+      // its onClose, orphaning the node and breaking every subsequent sale.
       EventBus.emit("saleCompleted", saleData);
-      
+
+      // Clear cart after the event so receipt population has cart data
+      CartService.clear();
+
       return saleData;
       
     } catch (error) {

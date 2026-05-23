@@ -80,19 +80,93 @@ const POSPage = {
         TotalsPanel.render();
       });
       
-      // Initialize payment amount input
-      const paymentInput = document.getElementById("payment-amount");
-      if (paymentInput) {
-        paymentInput.addEventListener("input", () => {
-          PaymentModal.onAmountChange();
-        });
-        paymentInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            PaymentModal.confirm();
-          }
-        });
+      // ── Receipt modal ───────────────────────────────────────────
+      // saleCompleted is emitted by CheckoutService BEFORE CartService.clear()
+      // so CartState.items is still populated here for the receipt table.
+      // openSalesModal uses a 300 ms delay so the payment modal's 200 ms
+      // close animation (modalService removeExisting) has already fired
+      // before the receipt overlay is created.
+      // Use a named handler so we can guarantee it is only registered once
+      // even if POSPage.init() is called more than once (GAS multi-render).
+      if (!POSPage._saleCompletedBound) {
+        POSPage._saleCompletedBound = true;
+      } else {
+        // Already registered — skip re-registering to avoid double receipts
+        EventBus.off("saleCompleted", POSPage._onSaleCompleted);
       }
-      
+
+      POSPage._onSaleCompleted = function(saleData) {
+        const d = saleData || {};
+
+        // Helper: set text on a receipt field by id
+        const setField = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = (val !== undefined && val !== null) ? String(val) : '';
+        };
+
+        // Map backend field names → receipt modal elements.
+        // Backend returns: saleId, invoiceNumber, total, paymentMethod,
+        // customerName, items[], date/createdAt
+        setField('modal-invoice',
+          d.invoiceNumber || d.saleId || d.id || '');
+        setField('modal-customer',
+          d.customerName || d.customer_name || 'Walk-in');
+        setField('modal-date',
+          d.date || d.createdAt || d.created_at || new Date().toLocaleString());
+        setField('modal-payment',
+          d.paymentMethod || d.payment_method || CartState.payment.method || '');
+        setField('modal-total',
+          PricingService.formatCurrency(
+            d.total || d.grandTotal || CartState.summary.total || 0));
+
+        // Build items table from saleData.items or fall back to CartState
+        const tbody = document.getElementById('modal-items-body');
+        if (tbody) {
+          const items = (Array.isArray(d.items) && d.items.length > 0)
+            ? d.items
+            : CartState.items || [];
+          if (items.length > 0) {
+            tbody.innerHTML = items.map(function(item) {
+              var name     = item.name     || item.productName || '';
+              var qty      = item.quantity || item.qty         || 1;
+              var price    = item.price    || item.sell_price  || item.unitPrice || 0;
+              var subtotal = item.subtotal || item.total       || (qty * price);
+              return '<tr>' +
+                '<td>' + name + '</td>' +
+                '<td>' + qty  + '</td>' +
+                '<td>' + PricingService.formatCurrency(price)    + '</td>' +
+                '<td>' + PricingService.formatCurrency(subtotal) + '</td>' +
+              '</tr>';
+            }).join('');
+          } else {
+            tbody.innerHTML = '<tr><td colspan="4">No items</td></tr>';
+          }
+        }
+
+        // 300 ms > 200 ms payment modal close animation — receipt overlay
+        // is created only after removeExisting() has already fired.
+        openSalesModal('Sale Receipt', 320);
+      };
+      EventBus.on("saleCompleted", POSPage._onSaleCompleted);
+
+      // ── Payment input listeners ──────────────────────────────────
+      // #payment-amount lives inside #paymentModalContent which is NOT
+      // in the document at POSPage.init() time.  Attaching listeners
+      // here silently fails.  Instead we attach them each time the
+      // payment modal is moved into the DOM, via paymentModalReady.
+      EventBus.on("paymentModalReady", () => {
+        const paymentInput = document.getElementById("payment-amount");
+        if (paymentInput) {
+          // Clone to drop any previously attached duplicate listeners
+          const fresh = paymentInput.cloneNode(true);
+          paymentInput.parentNode.replaceChild(fresh, paymentInput);
+          fresh.addEventListener("input", () => PaymentModal.onAmountChange());
+          fresh.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") PaymentModal.confirm();
+          });
+        }
+      });
+
     } catch (error) {
       Toast.error("Failed to initialize POS: " + error.message);
     }

@@ -96,7 +96,7 @@
       <!-- Checkout Button -->
       <div class="checkout-actions">
         <button class="btn btn--primary btn--lg btn--full" 
-                onclick="PaymentModal.init(); Modal.open({ title: 'Complete Payment', content: document.getElementById('paymentModalContent').innerHTML, size: 'md' });"
+                onclick="openPaymentModal()"
                 id="checkout-btn" disabled>
           Checkout (KES 0.00)
         </button>
@@ -104,250 +104,417 @@
     </div>
   </div>
   
-  <!-- Receipt Modal Content (hidden, used by viewSaleReceipt and checkout) -->
-  <div id="salesModalContent" style="display:none;">
-    <div class="receipt-modal">
-      <div class="receipt-header-info">
-        <div class="receipt-field">
-          <span class="receipt-label">Invoice:</span>
-          <span id="modal-invoice" class="receipt-value"></span>
+  <!-- ============================================================
+       STABLE HOMES: These wrappers keep the real DOM nodes safe
+       between modal uses. Never remove these wrappers.
+       ============================================================ -->
+
+  <!-- Stable home for the Sales/Receipt modal node -->
+  <div id="salesModalContent-home" style="display:none;">
+    <div id="salesModalContent">
+      <div class="receipt-modal">
+        <div class="receipt-header-info">
+          <div class="receipt-field">
+            <span class="receipt-label">Invoice:</span>
+            <span id="modal-invoice" class="receipt-value"></span>
+          </div>
+          <div class="receipt-field">
+            <span class="receipt-label">Customer:</span>
+            <span id="modal-customer" class="receipt-value"></span>
+          </div>
+          <div class="receipt-field">
+            <span class="receipt-label">Date:</span>
+            <span id="modal-date" class="receipt-value"></span>
+          </div>
+          <div class="receipt-field">
+            <span class="receipt-label">Payment:</span>
+            <span id="modal-payment" class="receipt-value"></span>
+          </div>
         </div>
-        <div class="receipt-field">
-          <span class="receipt-label">Customer:</span>
-          <span id="modal-customer" class="receipt-value"></span>
+        
+        <div class="receipt-items-section">
+          <h4 class="receipt-section-title">Items</h4>
+          <table class="receipt-items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="modal-items-body">
+              <!-- Items rendered here -->
+            </tbody>
+          </table>
         </div>
-        <div class="receipt-field">
-          <span class="receipt-label">Date:</span>
-          <span id="modal-date" class="receipt-value"></span>
+        
+        <div class="receipt-total-section">
+          <div class="receipt-total-row">
+            <span class="receipt-total-label">Total Amount</span>
+            <span id="modal-total" class="receipt-total-value"></span>
+          </div>
         </div>
-        <div class="receipt-field">
-          <span class="receipt-label">Payment:</span>
-          <span id="modal-payment" class="receipt-value"></span>
+        
+        <div class="receipt-actions">
+          <button onclick="printCurrentReceipt()" class="btn btn--primary">
+            <span>&#128424;</span> Print Receipt
+          </button>
+          <button onclick="closeSalesModal()" class="btn btn--secondary">
+            Close
+          </button>
         </div>
-      </div>
-      
-      <div class="receipt-items-section">
-        <h4 class="receipt-section-title">Items</h4>
-        <table class="receipt-items-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Qty</th>
-              <th>Price</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody id="modal-items-body">
-            <!-- Items rendered here -->
-          </tbody>
-        </table>
-      </div>
-      
-      <div class="receipt-total-section">
-        <div class="receipt-total-row">
-          <span class="receipt-total-label">Total Amount</span>
-          <span id="modal-total" class="receipt-total-value"></span>
-        </div>
-      </div>
-      
-      <div class="receipt-actions">
-        <button onclick="printCurrentReceipt()" class="btn btn--primary">
-          <span>&#128424;</span> Print Receipt
-        </button>
-        <button onclick="Modal.close()" class="btn btn--secondary">
-          Close
-        </button>
       </div>
     </div>
   </div>
-  
-  <!-- Payment Modal Content (hidden, used by Modal) -->
-  <div id="paymentModalContent" style="display:none;">
-    <div class="payment-modal-inner">
-      <!-- Total Display Banner -->
-      <div class="payment-total-display">
-        <div class="payment-total-label">Total Due</div>
-        <div class="payment-total-amount" id="payment-total">KES 0.00</div>
-      </div>
-      
-      <!-- Payment Method Selector -->
-      <div class="payment-methods">
-        <label class="payment-method-label">Select Payment Method</label>
-        <div class="payment-method-options" id="payment-method-options">
-          <!-- Methods rendered dynamically by PaymentModal -->
+
+  <!-- Stable home for the Payment modal node -->
+  <div id="paymentModalContent-home" style="display:none;">
+    <div id="paymentModalContent">
+      <div class="payment-modal-inner">
+        <!-- Total Display Banner -->
+        <div class="payment-total-display">
+          <div class="payment-total-label">Total Due</div>
+          <div class="payment-total-amount" id="payment-total">KES 0.00</div>
         </div>
-      </div>
-      
-      <!-- ===== CASH SECTION ===== -->
-      <div class="payment-section" id="cash-section">
-        <div class="payment-section-header">
-          <span class="payment-section-icon">💰</span>
-          <span class="payment-section-title">Cash Payment</span>
-        </div>
-        <div class="payment-section-hint">Enter the amount received from customer</div>
-        <div class="payment-amount">
-          <label class="payment-amount-label">Amount Received</label>
-          <div class="payment-amount-input-wrapper">
-            <span class="currency-symbol">KES</span>
-            <input type="number" 
-                   id="payment-amount" 
-                   class="payment-amount-input" 
-                   step="0.01" 
-                   min="0" 
-                   placeholder="0.00"
-                   autofocus>
-          </div>
-        </div>
-        <!-- Change Display -->
-        <div class="payment-change" id="change-display" style="display:none;">
-          <div class="change-icon">↩</div>
-          <div class="change-info">
-            <div class="change-label">Change Due</div>
-            <div class="change-amount" id="change-amount">KES 0.00</div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- ===== M-PESA SECTION ===== -->
-      <div class="payment-section" id="mpesa-section" style="display:none;">
-        <div class="payment-section-header">
-          <span class="payment-section-icon">📱</span>
-          <span class="payment-section-title">M-Pesa Payment</span>
-        </div>
-        <div class="payment-section-hint">Send STK push to customer's phone</div>
-        <div class="payment-amount-readonly">
-          <label class="payment-amount-label">Amount to Charge</label>
-          <div class="payment-amount-readonly-value" id="mpesa-amount-display">KES 0.00</div>
-        </div>
-        <div class="payment-mpesa-section" id="mpesa-input-section">
-          <label class="payment-amount-label">M-Pesa Phone Number</label>
-          <div class="payment-amount-input-wrapper">
-            <span class="currency-symbol">📱</span>
-            <input type="tel" 
-                   id="mpesa-phone" 
-                   class="payment-amount-input" 
-                   placeholder="e.g. 254712345678"
-                   autocomplete="off">
-          </div>
-          <div class="payment-field-hint">Format: 254XXXXXXXXX or 07XXXXXXXX</div>
-        </div>
-        <!-- M-Pesa status area -->
-        <div class="payment-status-area" id="mpesa-status-area" style="display:none;">
-          <div class="status-spinner"></div>
-          <div class="status-text" id="mpesa-status-text">Waiting for customer to enter PIN...</div>
-        </div>
-      </div>
-      
-      <!-- ===== CREDIT SECTION ===== -->
-      <div class="payment-section" id="credit-section" style="display:none;">
-        <div class="payment-section-header">
-          <span class="payment-section-icon">📋</span>
-          <span class="payment-section-title">Credit / Debtor Payment</span>
-        </div>
-        <div class="payment-section-hint">Record this sale as credit for a customer</div>
-        <div class="payment-amount-readonly">
-          <label class="payment-amount-label">Amount to Record</label>
-          <div class="payment-amount-readonly-value" id="credit-amount-display">KES 0.00</div>
-        </div>
-        <div class="credit-customer">
-          <label class="payment-amount-label">Select Customer</label>
-          <div class="credit-customer-wrapper">
-            <select id="credit-customer-select" class="credit-customer-select">
-              <option value="">Loading customers...</option>
-            </select>
-            <div class="credit-loading-spinner" id="credit-loading-spinner" style="display:none;"></div>
-          </div>
-          <div class="credit-error" id="credit-load-error" style="display:none;">
-            <span>Failed to load customers</span>
-            <button class="credit-retry-btn" onclick="PaymentMethodRegistry.get('credit').handler._loadCustomers()">Retry</button>
-          </div>
-        </div>
-        <div class="credit-balance" id="credit-balance" style="display:none;">
-          <div class="credit-balance-icon">⚠️</div>
-          <div class="credit-balance-info">
-            <div class="credit-balance-label">Existing Balance</div>
-            <div class="credit-balance-amount" id="credit-balance-amount">KES 0.00</div>
-          </div>
-        </div>
-        <div class="credit-note">
-          <label class="payment-amount-label">Notes (optional)</label>
-          <textarea id="credit-notes" class="credit-notes-input" placeholder="Add notes for this credit sale..." rows="2"></textarea>
-        </div>
-      </div>
-      
-      <!-- ===== SPLIT SECTION ===== -->
-      <div class="payment-section" id="split-section" style="display:none;">
-        <div class="payment-section-header">
-          <span class="payment-section-icon">🔀</span>
-          <span class="payment-section-title">Split Payment</span>
-        </div>
-        <div class="payment-section-hint">Divide payment across multiple methods</div>
         
-        <!-- Split progress bar -->
-        <div class="split-progress-container">
-          <div class="split-progress-bar" id="split-progress-bar">
-            <div class="split-progress-fill" id="split-progress-fill" style="width: 0%;"></div>
-          </div>
-          <div class="split-progress-text">
-            <span>Paid: <strong id="split-paid-amount">KES 0.00</strong></span>
-            <span>Remaining: <strong id="split-remaining-amount" class="split-remaining-danger">KES 0.00</strong></span>
+        <!-- Payment Method Selector -->
+        <div class="payment-methods">
+          <label class="payment-method-label">Select Payment Method</label>
+          <div class="payment-method-options" id="payment-method-options">
+            <!-- Methods rendered dynamically by PaymentModal -->
           </div>
         </div>
         
-        <!-- Add split row -->
-        <div class="split-add-row">
-          <div class="split-add-field">
-            <label class="split-add-label">Method</label>
-            <select id="split-method-select" class="split-method-select">
-              <option value="cash">💰 Cash</option>
-              <option value="mpesa">📱 M-Pesa</option>
-              <option value="credit">📋 Credit</option>
-            </select>
+        <!-- ===== CASH SECTION ===== -->
+        <div class="payment-section" id="cash-section">
+          <div class="payment-section-header">
+            <span class="payment-section-icon">💰</span>
+            <span class="payment-section-title">Cash Payment</span>
           </div>
-          <div class="split-add-field">
-            <label class="split-add-label">Amount</label>
-            <input type="number" 
-                   id="split-amount-input" 
-                   class="split-amount-input" 
-                   placeholder="0.00"
-                   step="0.01"
-                   min="0">
+          <div class="payment-section-hint">Enter the amount received from customer</div>
+          <div class="payment-amount">
+            <label class="payment-amount-label">Amount Received</label>
+            <div class="payment-amount-input-wrapper">
+              <span class="currency-symbol">KES</span>
+              <input type="number" 
+                     id="payment-amount" 
+                     class="payment-amount-input" 
+                     step="0.01" 
+                     min="0" 
+                     placeholder="0.00"
+                     autofocus>
+            </div>
           </div>
-          <button id="split-add-btn" class="btn btn--primary btn--sm split-add-btn">+ Add</button>
+          <!-- Change Display -->
+          <div class="payment-change" id="change-display" style="display:none;">
+            <div class="change-icon">↩</div>
+            <div class="change-info">
+              <div class="change-label">Change Due</div>
+              <div class="change-amount" id="change-amount">KES 0.00</div>
+            </div>
+          </div>
         </div>
         
-        <!-- Split list -->
-        <div class="split-list-container">
-          <label class="split-list-label">Payment Splits</label>
-          <div id="split-list" class="split-list">
-            <div class="split-empty">No splits added yet</div>
+        <!-- ===== M-PESA SECTION ===== -->
+        <div class="payment-section" id="mpesa-section" style="display:none;">
+          <div class="payment-section-header">
+            <span class="payment-section-icon">📱</span>
+            <span class="payment-section-title">M-Pesa Payment</span>
+          </div>
+          <div class="payment-section-hint">Send STK push to customer's phone</div>
+          <div class="payment-amount-readonly">
+            <label class="payment-amount-label">Amount to Charge</label>
+            <div class="payment-amount-readonly-value" id="mpesa-amount-display">KES 0.00</div>
+          </div>
+          <div class="payment-mpesa-section" id="mpesa-input-section">
+            <label class="payment-amount-label">M-Pesa Phone Number</label>
+            <div class="payment-amount-input-wrapper">
+              <span class="currency-symbol">📱</span>
+              <input type="tel" 
+                     id="mpesa-phone" 
+                     class="payment-amount-input" 
+                     placeholder="e.g. 254712345678"
+                     autocomplete="off">
+            </div>
+            <div class="payment-field-hint">Format: 254XXXXXXXXX or 07XXXXXXXX</div>
+          </div>
+          <!-- M-Pesa status area -->
+          <div class="payment-status-area" id="mpesa-status-area" style="display:none;">
+            <div class="status-spinner"></div>
+            <div class="status-text" id="mpesa-status-text">Waiting for customer to enter PIN...</div>
           </div>
         </div>
-      </div>
-      
-      <!-- Summary Row -->
-      <div class="payment-summary">
-        <div class="summary-row">
-          <span class="summary-label">Items</span>
-          <span class="summary-value" id="payment-item-count">0</span>
+        
+        <!-- ===== CREDIT SECTION ===== -->
+        <div class="payment-section" id="credit-section" style="display:none;">
+          <div class="payment-section-header">
+            <span class="payment-section-icon">📋</span>
+            <span class="payment-section-title">Credit / Debtor Payment</span>
+          </div>
+          <div class="payment-section-hint">Record this sale as credit for a customer</div>
+          <div class="payment-amount-readonly">
+            <label class="payment-amount-label">Amount to Record</label>
+            <div class="payment-amount-readonly-value" id="credit-amount-display">KES 0.00</div>
+          </div>
+          <div class="credit-customer">
+            <label class="payment-amount-label">Select Customer</label>
+            <div class="credit-customer-wrapper">
+              <select id="credit-customer-select" class="credit-customer-select">
+                <option value="">Loading customers...</option>
+              </select>
+              <div class="credit-loading-spinner" id="credit-loading-spinner" style="display:none;"></div>
+            </div>
+            <div class="credit-error" id="credit-load-error" style="display:none;">
+              <span>Failed to load customers</span>
+              <button class="credit-retry-btn" onclick="PaymentMethodRegistry.get('credit').handler._loadCustomers()">Retry</button>
+            </div>
+          </div>
+          <div class="credit-balance" id="credit-balance" style="display:none;">
+            <div class="credit-balance-icon">⚠️</div>
+            <div class="credit-balance-info">
+              <div class="credit-balance-label">Existing Balance</div>
+              <div class="credit-balance-amount" id="credit-balance-amount">KES 0.00</div>
+            </div>
+          </div>
+          <div class="credit-note">
+            <label class="payment-amount-label">Notes (optional)</label>
+            <textarea id="credit-notes" class="credit-notes-input" placeholder="Add notes for this credit sale..." rows="2"></textarea>
+          </div>
         </div>
-        <div class="summary-row">
-          <span class="summary-label">Total</span>
-          <span class="summary-value summary-total" id="payment-summary-total">KES 0.00</span>
+        
+        <!-- ===== SPLIT SECTION ===== -->
+        <div class="payment-section" id="split-section" style="display:none;">
+          <div class="payment-section-header">
+            <span class="payment-section-icon">🔀</span>
+            <span class="payment-section-title">Split Payment</span>
+          </div>
+          <div class="payment-section-hint">Divide payment across multiple methods</div>
+          
+          <!-- Split progress bar -->
+          <div class="split-progress-container">
+            <div class="split-progress-bar" id="split-progress-bar">
+              <div class="split-progress-fill" id="split-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="split-progress-text">
+              <span>Paid: <strong id="split-paid-amount">KES 0.00</strong></span>
+              <span>Remaining: <strong id="split-remaining-amount" class="split-remaining-danger">KES 0.00</strong></span>
+            </div>
+          </div>
+          
+          <!-- Add split row -->
+          <div class="split-add-row">
+            <div class="split-add-field">
+              <label class="split-add-label">Method</label>
+              <select id="split-method-select" class="split-method-select">
+                <option value="cash">💰 Cash</option>
+                <option value="mpesa">📱 M-Pesa</option>
+                <option value="credit">📋 Credit</option>
+              </select>
+            </div>
+            <div class="split-add-field">
+              <label class="split-add-label">Amount</label>
+              <input type="number" 
+                     id="split-amount-input" 
+                     class="split-amount-input" 
+                     placeholder="0.00"
+                     step="0.01"
+                     min="0">
+            </div>
+            <button id="split-add-btn" class="btn btn--primary btn--sm split-add-btn">+ Add</button>
+          </div>
+          
+          <!-- Split list -->
+          <div class="split-list-container">
+            <label class="split-list-label">Payment Splits</label>
+            <div id="split-list" class="split-list">
+              <div class="split-empty">No splits added yet</div>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <!-- Action Buttons -->
-      <div class="modal-actions">
-        <button class="modal-btn modal-btn-secondary" onclick="Modal.close()">Cancel</button>
-        <button class="modal-btn modal-btn-primary" onclick="PaymentModal.confirm()" id="confirm-payment-btn">
-          <span class="btn-text">Complete Sale</span>
-          <span class="btn-spinner" style="display:none;"></span>
-        </button>
+        
+        <!-- Summary Row -->
+        <div class="payment-summary">
+          <div class="summary-row">
+            <span class="summary-label">Items</span>
+            <span class="summary-value" id="payment-item-count">0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total</span>
+            <span class="summary-value summary-total" id="payment-summary-total">KES 0.00</span>
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-secondary" onclick="closePaymentModal()">Cancel</button>
+          <button class="modal-btn modal-btn-primary" onclick="PaymentModal.confirm()" id="confirm-payment-btn">
+            <span class="btn-text">Complete Sale</span>
+            <span class="btn-spinner" style="display:none;"></span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
+
 </div>
+
+<!-- ============================================================
+     MODAL HELPER FUNCTIONS
+     These functions move the real live DOM nodes into/out of
+     the Modal overlay instead of cloning HTML via .innerHTML,
+     which would break all getElementById references inside
+     PaymentModal, PaymentMethodRegistry, and receipt logic.
+     ============================================================ -->
+<script>
+  /**
+   * _returnNodeHome(nodeId, homeId)
+   * Safely moves a modal content node back to its stable home wrapper.
+   * Queries by ID at call-time so stale closure references never cause nulls.
+   */
+  function _returnNodeHome(nodeId, homeId) {
+    var node = document.getElementById(nodeId);
+    var home = document.getElementById(homeId);
+    if (node && home) {
+      node.style.display = 'none';
+      home.appendChild(node);
+    }
+  }
+
+  /**
+   * _isPaymentModalOpen() / _setPaymentModalOpen(bool)
+   *
+   * Guard state is stored as a data-attribute on #paymentModalContent-home
+   * instead of a JS variable.  GAS can render the <script> block multiple
+   * times, creating multiple independent variable scopes — so a plain
+   * var _paymentModalOpen ends up as several separate flags that never
+   * share state.  A DOM attribute is global, singular, and survives
+   * across all script instances.
+   */
+  function _isPaymentModalOpen() {
+    var home = document.getElementById('paymentModalContent-home');
+    return home && home.getAttribute('data-modal-open') === 'true';
+  }
+  function _setPaymentModalOpen(state) {
+    var home = document.getElementById('paymentModalContent-home');
+    if (home) home.setAttribute('data-modal-open', state ? 'true' : 'false');
+  }
+
+  /**
+   * openPaymentModal()
+   * Moves #paymentModalContent into the modal body then inits PaymentModal.
+   */
+  function openPaymentModal() {
+    // DOM-based guard — immune to GAS multi-render script duplication.
+    if (_isPaymentModalOpen()) {
+      console.warn('openPaymentModal: already open, ignoring duplicate call.');
+      return;
+    }
+
+    var paymentNode = document.getElementById('paymentModalContent');
+    if (!paymentNode) {
+      // Node is orphaned — force-reset the guard and home wrapper so the
+      // next attempt can recover without a page reload.
+      console.error('openPaymentModal: #paymentModalContent not found — resetting state.');
+      _setPaymentModalOpen(false);
+      return;
+    }
+
+    _setPaymentModalOpen(true);
+
+    // 1. Open the modal shell — creates #modal-body in the DOM.
+    Modal.open({
+      title: 'Complete Payment',
+      content: '',
+      size: 'md',
+      onClose: function() {
+        // Always reset the guard here, regardless of how the modal closed.
+        _setPaymentModalOpen(false);
+        _returnNodeHome('paymentModalContent', 'paymentModalContent-home');
+      }
+    });
+
+    // 2. Move the real node BEFORE init() so every DOM query inside
+    //    PaymentModal.init() resolves against the now-visible live node.
+    var modalBody = document.getElementById('modal-body');
+    paymentNode.style.display = 'block';
+    modalBody.appendChild(paymentNode);
+
+    // 3. Safe to init now.
+    PaymentModal.init();
+
+    // 4. Notify controller to (re-)attach input listeners.
+    if (typeof EventBus !== 'undefined') {
+      EventBus.emit('paymentModalReady');
+    }
+  }
+
+  /**
+   * closePaymentModal()
+   * Called by the Cancel button inside the payment modal.
+   */
+  function closePaymentModal() {
+    Modal.close();
+  }
+
+  /**
+   * openSalesModal(title, delayMs)
+   * Opens the receipt modal.
+   *
+   * IMPORTANT — delayMs parameter:
+   * modalService.html animates Modal.close() with a setTimeout before
+   * removing the overlay and running the onClose callback.  If the
+   * payment flow calls Modal.close() and then immediately calls
+   * openSalesModal(), the new overlay is created while the old one's
+   * removal timer is still running.  When that timer fires it calls
+   * removeExisting(), which deletes the brand-new receipt overlay.
+   * Passing a delayMs >= the modal animation duration (default 200ms)
+   * prevents the wipe.  The controller should call:
+   *
+   *   openSalesModal('Sale Receipt', 250);
+   *
+   * instead of calling it synchronously right after Modal.close().
+   *
+   * @param {string} [title]   - Modal title
+   * @param {number} [delayMs] - ms to wait before opening (default 0)
+   */
+  function openSalesModal(title, delayMs) {
+    function _open() {
+      var salesNode = document.getElementById('salesModalContent');
+      if (!salesNode) {
+        console.error('openSalesModal: #salesModalContent not found.');
+        return;
+      }
+
+      Modal.open({
+        title: title || 'Sale Receipt',
+        content: '',
+        size: 'md',
+        onClose: function() {
+          _returnNodeHome('salesModalContent', 'salesModalContent-home');
+        }
+      });
+
+      var modalBody = document.getElementById('modal-body');
+      salesNode.style.display = 'block';
+      modalBody.appendChild(salesNode);
+    }
+
+    if (delayMs && delayMs > 0) {
+      setTimeout(_open, delayMs);
+    } else {
+      _open();
+    }
+  }
+
+  /**
+   * closeSalesModal()
+   * Called by the Close button inside the receipt modal.
+   */
+  function closeSalesModal() {
+    Modal.close();
+  }
+</script>
 
 <!-- Module Scripts -->
 <?!= include('ui/modules/pos/pos.cart'); ?>
