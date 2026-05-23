@@ -21,7 +21,18 @@ const PaymentModal = {
    * Initialize modal when shown
    */
   init() {
+    console.log('PaymentModal.init() called');
+    
     const total = CartState.summary.total;
+    console.log('Total:', total);
+    
+    // Check if DOM elements exist
+    console.log('payment-total:', document.getElementById("payment-total"));
+    console.log('payment-method-options:', document.getElementById("payment-method-options"));
+    console.log('cash-section:', document.getElementById("cash-section"));
+    console.log('mpesa-section:', document.getElementById("mpesa-section"));
+    console.log('credit-section:', document.getElementById("credit-section"));
+    console.log('split-section:', document.getElementById("split-section"));
     
     // Update total display
     const totalEl = document.getElementById("payment-total");
@@ -39,7 +50,11 @@ const PaymentModal = {
     this._renderPaymentMethods();
     
     // Reset all sections to hidden
-    document.querySelectorAll('.payment-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.payment-section').forEach(s => {
+      s.style.display = 'none';
+      s.style.opacity = '0';
+      s.style.transform = 'translateY(10px)';
+    });
     
     // Reset change display
     const changeDisplay = document.getElementById("change-display");
@@ -61,6 +76,8 @@ const PaymentModal = {
     
     // Trigger amount change to update UI
     this.onAmountChange();
+    
+    console.log('PaymentModal.init() complete');
   },
   
   /**
@@ -68,9 +85,17 @@ const PaymentModal = {
    */
   _renderPaymentMethods() {
     const container = document.getElementById("payment-method-options");
-    if (!container) return;
+    if (!container) {
+      console.error('Payment method options container not found');
+      return;
+    }
     
     const methods = PaymentMethodRegistry.getAll();
+    
+    if (methods.length === 0) {
+      console.error('No payment methods registered');
+      return;
+    }
     
     container.innerHTML = methods.map(method => `
       <button class="payment-method-btn" data-method="${method.id}" onclick="PaymentModal.setMethod('${method.id}')">
@@ -78,6 +103,8 @@ const PaymentModal = {
         <span class="payment-method-label">${method.label}</span>
       </button>
     `).join("");
+    
+    console.log('Rendered payment methods:', methods.length);
   },
   
   /**
@@ -100,27 +127,23 @@ const PaymentModal = {
     
     // Hide all sections first
     document.querySelectorAll('.payment-section').forEach(s => {
+      s.style.display = 'none';
       s.style.opacity = '0';
       s.style.transform = 'translateY(10px)';
-      setTimeout(() => {
-        s.style.display = 'none';
-      }, 150);
     });
     
     // Show the selected section with animation
     const sectionId = methodId + '-section';
     const section = document.getElementById(sectionId);
     if (section) {
-      setTimeout(() => {
-        section.style.display = 'block';
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(10px)';
-        requestAnimationFrame(() => {
-          section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-          section.style.opacity = '1';
-          section.style.transform = 'translateY(0)';
-        });
-      }, 160);
+      section.style.display = 'block';
+      // Force reflow before adding transition
+      void section.offsetHeight;
+      section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      section.style.opacity = '1';
+      section.style.transform = 'translateY(0)';
+    } else {
+      console.error('Section not found:', sectionId);
     }
     
     // Call handler's onSelect
@@ -151,9 +174,18 @@ const PaymentModal = {
   },
   
   /**
-   * Calculate change on input
+   * Calculate change on input (only for cash method)
    */
   onAmountChange() {
+    const method = CartState.payment.method;
+    
+    // Only calculate change for cash method
+    if (method !== 'cash') {
+      const changeDisplay = document.getElementById("change-display");
+      if (changeDisplay) changeDisplay.style.display = "none";
+      return;
+    }
+    
     const amountInput = document.getElementById("payment-amount");
     const amount = Number(amountInput ? amountInput.value : 0) || 0;
     
@@ -192,13 +224,15 @@ const PaymentModal = {
   },
   
   /**
-   * Update confirm button state
+   * Update confirm button state based on current method validation
    */
   _updateConfirmButton() {
     const confirmBtn = document.getElementById("confirm-payment-btn");
     if (!confirmBtn) return;
     
-    const handler = PaymentMethodRegistry.get(CartState.payment.method);
+    const method = CartState.payment.method;
+    const handler = PaymentMethodRegistry.get(method);
+    
     if (handler && handler.validate) {
       try {
         handler.validate();
@@ -209,10 +243,9 @@ const PaymentModal = {
         confirmBtn.classList.add('btn--disabled');
       }
     } else {
-      const amount = Number(document.getElementById("payment-amount")?.value || 0);
-      const total = CartState.summary.total;
-      confirmBtn.disabled = amount < total;
-      confirmBtn.classList.toggle('btn--disabled', amount < total);
+      // Fallback for methods without handler
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove('btn--disabled');
     }
   },
   
@@ -299,7 +332,9 @@ const PaymentModal = {
       this._clearAllErrors();
       
       // Validate payment
-      const handler = PaymentMethodRegistry.get(CartState.payment.method);
+      const method = CartState.payment.method;
+      const handler = PaymentMethodRegistry.get(method);
+      
       if (handler && handler.validate) {
         handler.validate();
       }
@@ -314,7 +349,7 @@ const PaymentModal = {
       } else {
         // Fallback for methods without handler
         paymentData = {
-          method: CartState.payment.method,
+          method: method,
           amountPaid: Number(document.getElementById("payment-amount")?.value) || 0,
           customerId: null
         };
@@ -365,7 +400,14 @@ PaymentMethodRegistry.register('cash', {
     if (amountInput) {
       amountInput.value = total.toFixed(2);
       amountInput.disabled = false;
+      amountInput.style.display = 'block';
       amountInput.focus();
+    }
+    
+    // Make sure the amount input wrapper is visible
+    const amountWrapper = document.querySelector('.payment-amount');
+    if (amountWrapper) {
+      amountWrapper.style.display = 'block';
     }
   },
   
@@ -406,10 +448,17 @@ PaymentMethodRegistry.register('mpesa', {
     // Auto-set amount
     CartState.payment.amountPaid = total;
     
+    // Make sure the M-Pesa input section is visible
+    const mpesaInputSection = document.getElementById("mpesa-input-section");
+    if (mpesaInputSection) {
+      mpesaInputSection.style.display = 'block';
+    }
+    
     // Focus phone input
     const phoneInput = document.getElementById("mpesa-phone");
     if (phoneInput) {
       phoneInput.value = '';
+      phoneInput.style.display = 'block';
       setTimeout(() => phoneInput.focus(), 400);
     }
     
@@ -458,6 +507,12 @@ const creditHandler = {
     
     // Auto-set amount
     CartState.payment.amountPaid = total;
+    
+    // Make sure the customer select is visible
+    const customerWrapper = document.querySelector('.credit-customer');
+    if (customerWrapper) {
+      customerWrapper.style.display = 'block';
+    }
     
     // Load customers
     this._loadCustomers();
@@ -535,6 +590,12 @@ PaymentMethodRegistry.register('split', {
   requiresAmount: false,
   
   onSelect() {
+    // Make sure the split add row is visible
+    const splitAddRow = document.querySelector('.split-add-row');
+    if (splitAddRow) {
+      splitAddRow.style.display = 'flex';
+    }
+    
     // Initialize split ledger
     SplitLedger.init();
   },
