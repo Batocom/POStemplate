@@ -110,7 +110,7 @@ const PaymentModal = {
   },
   
   /**
-   * Set payment method with visual feedback
+   * Set payment method with visual feedback - TAB BEHAVIOR
    */
   setMethod(methodId) {
     CartState.payment.method = methodId;
@@ -149,6 +149,10 @@ const PaymentModal = {
       console.error('Section not found:', sectionId);
     }
     
+    // AUTO-POPULATE AMOUNT for all methods
+    const total = CartState.summary.total;
+    CartState.payment.amountPaid = total;
+    
     // Call handler's onSelect
     const handler = PaymentMethodRegistry.get(methodId);
     if (handler && handler.onSelect) {
@@ -178,6 +182,7 @@ const PaymentModal = {
   
   /**
    * Calculate change on input (only for cash method)
+   * Other methods auto-populate with total
    */
   onAmountChange() {
     const method = CartState.payment.method;
@@ -388,7 +393,7 @@ const PaymentModal = {
 };
 
 /**
- * Cash Payment Handler
+ * Cash Payment Handler - AUTO POPULATES AMOUNT
  */
 PaymentMethodRegistry.register('cash', {
   id: 'cash',
@@ -401,16 +406,32 @@ PaymentMethodRegistry.register('cash', {
     const total = CartState.summary.total;
     
     if (amountInput) {
+      // AUTO-POPULATE with total amount
       amountInput.value = total.toFixed(2);
       amountInput.disabled = false;
       amountInput.style.display = 'block';
       amountInput.focus();
+      // Select all text for easy override
+      amountInput.select();
     }
     
     // Make sure the amount input wrapper is visible
     const amountWrapper = document.querySelector('.payment-amount');
     if (amountWrapper) {
       amountWrapper.style.display = 'block';
+    }
+    
+    // Show change display
+    const changeDisplay = document.getElementById("change-display");
+    if (changeDisplay) {
+      changeDisplay.style.display = "flex";
+      changeDisplay.style.opacity = '0';
+      changeDisplay.style.transform = 'translateY(-10px)';
+      requestAnimationFrame(() => {
+        changeDisplay.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        changeDisplay.style.opacity = '1';
+        changeDisplay.style.transform = 'translateY(0)';
+      });
     }
   },
   
@@ -433,7 +454,7 @@ PaymentMethodRegistry.register('cash', {
 });
 
 /**
- * M-Pesa Payment Handler
+ * M-Pesa Payment Handler - AUTO POPULATES AMOUNT
  */
 PaymentMethodRegistry.register('mpesa', {
   id: 'mpesa',
@@ -444,12 +465,12 @@ PaymentMethodRegistry.register('mpesa', {
   onSelect() {
     const total = CartState.summary.total;
     
+    // AUTO-POPULATE amount
+    CartState.payment.amountPaid = total;
+    
     // Update amount display
     const amountDisplay = document.getElementById("mpesa-amount-display");
     if (amountDisplay) amountDisplay.textContent = PricingService.formatCurrency(total);
-    
-    // Auto-set amount
-    CartState.payment.amountPaid = total;
     
     // Make sure the M-Pesa input section is visible
     const mpesaInputSection = document.getElementById("mpesa-input-section");
@@ -485,7 +506,7 @@ PaymentMethodRegistry.register('mpesa', {
     const phoneInput = document.getElementById("mpesa-phone");
     return {
       method: 'mpesa',
-      amountPaid: CartState.summary.total,
+      amountPaid: CartState.summary.total,  // Always use total
       customerId: null,
       phone: phoneInput ? phoneInput.value.trim() : ''
     };
@@ -493,7 +514,7 @@ PaymentMethodRegistry.register('mpesa', {
 });
 
 /**
- * Credit Payment Handler
+ * Credit Payment Handler - AUTO POPULATES AMOUNT
  */
 const creditHandler = {
   id: 'credit',
@@ -504,12 +525,12 @@ const creditHandler = {
   onSelect() {
     const total = CartState.summary.total;
     
+    // AUTO-POPULATE amount
+    CartState.payment.amountPaid = total;
+    
     // Update amount display
     const amountDisplay = document.getElementById("credit-amount-display");
     if (amountDisplay) amountDisplay.textContent = PricingService.formatCurrency(total);
-    
-    // Auto-set amount
-    CartState.payment.amountPaid = total;
     
     // Make sure the customer select is visible
     const customerWrapper = document.querySelector('.credit-customer');
@@ -574,7 +595,7 @@ const creditHandler = {
     
     return {
       method: 'credit',
-      amountPaid: CartState.summary.total,
+      amountPaid: CartState.summary.total,  // Always use total
       customerId: customerSelect ? customerSelect.value : null,
       notes: notesInput ? notesInput.value : ''
     };
@@ -584,7 +605,7 @@ const creditHandler = {
 PaymentMethodRegistry.register('credit', creditHandler);
 
 /**
- * Split Payment Handler
+ * Split Payment Handler - AUTO POPULATES AMOUNT
  */
 PaymentMethodRegistry.register('split', {
   id: 'split',
@@ -593,6 +614,9 @@ PaymentMethodRegistry.register('split', {
   requiresAmount: false,
   
   onSelect() {
+    // AUTO-POPULATE ledger with total
+    CartState.payment.amountPaid = CartState.summary.total;
+    
     // Make sure the split add row is visible
     const splitAddRow = document.querySelector('.split-add-row');
     if (splitAddRow) {
