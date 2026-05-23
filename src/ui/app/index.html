@@ -39,6 +39,11 @@
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/printService').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/receiptService').getContent(); ?>
   
+  <!-- Phase 2 services -->
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/paymentMethodService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/mpesaService').getContent(); ?>
+  <?!= HtmlService.createHtmlOutputFromFile('ui/services/debtService').getContent(); ?>
+  
   <!-- Pages -->
   <?!= HtmlService.createTemplateFromFile('ui/pages/pos').evaluate().getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/login').getContent(); ?>
