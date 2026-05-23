@@ -1,0 +1,104 @@
+<script>
+/**
+ * EventBus — Simple pub/sub event system
+ *
+ * API:
+ *   EventBus.on(event, callback)       — Subscribe to an event
+ *   EventBus.off(event, callback)      — Unsubscribe a specific callback
+ *   EventBus.emit(event, data)         — Publish an event with optional data
+ *   EventBus.clear()                   — Remove all listeners
+ *
+ * The implementation stores callbacks in a Map<string, Set<Function>>.
+ * This allows multiple identical callbacks to be registered (though
+ * that is usually a bug) and supports removing a specific callback
+ * via EventBus.off(event, callback).
+ *
+ * If you need to guarantee a callback is only registered once, use
+ * a named function and pass the same reference to both on() and off().
+ */
+const EventBus = (function() {
+  // Map<eventName, Set<callback>>
+  const listeners = new Map();
+
+  return {
+    /**
+     * Subscribe to an event.
+     * @param {string} event - The event name
+     * @param {Function} callback - The handler function
+     */
+    on(event, callback) {
+      if (typeof event !== 'string' || typeof callback !== 'function') {
+        console.warn('EventBus.on: invalid arguments', event, callback);
+        return;
+      }
+      if (!listeners.has(event)) {
+        listeners.set(event, new Set());
+      }
+      listeners.get(event).add(callback);
+    },
+
+    /**
+     * Unsubscribe a specific callback from an event.
+     * If the callback is not found, this is a no-op.
+     * @param {string} event - The event name
+     * @param {Function} callback - The handler to remove
+     */
+    off(event, callback) {
+      if (typeof event !== 'string' || typeof callback !== 'function') {
+        console.warn('EventBus.off: invalid arguments', event, callback);
+        return;
+      }
+      const set = listeners.get(event);
+      if (set) {
+        set.delete(callback);
+        // Clean up empty sets to avoid memory leaks
+        if (set.size === 0) {
+          listeners.delete(event);
+        }
+      }
+    },
+
+    /**
+     * Publish an event, calling all registered callbacks.
+     * @param {string} event - The event name
+     * @param {*} [data] - Optional data passed to each callback
+     */
+    emit(event, data) {
+      if (typeof event !== 'string') {
+        console.warn('EventBus.emit: invalid event name', event);
+        return;
+      }
+      const set = listeners.get(event);
+      if (set) {
+        // Iterate over a snapshot to avoid issues if a callback
+        // modifies the set during iteration.
+        const callbacks = Array.from(set);
+        for (const callback of callbacks) {
+          try {
+            callback(data);
+          } catch (error) {
+            console.error('EventBus.emit: callback error for event "' + event + '"', error);
+          }
+        }
+      }
+    },
+
+    /**
+     * Remove all listeners for all events.
+     */
+    clear() {
+      listeners.clear();
+    },
+
+    /**
+     * Return the number of listeners for a given event (for debugging).
+     * @param {string} event
+     * @returns {number}
+     */
+    listenerCount(event) {
+      const set = listeners.get(event);
+      return set ? set.size : 0;
+    }
+  };
+})();
+</script>
