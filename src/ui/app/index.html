@@ -40,7 +40,7 @@
   <?!= HtmlService.createHtmlOutputFromFile('ui/services/receiptService').getContent(); ?>
   
   <!-- Pages -->
-  <?!= HtmlService.createHtmlOutputFromFile('ui/pages/pos').getContent(); ?>
+  <?!= HtmlService.createTemplateFromFile('ui/pages/pos').evaluate().getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/login').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/dashboard').getContent(); ?>
   <?!= HtmlService.createHtmlOutputFromFile('ui/pages/products').getContent(); ?>
