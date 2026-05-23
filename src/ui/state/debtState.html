@@ -1,0 +1,67 @@
+<script>
+/**
+ * DebtState — Holds the currently selected customer's debt information
+ * 
+ * Follows the same flat object pattern as cartState.html
+ */
+const DebtState = {
+  /**
+   * Currently selected customer for credit payment
+   */
+  selectedCustomer: null,
+  
+  /**
+   * Array of debt objects for the selected customer
+   */
+  debts: [],
+  
+  /**
+   * The active debt being paid (if any)
+   */
+  activeDebt: null,
+  
+  /**
+   * Payment history for the current session
+   */
+  paymentHistory: [],
+  
+  /**
+   * Reset state
+   */
+  reset() {
+    this.selectedCustomer = null;
+    this.debts = [];
+    this.activeDebt = null;
+    this.paymentHistory = [];
+  },
+  
+  /**
+   * Set selected customer
+   */
+  setCustomer(customer) {
+    this.selectedCustomer = customer;
+    this.activeDebt = null;
+  },
+  
+  /**
+   * Set debts for the selected customer
+   */
+  setDebts(debts) {
+    this.debts = debts;
+  },
+  
+  /**
+   * Set active debt being paid
+   */
+  setActiveDebt(debt) {
+    this.activeDebt = debt;
+  },
+  
+  /**
+   * Add payment to history
+   */
+  addPayment(payment) {
+    this.paymentHistory.push(payment);
+  }
+};
+</script>

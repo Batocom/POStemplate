@@ -23,7 +23,9 @@ const CartState = {
     method: "cash",
     amountPaid: 0,
     balance: 0,
-    change: 0
+    change: 0,
+    splits: [],
+    ledger: 0
   },
   
   status: "idle", // idle | active | paying | completed | cancelled
@@ -62,6 +64,29 @@ const CartState = {
   // Get total quantity of items
   getTotalQuantity() {
     return this.items.reduce((sum, item) => sum + item.quantity, 0);
+  },
+  
+  // Add a split payment
+  addSplit(method, amount) {
+    this.payment.splits.push({ method, amount });
+    this.payment.ledger += amount;
+  },
+  
+  // Clear all split payments
+  clearSplits() {
+    this.payment.splits = [];
+    this.payment.ledger = 0;
+  },
+  
+  // Get remaining amount to be paid
+  getRemaining() {
+    const total = this.summary.total;
+    return Math.max(0, total - this.payment.ledger);
+  },
+  
+  // Check if fully paid via splits
+  isFullyPaid() {
+    return this.payment.ledger >= this.summary.total;
   }
 };
 </script>

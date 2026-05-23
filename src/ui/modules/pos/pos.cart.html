@@ -1,0 +1,85 @@
+<script>
+/**
+ * CartTable — Pure rendering component for cart items
+ * TotalsPanel — Displays cart summary
+ * 
+ * Both are tightly paired, pure renderers that read CartState only
+ */
+const CartTable = {
+  
+  /**
+   * Render cart items
+   */
+  render() {
+    const items = CartState.items;
+    const emptyEl = document.getElementById("cart-empty");
+    const listEl = document.getElementById("cart-items-list");
+    const countEl = document.getElementById("cart-item-count");
+    
+    if (!listEl || !emptyEl) return;
+    
+    if (items.length === 0) {
+      emptyEl.style.display = "block";
+      listEl.style.display = "none";
+      if (countEl) countEl.textContent = "0 items";
+      return;
+    }
+    
+    emptyEl.style.display = "none";
+    listEl.style.display = "block";
+    
+    if (countEl) {
+      countEl.textContent = `${CartState.getTotalQuantity()} items`;
+    }
+    
+    listEl.innerHTML = items.map(item => `
+      <div class="cart-item" data-product-id="${item.productId}">
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">${PricingService.formatCurrency(item.price)} each</div>
+        </div>
+        <div class="item-quantity">
+          <button class="qty-btn" onclick="CartService.updateQuantity('${item.productId}', ${item.quantity - 1})">-</button>
+          <span class="qty-value">${item.quantity}</span>
+          <button class="qty-btn" onclick="CartService.updateQuantity('${item.productId}', ${item.quantity + 1})">+</button>
+        </div>
+        <div class="item-total">${PricingService.formatCurrency(item.total)}</div>
+        <button class="item-remove" onclick="CartService.remove('${item.productId}')" title="Remove">&times;</button>
+      </div>
+    `).join("");
+  }
+};
+
+const TotalsPanel = {
+  
+  /**
+   * Render totals
+   */
+  render() {
+    const summary = CartState.summary;
+    const payment = CartState.payment;
+    
+    const subtotalEl = document.getElementById("subtotal");
+    const taxEl = document.getElementById("tax");
+    const discountEl = document.getElementById("discount");
+    const profitEl = document.getElementById("profit");
+    const totalEl = document.getElementById("total");
+    const changeEl = document.getElementById("change");
+    const changeRow = document.getElementById("change-row");
+    
+    if (subtotalEl) subtotalEl.textContent = PricingService.formatCurrency(summary.subtotal);
+    if (taxEl) taxEl.textContent = PricingService.formatCurrency(summary.tax);
+    if (discountEl) discountEl.textContent = PricingService.formatCurrency(summary.discount);
+    if (profitEl) profitEl.textContent = PricingService.formatCurrency(summary.profit);
+    if (totalEl) totalEl.textContent = PricingService.formatCurrency(summary.total);
+    
+    // Show change if payment entered
+    if (payment.amountPaid > 0 && payment.amountPaid >= summary.total) {
+      if (changeRow) changeRow.style.display = "flex";
+      if (changeEl) changeEl.textContent = PricingService.formatCurrency(payment.change);
+    } else {
+      if (changeRow) changeRow.style.display = "none";
+    }
+  }
+};
+</script>

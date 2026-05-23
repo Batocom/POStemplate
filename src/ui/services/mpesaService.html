@@ -1,0 +1,76 @@
+<script>
+/**
+ * MpesaService — Handles M-Pesa STK push integration
+ * 
+ * Currently a stub that resolves immediately.
+ * Wire to real API when credentials are ready.
+ */
+const MpesaService = {
+  
+  /**
+   * Initiate STK push to customer's phone
+   * @param {string} phone - Customer phone number (e.g., "254712345678")
+   * @param {number} amount - Amount to charge
+   * @returns {Promise<Object>} - { success, checkoutRequestId, message }
+   */
+  async initiateSTK(phone, amount) {
+    try {
+      const raw = await api("MPESA_STK_PUSH", {
+        phone: phone,
+        amount: amount
+      });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (!response.success) {
+        throw new Error(response.error || "M-Pesa STK push failed");
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("M-Pesa STK push error:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Poll M-Pesa transaction status
+   * @param {string} checkoutRequestId - The checkout request ID from initiateSTK
+   * @returns {Promise<Object>} - { success, status, receiptNumber }
+   */
+  async pollStatus(checkoutRequestId) {
+    try {
+      const raw = await api("MPESA_STATUS", {
+        checkoutRequestId: checkoutRequestId
+      });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (!response.success) {
+        throw new Error(response.error || "M-Pesa status check failed");
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("M-Pesa status check error:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Cancel a pending M-Pesa transaction
+   * @param {string} checkoutRequestId
+   * @returns {Promise<Object>}
+   */
+  async cancel(checkoutRequestId) {
+    try {
+      const raw = await api("MPESA_CANCEL", {
+        checkoutRequestId: checkoutRequestId
+      });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      return response;
+    } catch (error) {
+      console.error("M-Pesa cancel error:", error);
+      throw error;
+    }
+  }
+};
+</script>

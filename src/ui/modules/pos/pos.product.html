@@ -1,0 +1,204 @@
+<script>
+/**
+ * ProductSearch — Handles product searching and selection
+ * 
+ * Owns the search input listener and category filter logic
+ */
+const ProductSearch = {
+  products: [],
+  filteredProducts: [],
+  categories: [],
+  searchTimeout: null,
+  
+  /**
+   * Initialize search input listeners
+   */
+  init() {
+    const input = document.getElementById("product-search-input");
+    if (!input) return;
+    
+    input.addEventListener("input", (e) => {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.search(e.target.value);
+      }, 200);
+    });
+    
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.clearSearch();
+        input.blur();
+      }
+    });
+  },
+  
+  /**
+   * Load all products from backend
+   */
+  async loadProducts() {
+    try {
+      const raw = await api("GET_PRODUCTS");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success) {
+        this.products = response.data || [];
+        this.filteredProducts = [...this.products];
+      }
+    } catch (error) {
+      console.error("Failed to load products:", error);
+      Toast.error("Failed to load products");
+    }
+  },
+  
+  /**
+   * Load categories from backend for dynamic filters
+   */
+  async loadCategories() {
+    try {
+      const raw = await api("GET_CATEGORIES");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && Array.isArray(response.data)) {
+        this.categories = response.data;
+        this._renderCategoryFilters();
+      }
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+    }
+  },
+  
+  /**
+   * Render category filter buttons dynamically
+   */
+  _renderCategoryFilters() {
+    const container = document.getElementById("category-filters");
+    if (!container) return;
+    
+    // Keep the "All" button
+    let html = '<button class="category-btn active" onclick="ProductSearch.filterByCategory(\'all\', event)">All</button>';
+    
+    // Add dynamic category buttons
+    html += this.categories.map(cat => `
+      <button class="category-btn" onclick="ProductSearch.filterByCategory('${cat.id}', event)">
+        ${cat.name}
+      </button>
+    `).join("");
+    
+    container.innerHTML = html;
+  },
+  
+  /**
+   * Search products by name
+   */
+  search(query) {
+    const input = document.getElementById("product-search-input");
+    const results = document.getElementById("search-results");
+    const clearBtn = document.querySelector(".search-clear-btn");
+    
+    if (!query || query.length < 1) {
+      if (results) results.style.display = "none";
+      if (clearBtn) clearBtn.style.display = "none";
+      POSPage.renderProductGrid(this.products);
+      return;
+    }
+    
+    if (clearBtn) clearBtn.style.display = "block";
+    
+    const lowerQuery = query.toLowerCase();
+    const matches = this.products.filter(p => 
+      p.name.toLowerCase().includes(lowerQuery) || 
+      (p.barcode && p.barcode.toLowerCase().includes(lowerQuery))
+    );
+    
+    if (results) {
+      if (matches.length > 0) {
+        results.innerHTML = matches.slice(0, 10).map(product => `
+          <div class="search-result-item" 
+               onclick="ProductSearch.selectProduct({id: '${product.id}', name: '${product.name.replace(/'/g, "\\'")}', barcode: '${product.barcode || ''}', sell_price: ${product.sell_price || 0}, buy_price: ${product.buy_price || 0}, stock: ${product.stock || 0}})">
+            <div>
+              <div class="result-name">${product.name}</div>
+              <div class="result-stock">Stock: ${product.stock || 0}</div>
+            </div>
+            <div class="result-price">${PricingService.formatCurrency(product.sell_price)}</div>
+          </div>
+        `).join("");
+        results.style.display = "block";
+      } else {
+        results.innerHTML = '<div class="search-result-item">No products found</div>';
+        results.style.display = "block";
+      }
+    }
+    
+    // Also filter grid
+    POSPage.renderProductGrid(matches);
+  },
+  
+  /**
+   * Select product from search results
+   */
+  selectProduct(product) {
+    CartService.add(product);
+    
+    // Clear search
+    this.clearSearch();
+    
+    // Focus back on search input
+    const input = document.getElementById("product-search-input");
+    if (input) input.focus();
+  },
+  
+  /**
+   * Search by barcode (from scanner)
+   */
+  async searchByBarcode(barcode) {
+    const product = this.products.find(p => p.barcode === barcode);
+    
+    if (product) {
+      CartService.add(product);
+      Toast.success(`Added ${product.name} to cart`);
+    } else {
+      Toast.warning(`Product with barcode ${barcode} not found`);
+    }
+  },
+  
+  /**
+   * Filter products by category
+   * @param {string} categoryId - Category ID or 'all' for all products
+   * @param {Event} evt - Click event
+   */
+  filterByCategory(categoryId, evt) {
+    // Update active button
+    document.querySelectorAll(".category-btn").forEach(btn => {
+      btn.classList.remove("active");
+    });
+    if (evt && evt.target) {
+      evt.target.classList.add("active");
+    }
+    
+    if (categoryId === "all") {
+      this.filteredProducts = [...this.products];
+    } else {
+      this.filteredProducts = this.products.filter(p => 
+        p.category_id === categoryId
+      );
+    }
+    
+    POSPage.renderProductGrid(this.filteredProducts);
+  },
+  
+  /**
+   * Clear search input
+   */
+  clearSearch() {
+    const input = document.getElementById("product-search-input");
+    const results = document.getElementById("search-results");
+    const clearBtn = document.querySelector(".search-clear-btn");
+    
+    if (input) input.value = "";
+    if (results) results.style.display = "none";
+    if (clearBtn) clearBtn.style.display = "none";
+    
+    POSPage.renderProductGrid(this.products);
+  }
+};
+</script>

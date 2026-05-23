@@ -1,0 +1,150 @@
+<script>
+/**
+ * POSPage — Main controller for the POS page
+ * 
+ * Orchestration only. NOT business logic.
+ * 
+ * Init sequence:
+ * 1. Load products
+ * 2. Load categories
+ * 3. Fetch tax rate
+ * 4. Enable scanner
+ * 5. Subscribe EventBus
+ * 6. Render initial grid
+ */
+const POSPage = {
+  
+  /**
+   * Initialize POS page
+   */
+  async init() {
+    try {
+      // Load products
+      await ProductSearch.loadProducts();
+      
+      // Load categories for dynamic filters
+      await ProductSearch.loadCategories();
+      
+      // Initialize search input listeners
+      ProductSearch.init();
+      
+      // Fetch tax rate from backend
+      try {
+        await PricingService.fetchTaxRate();
+      } catch (error) {
+        console.error("Failed to fetch tax rate:", error);
+        Toast.error("Failed to load tax rate from database");
+      }
+      
+      // Update tax label
+      const taxLabel = document.getElementById("tax-label");
+      if (taxLabel) {
+        try {
+          taxLabel.textContent = PricingService.getTaxLabel();
+        } catch (e) {
+          taxLabel.textContent = "Tax";
+        }
+      }
+      
+      // Enable scanner
+      ScannerService.enable((barcode) => {
+        ProductSearch.searchByBarcode(barcode);
+      });
+      
+      // Render initial product grid
+      this.renderProductGrid(ProductSearch.products);
+      
+      // Update checkout button state
+      this.updateCheckoutButton();
+      
+      // Listen for cart changes
+      EventBus.on("cartUpdated", () => {
+        this.updateCheckoutButton();
+        CartTable.render();
+        TotalsPanel.render();
+      });
+      
+      EventBus.on("totalsUpdated", () => {
+        this.updateCheckoutButton();
+        TotalsPanel.render();
+        // Update tax label in case it changed
+        const taxLabel = document.getElementById("tax-label");
+        if (taxLabel) {
+          taxLabel.textContent = PricingService.getTaxLabel();
+        }
+      });
+      
+      EventBus.on("cartCleared", () => {
+        this.updateCheckoutButton();
+        CartTable.render();
+        TotalsPanel.render();
+      });
+      
+      // Initialize payment amount input
+      const paymentInput = document.getElementById("payment-amount");
+      if (paymentInput) {
+        paymentInput.addEventListener("input", () => {
+          PaymentModal.onAmountChange();
+        });
+        paymentInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            PaymentModal.confirm();
+          }
+        });
+      }
+      
+    } catch (error) {
+      Toast.error("Failed to initialize POS: " + error.message);
+    }
+  },
+  
+  /**
+   * Render product grid
+   */
+  renderProductGrid(products) {
+    const grid = document.getElementById("product-grid");
+    
+    if (!grid) return;
+    
+    if (!products || products.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No products found</div>';
+      return;
+    }
+    
+    grid.innerHTML = products.map(product => `
+      <div class="product-card" 
+           onclick="CartService.add({id: '${product.id}', name: '${product.name.replace(/'/g, "\\'")}', barcode: '${product.barcode || ''}', sell_price: ${product.sell_price || 0}, buy_price: ${product.buy_price || 0}, stock: ${product.stock || 0}})"
+           title="${product.name} - ${PricingService.formatCurrency(product.sell_price)}">
+        <div class="product-name">${product.name}</div>
+        <div class="product-price">${PricingService.formatCurrency(product.sell_price)}</div>
+        <div class="product-stock">Stock: ${product.stock || 0}</div>
+        ${product.barcode ? `<div class="product-barcode">${product.barcode}</div>` : ''}
+      </div>
+    `).join("");
+  },
+  
+  /**
+   * Update checkout button state
+   */
+  updateCheckoutButton() {
+    const btn = document.getElementById("checkout-btn");
+    
+    if (!btn) return;
+    
+    if (CartState.hasItems()) {
+      btn.disabled = false;
+      btn.textContent = `Checkout (${PricingService.formatCurrency(CartState.summary.total)})`;
+    } else {
+      btn.disabled = true;
+      btn.textContent = "Checkout (KES 0.00)";
+    }
+  },
+  
+  /**
+   * Cleanup when leaving page
+   */
+  destroy() {
+    ScannerService.disable();
+  }
+};
+</script>

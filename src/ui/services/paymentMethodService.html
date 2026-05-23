@@ -1,0 +1,30 @@
+<script>
+/**
+ * PaymentMethodRegistry — Registry for payment method handlers
+ * 
+ * Each handler must implement:
+ * - renderSection() → HTML string for the method-specific UI
+ * - onSelect() → called when method is selected
+ * - validate() → throws error if invalid
+ * - getPaymentData() → returns { method, amountPaid, customerId, notes }
+ */
+const PaymentMethodRegistry = {
+  _methods: {},
+  
+  register(id, handler) {
+    this._methods[id] = handler;
+  },
+  
+  get(id) {
+    return this._methods[id] || null;
+  },
+  
+  getAll() {
+    return Object.values(this._methods);
+  },
+  
+  getIds() {
+    return Object.keys(this._methods);
+  }
+};
+</script>

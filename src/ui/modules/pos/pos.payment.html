@@ -1,0 +1,345 @@
+<script>
+/**
+ * PaymentModal — Handles payment UI using method registry pattern
+ * 
+ * Supports multiple payment methods registered via PaymentMethodRegistry.
+ * Each method handler implements:
+ * - renderSection() → HTML string
+ * - onSelect() → called when method is selected
+ * - validate() → throws error if invalid
+ * - getPaymentData() → returns { method, amountPaid, customerId, notes }
+ * 
+ * Built-in handlers: cash, mpesa, credit
+ * Extend by registering new handlers in PaymentMethodRegistry
+ */
+const PaymentModal = {
+  
+  /**
+   * Initialize modal when shown
+   */
+  init() {
+    const total = CartState.summary.total;
+    
+    const totalEl = document.getElementById("payment-total");
+    const itemCountEl = document.getElementById("payment-item-count");
+    const summaryTotalEl = document.getElementById("payment-summary-total");
+    
+    if (totalEl) totalEl.textContent = PricingService.formatCurrency(total);
+    if (itemCountEl) itemCountEl.textContent = CartState.getTotalQuantity();
+    if (summaryTotalEl) summaryTotalEl.textContent = PricingService.formatCurrency(total);
+    
+    // Reset loading state
+    this._setLoading(false);
+    
+    // Render payment methods dynamically
+    this._renderPaymentMethods();
+    
+    // Reset amount - PREFILL with total amount
+    const amountInput = document.getElementById("payment-amount");
+    if (amountInput) {
+      amountInput.value = total.toFixed(2);
+      amountInput.disabled = false;
+      setTimeout(() => amountInput.focus(), 100);
+    }
+    
+    // Reset change display
+    const changeDisplay = document.getElementById("change-display");
+    if (changeDisplay) changeDisplay.style.display = "none";
+    
+    // Reset credit section
+    const creditSection = document.getElementById("credit-section");
+    if (creditSection) creditSection.style.display = "none";
+    
+    // Set default method
+    this.setMethod("cash");
+    
+    // Trigger amount change to update UI
+    this.onAmountChange();
+  },
+  
+  /**
+   * Render payment method buttons dynamically
+   */
+  _renderPaymentMethods() {
+    const container = document.getElementById("payment-method-options");
+    if (!container) return;
+    
+    const methods = PaymentMethodRegistry.getAll();
+    
+    container.innerHTML = methods.map(method => `
+      <button class="payment-method-btn" data-method="${method.id}" onclick="PaymentModal.setMethod('${method.id}')">
+        <span class="payment-method-icon">${method.icon}</span>
+        <span class="payment-method-label">${method.label}</span>
+      </button>
+    `).join("");
+  },
+  
+  /**
+   * Set payment method
+   */
+  setMethod(methodId) {
+    CartState.payment.method = methodId;
+    
+    // Update UI
+    document.querySelectorAll(".payment-method-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.method === methodId);
+    });
+    
+    // Call handler's onSelect
+    const handler = PaymentMethodRegistry.get(methodId);
+    if (handler && handler.onSelect) {
+      handler.onSelect();
+    }
+    
+    // Update change and button state
+    this.onAmountChange();
+  },
+  
+  /**
+   * Calculate change on input
+   */
+  onAmountChange() {
+    const amountInput = document.getElementById("payment-amount");
+    const amount = Number(amountInput ? amountInput.value : 0) || 0;
+    
+    CartState.payment.amountPaid = amount;
+    
+    const total = CartState.summary.total;
+    const change = CheckoutService.calculateChange(amount);
+    const changeDisplay = document.getElementById("change-display");
+    const changeAmount = document.getElementById("change-amount");
+    
+    if (change > 0) {
+      if (changeDisplay) changeDisplay.style.display = "block";
+      if (changeAmount) changeAmount.textContent = PricingService.formatCurrency(change);
+    } else {
+      if (changeDisplay) changeDisplay.style.display = "none";
+    }
+    
+    // Enable/disable confirm button
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    if (confirmBtn) {
+      const handler = PaymentMethodRegistry.get(CartState.payment.method);
+      if (handler && handler.validate) {
+        try {
+          handler.validate();
+          confirmBtn.disabled = false;
+        } catch (e) {
+          confirmBtn.disabled = true;
+        }
+      } else {
+        confirmBtn.disabled = amount < total;
+      }
+    }
+  },
+  
+  /**
+   * Set loading state
+   */
+  _setLoading(isLoading) {
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    const loadingOverlay = document.getElementById("payment-loading-overlay");
+    
+    if (confirmBtn) {
+      confirmBtn.disabled = isLoading;
+      confirmBtn.textContent = isLoading ? "Processing..." : "Complete Sale";
+    }
+    
+    if (loadingOverlay) {
+      loadingOverlay.style.display = isLoading ? "flex" : "none";
+    }
+  },
+  
+  /**
+   * Confirm payment and process checkout
+   */
+  async confirm() {
+    try {
+      // Validate payment
+      const handler = PaymentMethodRegistry.get(CartState.payment.method);
+      if (handler && handler.validate) {
+        handler.validate();
+      }
+      
+      // Show loading state
+      this._setLoading(true);
+      
+      // Get payment data from handler
+      let paymentData;
+      if (handler && handler.getPaymentData) {
+        paymentData = handler.getPaymentData();
+      } else {
+        // Fallback for methods without handler
+        paymentData = {
+          method: CartState.payment.method,
+          amountPaid: Number(document.getElementById("payment-amount").value) || 0,
+          customerId: null
+        };
+      }
+      
+      await CheckoutService.process(paymentData);
+      
+      Modal.close();
+      
+    } catch (error) {
+      this._setLoading(false);
+      Toast.error(error.message || "Payment failed");
+    }
+  }
+};
+
+/**
+ * Cash Payment Handler
+ */
+PaymentMethodRegistry.register('cash', {
+  id: 'cash',
+  label: 'Cash',
+  icon: '💰',
+  requiresAmount: true,
+  
+  onSelect() {
+    const cashSection = document.getElementById("cash-input-section");
+    const creditSection = document.getElementById("credit-section");
+    const amountInput = document.getElementById("payment-amount");
+    const total = CartState.summary.total;
+    
+    if (cashSection) cashSection.style.display = "block";
+    if (creditSection) creditSection.style.display = "none";
+    
+    if (amountInput) {
+      amountInput.value = total.toFixed(2);
+      amountInput.disabled = false;
+    }
+  },
+  
+  validate() {
+    const amount = Number(document.getElementById("payment-amount").value) || 0;
+    const total = CartState.summary.total;
+    
+    if (amount < total) {
+      throw new Error(`Insufficient payment. Total is ${PricingService.formatCurrency(total)}, but received ${PricingService.formatCurrency(amount)}`);
+    }
+  },
+  
+  getPaymentData() {
+    return {
+      method: 'cash',
+      amountPaid: Number(document.getElementById("payment-amount").value) || 0,
+      customerId: null
+    };
+  }
+});
+
+/**
+ * M-Pesa Payment Handler
+ */
+PaymentMethodRegistry.register('mpesa', {
+  id: 'mpesa',
+  label: 'M-Pesa',
+  icon: '📱',
+  requiresAmount: false,
+  
+  onSelect() {
+    const cashSection = document.getElementById("cash-input-section");
+    const creditSection = document.getElementById("credit-section");
+    const amountInput = document.getElementById("payment-amount");
+    const total = CartState.summary.total;
+    
+    if (cashSection) cashSection.style.display = "none";
+    if (creditSection) creditSection.style.display = "none";
+    
+    // Auto-set amount to total
+    CartState.payment.amountPaid = total;
+    if (amountInput) {
+      amountInput.value = total.toFixed(2);
+      amountInput.disabled = true;
+    }
+  },
+  
+  validate() {
+    // M-Pesa validation (future: add M-Pesa transaction ID validation)
+  },
+  
+  getPaymentData() {
+    return {
+      method: 'mpesa',
+      amountPaid: CartState.summary.total,
+      customerId: null
+    };
+  }
+});
+
+/**
+ * Credit Payment Handler
+ */
+PaymentMethodRegistry.register('credit', {
+  id: 'credit',
+  label: 'Credit',
+  icon: '📋',
+  requiresAmount: false,
+  
+  onSelect() {
+    const cashSection = document.getElementById("cash-input-section");
+    const creditSection = document.getElementById("credit-section");
+    const amountInput = document.getElementById("payment-amount");
+    const total = CartState.summary.total;
+    
+    if (cashSection) cashSection.style.display = "none";
+    if (creditSection) creditSection.style.display = "block";
+    
+    // Auto-set amount to total
+    CartState.payment.amountPaid = total;
+    if (amountInput) {
+      amountInput.value = total.toFixed(2);
+      amountInput.disabled = true;
+    }
+    
+    this._loadCustomers();
+  },
+  
+  async _loadCustomers() {
+    const select = document.getElementById("credit-customer-select");
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Loading customers...</option>';
+    
+    try {
+      const raw = await api("GET_CUSTOMERS");
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (response.success && Array.isArray(response.data)) {
+        select.innerHTML = '<option value="">Select customer</option>' +
+          response.data.map(c => `
+            <option value="${c.id}" data-balance="${c.balance || 0}">
+              ${c.name} ${c.phone ? '- ' + c.phone : ''} ${Number(c.balance) > 0 ? '(Balance: KES ' + Number(c.balance).toFixed(2) + ')' : ''}
+            </option>
+          `).join("");
+      } else {
+        select.innerHTML = '<option value="">No customers available</option>';
+      }
+    } catch (error) {
+      console.error("Failed to load customers:", error);
+      select.innerHTML = '<option value="">Error loading customers</option>';
+    }
+  },
+  
+  validate() {
+    const customerSelect = document.getElementById("credit-customer-select");
+    if (!customerSelect || !customerSelect.value) {
+      throw new Error("Please select a customer for credit payment");
+    }
+  },
+  
+  getPaymentData() {
+    const customerSelect = document.getElementById("credit-customer-select");
+    const notesInput = document.getElementById("credit-notes");
+    
+    return {
+      method: 'credit',
+      amountPaid: CartState.summary.total,
+      customerId: customerSelect ? customerSelect.value : null,
+      notes: notesInput ? notesInput.value : ''
+    };
+  }
+});
+</script>

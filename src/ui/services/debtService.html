@@ -1,0 +1,91 @@
+<script>
+/**
+ * DebtService — Handles credit/debtor payment operations
+ * 
+ * Requires backend actions:
+ * - CREATE_DEBT
+ * - RECORD_DEBT_PAYMENT
+ * - GET_CUSTOMER_DEBTS
+ */
+const DebtService = {
+  
+  /**
+   * Record a new debt (credit sale)
+   * @param {string} saleId - The sale ID
+   * @param {string} customerId - The customer ID
+   * @param {number} amount - The amount owed
+   * @param {string} [notes] - Optional notes
+   * @returns {Promise<Object>} - { success, debtId }
+   */
+  async recordDebt(saleId, customerId, amount, notes = '') {
+    try {
+      const raw = await api("CREATE_DEBT", {
+        saleId: saleId,
+        customerId: customerId,
+        amount: amount,
+        notes: notes
+      });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (!response.success) {
+        throw new Error(response.error || "Failed to record debt");
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("Debt recording error:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Record a payment against an existing debt
+   * @param {string} debtId - The debt ID
+   * @param {number} amount - Payment amount
+   * @param {string} method - Payment method (cash, mpesa, etc.)
+   * @returns {Promise<Object>} - { success, remainingBalance }
+   */
+  async recordPayment(debtId, amount, method = 'cash') {
+    try {
+      const raw = await api("RECORD_DEBT_PAYMENT", {
+        debtId: debtId,
+        amount: amount,
+        method: method
+      });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (!response.success) {
+        throw new Error(response.error || "Failed to record debt payment");
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("Debt payment recording error:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get all debts for a customer
+   * @param {string} customerId
+   * @returns {Promise<Array>} - Array of debt objects
+   */
+  async getCustomerDebts(customerId) {
+    try {
+      const raw = await api("GET_CUSTOMER_DEBTS", {
+        customerId: customerId
+      });
+      const response = typeof raw === "string" ? JSON.parse(raw) : raw;
+      
+      if (!response.success) {
+        throw new Error(response.error || "Failed to fetch customer debts");
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error("Fetch customer debts error:", error);
+      throw error;
+    }
+  }
+};
+</script>
