@@ -9,7 +9,7 @@
  * - validate() → throws error if invalid
  * - getPaymentData() → returns { method, amountPaid, customerId, notes }
  * 
- * Built-in handlers: cash, mpesa, credit
+ * Built-in handlers: cash, mpesa, credit, split
  * Extend by registering new handlers in PaymentMethodRegistry
  */
 const PaymentModal = {
@@ -49,6 +49,13 @@ const PaymentModal = {
     // Reset credit section
     const creditSection = document.getElementById("credit-section");
     if (creditSection) creditSection.style.display = "none";
+    
+    // Reset split section
+    const splitSection = document.getElementById("split-section");
+    if (splitSection) splitSection.style.display = "none";
+    
+    // Clear any existing splits
+    CartState.clearSplits();
     
     // Set default method
     this.setMethod("cash");
@@ -200,11 +207,13 @@ PaymentMethodRegistry.register('cash', {
   onSelect() {
     const cashSection = document.getElementById("cash-input-section");
     const creditSection = document.getElementById("credit-section");
+    const splitSection = document.getElementById("split-section");
     const amountInput = document.getElementById("payment-amount");
     const total = CartState.summary.total;
     
     if (cashSection) cashSection.style.display = "block";
     if (creditSection) creditSection.style.display = "none";
+    if (splitSection) splitSection.style.display = "none";
     
     if (amountInput) {
       amountInput.value = total.toFixed(2);
@@ -242,11 +251,13 @@ PaymentMethodRegistry.register('mpesa', {
   onSelect() {
     const cashSection = document.getElementById("cash-input-section");
     const creditSection = document.getElementById("credit-section");
+    const splitSection = document.getElementById("split-section");
     const amountInput = document.getElementById("payment-amount");
     const total = CartState.summary.total;
     
     if (cashSection) cashSection.style.display = "none";
     if (creditSection) creditSection.style.display = "none";
+    if (splitSection) splitSection.style.display = "none";
     
     // Auto-set amount to total
     CartState.payment.amountPaid = total;
@@ -254,17 +265,31 @@ PaymentMethodRegistry.register('mpesa', {
       amountInput.value = total.toFixed(2);
       amountInput.disabled = true;
     }
+    
+    // Show M-Pesa phone input
+    const mpesaSection = document.getElementById("mpesa-input-section");
+    if (mpesaSection) mpesaSection.style.display = "block";
   },
   
   validate() {
-    // M-Pesa validation (future: add M-Pesa transaction ID validation)
+    const phoneInput = document.getElementById("mpesa-phone");
+    if (!phoneInput || !phoneInput.value) {
+      throw new Error("Please enter M-Pesa phone number");
+    }
+    // Basic validation: must start with 254 or 07...
+    const phone = phoneInput.value.replace(/\s/g, '');
+    if (!/^(254|0)[17]\d{8}$/.test(phone)) {
+      throw new Error("Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX");
+    }
   },
   
   getPaymentData() {
+    const phoneInput = document.getElementById("mpesa-phone");
     return {
       method: 'mpesa',
       amountPaid: CartState.summary.total,
-      customerId: null
+      customerId: null,
+      phone: phoneInput ? phoneInput.value : ''
     };
   }
 });
@@ -281,11 +306,13 @@ PaymentMethodRegistry.register('credit', {
   onSelect() {
     const cashSection = document.getElementById("cash-input-section");
     const creditSection = document.getElementById("credit-section");
+    const splitSection = document.getElementById("split-section");
     const amountInput = document.getElementById("payment-amount");
     const total = CartState.summary.total;
     
     if (cashSection) cashSection.style.display = "none";
     if (creditSection) creditSection.style.display = "block";
+    if (splitSection) splitSection.style.display = "none";
     
     // Auto-set amount to total
     CartState.payment.amountPaid = total;
@@ -342,4 +369,211 @@ PaymentMethodRegistry.register('credit', {
     };
   }
 });
+
+/**
+ * Split Payment Handler
+ */
+PaymentMethodRegistry.register('split', {
+  id: 'split',
+  label: 'Split',
+  icon: '🔀',
+  requiresAmount: false,
+  
+  onSelect() {
+    const cashSection = document.getElementById("cash-input-section");
+    const creditSection = document.getElementById("credit-section");
+    const splitSection = document.getElementById("split-section");
+    const amountInput = document.getElementById("payment-amount");
+    
+    if (cashSection) cashSection.style.display = "none";
+    if (creditSection) creditSection.style.display = "none";
+    if (splitSection) splitSection.style.display = "block";
+    
+    // Disable the single amount input
+    if (amountInput) {
+      amountInput.value = "0.00";
+      amountInput.disabled = true;
+    }
+    
+    // Initialize split ledger
+    SplitLedger.init();
+  },
+  
+  validate() {
+    const remaining = CartState.getRemaining();
+    if (remaining > 0) {
+      throw new Error(`Remaining amount: ${PricingService.formatCurrency(remaining)}. Add more splits.`);
+    }
+  },
+  
+  getPaymentData() {
+    return {
+      method: 'split',
+      amountPaid: CartState.payment.ledger,
+      splits: CartState.payment.splits,
+      customerId: null
+    };
+  }
+});
+
+/**
+ * SplitLedger — Manages split payment entries
+ */
+const SplitLedger = {
+  
+  /**
+   * Initialize split ledger UI
+   */
+  init() {
+    this._renderSplits();
+    this._updateRemaining();
+    
+    const addBtn = document.getElementById("split-add-btn");
+    if (addBtn) {
+      addBtn.onclick = () => this._addSplit();
+    }
+  },
+  
+  /**
+   * Render current splits list
+   */
+  _renderSplits() {
+    const list = document.getElementById("split-list");
+    if (!list) return;
+    
+    const splits = CartState.payment.splits;
+    
+    if (splits.length === 0) {
+      list.innerHTML = '<div class="split-empty">No splits added yet</div>';
+      return;
+    }
+    
+    list.innerHTML = splits.map((split, index) => `
+      <div class="split-item" data-index="${index}">
+        <span class="split-method">${split.method}</span>
+        <span class="split-amount">${PricingService.formatCurrency(split.amount)}</span>
+        <button class="split-remove-btn" onclick="SplitLedger._removeSplit(${index})">&times;</button>
+      </div>
+    `).join("");
+  },
+  
+  /**
+   * Update remaining amount display
+   */
+  _updateRemaining() {
+    const remaining = CartState.getRemaining();
+    const remainingEl = document.getElementById("split-remaining");
+    if (remainingEl) {
+      remainingEl.textContent = PricingService.formatCurrency(remaining);
+      remainingEl.style.color = remaining > 0 ? 'var(--color-danger)' : 'var(--color-success)';
+    }
+    
+    // Enable/disable confirm button
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    if (confirmBtn) {
+      confirmBtn.disabled = remaining > 0;
+    }
+  },
+  
+  /**
+   * Add a new split payment
+   */
+  _addSplit() {
+    const methodSelect = document.getElementById("split-method-select");
+    const amountInput = document.getElementById("split-amount-input");
+    
+    if (!methodSelect || !amountInput) return;
+    
+    const method = methodSelect.value;
+    const amount = Number(amountInput.value) || 0;
+    
+    if (amount <= 0) {
+      Toast.warning("Please enter a valid amount");
+      return;
+    }
+    
+    const remaining = CartState.getRemaining();
+    if (amount > remaining) {
+      Toast.warning(`Amount exceeds remaining balance of ${PricingService.formatCurrency(remaining)}`);
+      return;
+    }
+    
+    CartState.addSplit(method, amount);
+    
+    // Clear input
+    amountInput.value = "";
+    
+    // Re-render
+    this._renderSplits();
+    this._updateRemaining();
+  },
+  
+  /**
+   * Remove a split payment
+   */
+  _removeSplit(index) {
+    const splits = CartState.payment.splits;
+    if (index < 0 || index >= splits.length) return;
+    
+    const removed = splits.splice(index, 1)[0];
+    CartState.payment.ledger -= removed.amount;
+    
+    this._renderSplits();
+    this._updateRemaining();
+  }
+};
+
+/**
+ * MpesaHandler — Handles M-Pesa STK push flow
+ */
+const MpesaHandler = {
+  
+  /**
+   * Initiate STK push
+   */
+  async initiatePayment(phone, amount) {
+    try {
+      const result = await MpesaService.initiateSTK(phone, amount);
+      
+      if (result && result.checkoutRequestId) {
+        // Start polling
+        return await this._pollStatus(result.checkoutRequestId);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("M-Pesa payment initiation failed:", error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Poll transaction status
+   */
+  async _pollStatus(checkoutRequestId) {
+    const maxAttempts = 30; // 30 seconds
+    const interval = 1000; // 1 second
+    
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const status = await MpesaService.pollStatus(checkoutRequestId);
+        
+        if (status && status.status === "completed") {
+          return status;
+        }
+        
+        if (status && status.status === "failed") {
+          throw new Error(status.message || "M-Pesa transaction failed");
+        }
+        
+        // Still pending, wait
+        await new Promise(resolve => setTimeout(resolve, interval));
+      } catch (error) {
+        throw error;
+      }
+    }
+    
+    throw new Error("M-Pesa transaction timed out");
+  }
+};
 </script>

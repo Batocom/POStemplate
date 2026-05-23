@@ -207,6 +207,19 @@
         <div class="change-amount" id="change-amount">KES 0.00</div>
       </div>
       
+      <!-- M-Pesa Phone Input Section -->
+      <div class="payment-mpesa-section" id="mpesa-input-section" style="display:none;">
+        <label class="payment-amount-label">M-Pesa Phone Number</label>
+        <div class="payment-amount-input-wrapper">
+          <span class="currency-symbol">📱</span>
+          <input type="tel" 
+                 id="mpesa-phone" 
+                 class="payment-amount-input" 
+                 placeholder="254712345678"
+                 autocomplete="off">
+        </div>
+      </div>
+      
       <!-- Credit Section (for credit/debtor payments) -->
       <div class="payment-credit-section" id="credit-section" style="display:none;">
         <div class="credit-customer">
@@ -222,6 +235,33 @@
         <div class="credit-note">
           <label class="payment-amount-label">Notes (optional)</label>
           <textarea id="credit-notes" class="credit-notes-input" placeholder="Add notes for this credit sale..." rows="2"></textarea>
+        </div>
+      </div>
+      
+      <!-- Split Payment Section -->
+      <div class="payment-split-section" id="split-section" style="display:none;">
+        <div class="split-header">
+          <h4 class="split-title">Split Payment</h4>
+          <span class="split-remaining-label">Remaining: <span id="split-remaining">KES 0.00</span></span>
+        </div>
+        
+        <div class="split-add-row">
+          <select id="split-method-select" class="split-method-select">
+            <option value="cash">Cash</option>
+            <option value="mpesa">M-Pesa</option>
+            <option value="credit">Credit</option>
+          </select>
+          <input type="number" 
+                 id="split-amount-input" 
+                 class="split-amount-input" 
+                 placeholder="Amount"
+                 step="0.01"
+                 min="0">
+          <button id="split-add-btn" class="btn btn--primary btn--sm">Add</button>
+        </div>
+        
+        <div id="split-list" class="split-list">
+          <!-- Split items rendered by SplitLedger -->
         </div>
       </div>
       
