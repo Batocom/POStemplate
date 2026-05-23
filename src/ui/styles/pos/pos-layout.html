@@ -1,0 +1,115 @@
+<style>
+  /* =====================================================
+     POS LAYOUT
+     Scope: .pos-layout, .pos-left, .pos-right, .pos-header
+     Responsive: column (mobile) → row (1024px+)
+     ===================================================== */
+
+  .pos-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - var(--topbar-height));
+  }
+
+  .pos-left {
+    padding: var(--space-2);
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+
+  .pos-right {
+    width: 100%;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  .pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+  }
+
+  .pos-header h2 {
+    font-size: var(--text-lg);
+  }
+
+  /* ── 480px ── */
+  @media (min-width: 480px) {
+    .pos-left {
+      padding: var(--space-3);
+      max-height: 50vh;
+    }
+
+    .pos-right {
+      max-height: 50vh;
+    }
+  }
+
+  /* ── 768px ── */
+  @media (min-width: 768px) {
+    .pos-layout {
+      flex-direction: column;
+      height: auto;
+      min-height: calc(100vh - var(--topbar-height));
+    }
+
+    .pos-left {
+      padding: var(--space-3);
+      border-right: none;
+      border-bottom: 1px solid var(--color-border-subtle);
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .pos-right {
+      width: 100%;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .pos-header h2 {
+      font-size: var(--text-lg);
+    }
+  }
+
+  /* ── 1024px: two-panel side-by-side ── */
+  @media (min-width: 1024px) {
+    .pos-layout {
+      flex-direction: row;
+      height: calc(100vh - 80px);
+      gap: 0;
+    }
+
+    .pos-left {
+      flex: 1;
+      padding: var(--space-4);
+      overflow-y: auto;
+      border-right: 1px solid var(--color-border-subtle);
+      border-bottom: none;
+      max-height: none;
+    }
+
+    .pos-right {
+      width: var(--pos-cart-width);
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg-surface);
+      max-height: none;
+    }
+
+    .pos-header h2 {
+      font-size: var(--text-2xl);
+    }
+  }
+
+  /* ── 1280px ── */
+  @media (min-width: 1280px) {
+    .pos-right {
+      width: 420px;
+    }
+  }
+</style>
