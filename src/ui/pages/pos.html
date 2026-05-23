@@ -368,110 +368,49 @@
      ============================================================ -->
 <script>
   /**
-   * _returnNodeHome(nodeId, homeId)
-   * Safely moves a modal content node back to its stable home wrapper.
-   * Queries by ID at call-time so stale closure references never cause nulls.
-   */
-  function _returnNodeHome(nodeId, homeId) {
-    var node = document.getElementById(nodeId);
-    var home = document.getElementById(homeId);
-    if (node && home) {
-      node.style.display = 'none';
-      home.appendChild(node);
-    }
-  }
-
-  /**
-   * _isPaymentModalOpen() / _setPaymentModalOpen(bool)
-   *
-   * Guard state is stored as a data-attribute on #paymentModalContent-home
-   * instead of a JS variable.  GAS can render the <script> block multiple
-   * times, creating multiple independent variable scopes — so a plain
-   * var _paymentModalOpen ends up as several separate flags that never
-   * share state.  A DOM attribute is global, singular, and survives
-   * across all script instances.
-   */
-  function _isPaymentModalOpen() {
-    var home = document.getElementById('paymentModalContent-home');
-    return home && home.getAttribute('data-modal-open') === 'true';
-  }
-  function _setPaymentModalOpen(state) {
-    var home = document.getElementById('paymentModalContent-home');
-    if (home) home.setAttribute('data-modal-open', state ? 'true' : 'false');
-  }
-
-  /**
    * openPaymentModal()
-   * Moves #paymentModalContent into the modal body then inits PaymentModal.
+   * Clones the payment modal content into the modal body.
+   * No node moving, no orphaning, no guard state.
    */
   function openPaymentModal() {
-    // DOM-based guard — immune to GAS multi-render script duplication.
-    if (_isPaymentModalOpen()) {
-      console.warn('openPaymentModal: already open, ignoring duplicate call.');
-      // Force reset the guard if it's been stuck for more than 5 seconds
-      var home = document.getElementById('paymentModalContent-home');
-      if (home) {
-        var stuckTime = home.getAttribute('data-modal-stuck-since');
-        if (stuckTime && (Date.now() - parseInt(stuckTime)) > 5000) {
-          console.warn('Guard stuck for >5s, force resetting');
-          _setPaymentModalOpen(false);
-          home.removeAttribute('data-modal-stuck-since');
-        } else if (!stuckTime) {
-          home.setAttribute('data-modal-stuck-since', Date.now().toString());
-        }
-      }
+    // Get the source content from the home wrapper
+    var home = document.getElementById('paymentModalContent-home');
+    if (!home) {
+      console.error('openPaymentModal: paymentModalContent-home not found');
       return;
     }
-
-    var paymentNode = document.getElementById('paymentModalContent');
-    if (!paymentNode) {
-      // Node is orphaned — force-reset the guard and home wrapper so the
-      // next attempt can recover without a page reload.
-      console.error('openPaymentModal: #paymentModalContent not found — resetting state.');
-      _setPaymentModalOpen(false);
+    
+    var sourceNode = home.querySelector('#paymentModalContent');
+    if (!sourceNode) {
+      console.error('openPaymentModal: #paymentModalContent not found in home');
       return;
     }
-
-    // ADD THIS CHECK: If the node is already in the modal body, it means
-    // the modal is already open but the guard was reset incorrectly.
-    if (paymentNode.parentNode && paymentNode.parentNode.id === 'modal-body') {
-      console.warn('openPaymentModal: paymentNode already in modal body — resetting guard.');
-      _setPaymentModalOpen(false);
-      return;
-    }
-
-    _setPaymentModalOpen(true);
-
-    // 1. Open the modal shell — creates #modal-body in the DOM.
+    
+    // Clone the inner HTML (not the node itself)
+    var contentHtml = sourceNode.innerHTML;
+    
+    // Open modal with cloned content
     Modal.open({
       title: 'Complete Payment',
-      content: '',
+      content: contentHtml,
       size: 'md',
       onClose: function() {
-        // Always reset the guard here, regardless of how the modal closed.
-        _setPaymentModalOpen(false);
-        _returnNodeHome('paymentModalContent', 'paymentModalContent-home');
+        // Nothing to clean up - the clone is destroyed with the overlay
       }
     });
-
-    // 2. Move the real node BEFORE init() so every DOM query inside
-    //    PaymentModal.init() resolves against the now-visible live node.
-    var modalBody = document.getElementById('modal-body');
-    paymentNode.style.display = 'block';
-    modalBody.appendChild(paymentNode);
-
-    // 3. Wait a tiny bit for DOM to settle, then init
+    
+    // Wait for DOM to settle, then initialize
     setTimeout(function() {
-      // Reset payment state to prevent default cash with 0
+      // Reset payment state
       CartState.payment.method = 'cash';
       CartState.payment.amountPaid = 0;
       CartState.payment.splits = [];
       CartState.payment.ledger = 0;
       
-      // Safe to init now
+      // Initialize payment modal
       PaymentModal.init();
       
-      // 4. Notify controller to (re-)attach input listeners.
+      // Notify controller
       if (typeof EventBus !== 'undefined') {
         EventBus.emit('paymentModalReady');
       }
@@ -488,41 +427,32 @@
 
   /**
    * openSalesModal(title, delayMs)
-   * Opens the receipt modal.
-   *
-   * IMPORTANT — delayMs parameter:
-   * modalService.html animates Modal.close() with a setTimeout before
-   * removing the overlay and running the onClose callback.  If the
-   * payment flow calls Modal.close() and then immediately calls
-   * openSalesModal(), the new overlay is created while the old one's
-   * removal timer is still running.  When that timer fires it calls
-   * removeExisting(), which deletes the brand-new receipt overlay.
-   * Passing a delayMs >= the modal animation duration (default 200ms)
-   * prevents the wipe.  The controller should call:
-   *
-   *   openSalesModal('Sale Receipt', 250);
-   *
-   * instead of calling it synchronously right after Modal.close().
-   *
-   * @param {string} [title]   - Modal title
-   * @param {number} [delayMs] - ms to wait before opening (default 0)
+   * Clones the sales/receipt modal content into the modal body.
+   * No node moving, no orphaning.
    */
   function openSalesModal(title, delayMs) {
     function _open() {
-      var salesNode = document.getElementById('salesModalContent');
-      if (!salesNode) {
-        console.error('openSalesModal: #salesModalContent not found.');
+      var home = document.getElementById('salesModalContent-home');
+      if (!home) {
+        console.error('openSalesModal: salesModalContent-home not found');
         return;
       }
-
+      
+      var sourceNode = home.querySelector('#salesModalContent');
+      if (!sourceNode) {
+        console.error('openSalesModal: #salesModalContent not found in home');
+        return;
+      }
+      
+      // Clone the inner HTML
+      var contentHtml = sourceNode.innerHTML;
+      
       Modal.open({
         title: title || 'Sale Receipt',
-        content: '',
+        content: contentHtml,
         size: 'md',
         onClose: function() {
-          _returnNodeHome('salesModalContent', 'salesModalContent-home');
           // Re-render POS page after receipt modal closes
-          // This ensures all state is fresh for the next sale
           setTimeout(function() {
             // Reset payment state
             CartState.payment.method = 'cash';
@@ -539,19 +469,9 @@
             if (typeof POSPage !== 'undefined' && POSPage.updateCheckoutButton) {
               POSPage.updateCheckoutButton();
             }
-            
-            // Force reset the payment modal guard
-            _setPaymentModalOpen(false);
-            
-            // Ensure payment node is back in its home
-            _returnNodeHome('paymentModalContent', 'paymentModalContent-home');
           }, 100);
         }
       });
-
-      var modalBody = document.getElementById('modal-body');
-      salesNode.style.display = 'block';
-      modalBody.appendChild(salesNode);
     }
 
     if (delayMs && delayMs > 0) {

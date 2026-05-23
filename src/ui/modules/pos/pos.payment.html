@@ -342,15 +342,14 @@ const PaymentModal = {
         handler.validate();
       }
       
-      // Show loading state on button only (not full overlay)
+      // Show loading state on button
       this._setLoading(true);
       
-      // Get payment data from handler
+      // Get payment data
       let paymentData;
       if (handler && handler.getPaymentData) {
         paymentData = handler.getPaymentData();
       } else {
-        // Fallback for methods without handler
         paymentData = {
           method: method,
           amountPaid: Number(document.getElementById("payment-amount")?.value) || 0,
@@ -358,31 +357,23 @@ const PaymentModal = {
         };
       }
       
-      // Process checkout FIRST while loading is showing
-      const saleResult = await CheckoutService.process(paymentData);
-
-      // Now close the payment modal AFTER processing is complete
+      // Close payment modal FIRST (before processing)
+      // This ensures no overlay conflicts
       Modal.close();
-
+      
+      // Small delay to ensure modal is fully closed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Process checkout
+      const saleResult = await CheckoutService.process(paymentData);
+      
       // Show success toast
       Toast.success("Sale completed successfully!");
-
-      // CheckoutService.process() already emitted saleCompleted and set
-      // saleResult._saleCompletedEmitted = true. Only emit here as a
-      // fallback if somehow it didn't (e.g. a custom CheckoutService).
-      if (typeof EventBus !== 'undefined' && !(saleResult && saleResult._saleCompletedEmitted)) {
-        EventBus.emit('saleCompleted', {
-          _saleCompletedEmitted: true,
-          paymentMethod: paymentData.method,
-          total: CartState.summary.total,
-          date: new Date().toLocaleString()
-        });
-      }
       
     } catch (error) {
       this._setLoading(false);
       
-      // Show inline error if it's a validation error
+      // Show inline error if validation error
       if (error.message.includes('phone') || error.message.includes('Phone')) {
         this._showFieldError('mpesa-phone', error.message);
       } else if (error.message.includes('customer') || error.message.includes('Customer')) {

@@ -121,9 +121,7 @@ const POSPage = {
           if (el) el.textContent = (val !== undefined && val !== null) ? String(val) : '';
         };
 
-        // Map backend field names → receipt modal elements.
-        // Backend returns: saleId, invoiceNumber, total, paymentMethod,
-        // customerName, items[], date/createdAt
+        // Map backend field names → receipt modal elements
         setField('modal-invoice',
           d.invoiceNumber || d.saleId || d.id || '');
         setField('modal-customer',
@@ -136,7 +134,7 @@ const POSPage = {
           PricingService.formatCurrency(
             d.total || d.grandTotal || CartState.summary.total || 0));
 
-        // Build items table from saleData.items or fall back to CartState
+        // Build items table
         const tbody = document.getElementById('modal-items-body');
         if (tbody) {
           const items = (Array.isArray(d.items) && d.items.length > 0)
@@ -144,16 +142,14 @@ const POSPage = {
             : CartState.items || [];
           if (items.length > 0) {
             tbody.innerHTML = items.map(function(item) {
-              // Get product name - try multiple sources
+              // Get product name
               var name = item.name || item.productName || '';
               
               // If name is still empty and we have a product_id, try to look it up
               if (!name && item.product_id) {
-                // Check if we have a product map from the sale data
                 if (d.productMap && d.productMap[item.product_id]) {
                   name = d.productMap[item.product_id];
                 } else {
-                  // Fall back to showing the product_id as a last resort
                   name = 'Product #' + item.product_id;
                 }
               }
@@ -173,8 +169,7 @@ const POSPage = {
           }
         }
 
-        // 400 ms > 200 ms payment modal close animation — receipt overlay
-        // is created only after removeExisting() has already fired.
+        // Open receipt modal with delay
         openSalesModal('Sale Receipt', 400);
       };
       EventBus.on("saleCompleted", POSPage._onSaleCompleted);
