@@ -4,10 +4,13 @@
  * 
  * Supports multiple payment methods registered via PaymentMethodRegistry.
  * Each method handler implements:
- * - renderSection() → HTML string
- * - onSelect() → called when method is selected
- * - validate() → throws error if invalid
- * - getPaymentData() → returns { method, amountPaid, customerId, notes }
+ * - id: string
+ * - label: string
+ * - icon: string (emoji)
+ * - renderSection(): returns HTML string for the method-specific section
+ * - onSelect(): called when method is selected
+ * - validate(): throws error if invalid
+ * - getPaymentData(): returns { method, amountPaid, customerId, notes }
  * 
  * Built-in handlers: cash, mpesa, credit, split
  * Extend by registering new handlers in PaymentMethodRegistry
@@ -20,6 +23,7 @@ const PaymentModal = {
   init() {
     const total = CartState.summary.total;
     
+    // Update total display
     const totalEl = document.getElementById("payment-total");
     const itemCountEl = document.getElementById("payment-item-count");
     const summaryTotalEl = document.getElementById("payment-summary-total");
@@ -28,31 +32,26 @@ const PaymentModal = {
     if (itemCountEl) itemCountEl.textContent = CartState.getTotalQuantity();
     if (summaryTotalEl) summaryTotalEl.textContent = PricingService.formatCurrency(total);
     
-    // Reset loading state
+    // Reset loading state on button
     this._setLoading(false);
     
     // Render payment methods dynamically
     this._renderPaymentMethods();
     
-    // Reset amount - PREFILL with total amount
-    const amountInput = document.getElementById("payment-amount");
-    if (amountInput) {
-      amountInput.value = total.toFixed(2);
-      amountInput.disabled = false;
-      setTimeout(() => amountInput.focus(), 100);
-    }
+    // Reset all sections to hidden
+    document.querySelectorAll('.payment-section').forEach(s => s.style.display = 'none');
     
     // Reset change display
     const changeDisplay = document.getElementById("change-display");
     if (changeDisplay) changeDisplay.style.display = "none";
     
-    // Reset credit section
-    const creditSection = document.getElementById("credit-section");
-    if (creditSection) creditSection.style.display = "none";
+    // Reset credit error
+    const creditError = document.getElementById("credit-load-error");
+    if (creditError) creditError.style.display = "none";
     
-    // Reset split section
-    const splitSection = document.getElementById("split-section");
-    if (splitSection) splitSection.style.display = "none";
+    // Reset M-Pesa status
+    const mpesaStatus = document.getElementById("mpesa-status-area");
+    if (mpesaStatus) mpesaStatus.style.display = "none";
     
     // Clear any existing splits
     CartState.clearSplits();
@@ -82,15 +81,47 @@ const PaymentModal = {
   },
   
   /**
-   * Set payment method
+   * Set payment method with visual feedback
    */
   setMethod(methodId) {
     CartState.payment.method = methodId;
     
-    // Update UI
+    // Update button states with animation
     document.querySelectorAll(".payment-method-btn").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.method === methodId);
+      const isActive = btn.dataset.method === methodId;
+      btn.classList.toggle("active", isActive);
+      if (isActive) {
+        // Add a brief pulse animation
+        btn.style.animation = 'none';
+        btn.offsetHeight; // trigger reflow
+        btn.style.animation = 'methodPulse 0.3s ease';
+      }
     });
+    
+    // Hide all sections first
+    document.querySelectorAll('.payment-section').forEach(s => {
+      s.style.opacity = '0';
+      s.style.transform = 'translateY(10px)';
+      setTimeout(() => {
+        s.style.display = 'none';
+      }, 150);
+    });
+    
+    // Show the selected section with animation
+    const sectionId = methodId + '-section';
+    const section = document.getElementById(sectionId);
+    if (section) {
+      setTimeout(() => {
+        section.style.display = 'block';
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(10px)';
+        requestAnimationFrame(() => {
+          section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          section.style.opacity = '1';
+          section.style.transform = 'translateY(0)';
+        });
+      }, 160);
+    }
     
     // Call handler's onSelect
     const handler = PaymentMethodRegistry.get(methodId);
@@ -100,6 +131,23 @@ const PaymentModal = {
     
     // Update change and button state
     this.onAmountChange();
+    
+    // Update helper text
+    this._updateHelperText(methodId);
+  },
+  
+  /**
+   * Update helper text based on selected method
+   */
+  _updateHelperText(methodId) {
+    const hints = {
+      cash: 'Enter the amount received from customer',
+      mpesa: 'Enter customer phone number to send payment request',
+      credit: 'Select a customer to record this as a credit sale',
+      split: 'Add multiple payment methods to cover the total'
+    };
+    
+    // Helper text is now in each section header, no need for separate element
   },
   
   /**
@@ -117,44 +165,129 @@ const PaymentModal = {
     const changeAmount = document.getElementById("change-amount");
     
     if (change > 0) {
-      if (changeDisplay) changeDisplay.style.display = "block";
+      if (changeDisplay) {
+        changeDisplay.style.display = "flex";
+        // Animate in
+        changeDisplay.style.opacity = '0';
+        changeDisplay.style.transform = 'translateY(-10px)';
+        requestAnimationFrame(() => {
+          changeDisplay.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          changeDisplay.style.opacity = '1';
+          changeDisplay.style.transform = 'translateY(0)';
+        });
+      }
       if (changeAmount) changeAmount.textContent = PricingService.formatCurrency(change);
     } else {
-      if (changeDisplay) changeDisplay.style.display = "none";
+      if (changeDisplay) {
+        changeDisplay.style.opacity = '0';
+        changeDisplay.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+          changeDisplay.style.display = "none";
+        }, 300);
+      }
     }
     
     // Enable/disable confirm button
+    this._updateConfirmButton();
+  },
+  
+  /**
+   * Update confirm button state
+   */
+  _updateConfirmButton() {
     const confirmBtn = document.getElementById("confirm-payment-btn");
+    if (!confirmBtn) return;
+    
+    const handler = PaymentMethodRegistry.get(CartState.payment.method);
+    if (handler && handler.validate) {
+      try {
+        handler.validate();
+        confirmBtn.disabled = false;
+        confirmBtn.classList.remove('btn--disabled');
+      } catch (e) {
+        confirmBtn.disabled = true;
+        confirmBtn.classList.add('btn--disabled');
+      }
+    } else {
+      const amount = Number(document.getElementById("payment-amount")?.value || 0);
+      const total = CartState.summary.total;
+      confirmBtn.disabled = amount < total;
+      confirmBtn.classList.toggle('btn--disabled', amount < total);
+    }
+  },
+  
+  /**
+   * Set loading state on confirm button
+   */
+  _setLoading(isLoading) {
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    const btnText = confirmBtn?.querySelector('.btn-text');
+    const btnSpinner = confirmBtn?.querySelector('.btn-spinner');
+    
     if (confirmBtn) {
-      const handler = PaymentMethodRegistry.get(CartState.payment.method);
-      if (handler && handler.validate) {
-        try {
-          handler.validate();
-          confirmBtn.disabled = false;
-        } catch (e) {
-          confirmBtn.disabled = true;
-        }
+      confirmBtn.disabled = isLoading;
+      if (isLoading) {
+        confirmBtn.classList.add('btn--loading');
+        if (btnText) btnText.textContent = "Processing...";
+        if (btnSpinner) btnSpinner.style.display = "inline-block";
       } else {
-        confirmBtn.disabled = amount < total;
+        confirmBtn.classList.remove('btn--loading');
+        if (btnText) btnText.textContent = "Complete Sale";
+        if (btnSpinner) btnSpinner.style.display = "none";
       }
     }
   },
   
   /**
-   * Set loading state
+   * Show inline validation error on a field
    */
-  _setLoading(isLoading) {
-    const confirmBtn = document.getElementById("confirm-payment-btn");
-    const loadingOverlay = document.getElementById("payment-loading-overlay");
+  _showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
     
-    if (confirmBtn) {
-      confirmBtn.disabled = isLoading;
-      confirmBtn.textContent = isLoading ? "Processing..." : "Complete Sale";
-    }
+    // Remove any existing error
+    this._clearFieldError(fieldId);
     
-    if (loadingOverlay) {
-      loadingOverlay.style.display = isLoading ? "flex" : "none";
+    // Add error class
+    field.classList.add('field-error');
+    
+    // Create error message element
+    const errorEl = document.createElement('div');
+    errorEl.className = 'field-error-message';
+    errorEl.id = fieldId + '-error';
+    errorEl.textContent = message;
+    
+    // Insert after the field wrapper
+    const wrapper = field.closest('.payment-amount-input-wrapper') || field.parentElement;
+    wrapper.parentElement.insertBefore(errorEl, wrapper.nextSibling);
+    
+    // Shake animation
+    field.style.animation = 'shake 0.4s ease';
+    setTimeout(() => {
+      field.style.animation = '';
+    }, 400);
+  },
+  
+  /**
+   * Clear field error
+   */
+  _clearFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.classList.remove('field-error');
     }
+    const errorEl = document.getElementById(fieldId + '-error');
+    if (errorEl) {
+      errorEl.remove();
+    }
+  },
+  
+  /**
+   * Clear all field errors
+   */
+  _clearAllErrors() {
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+    document.querySelectorAll('.field-error-message').forEach(el => el.remove());
   },
   
   /**
@@ -162,13 +295,16 @@ const PaymentModal = {
    */
   async confirm() {
     try {
+      // Clear previous errors
+      this._clearAllErrors();
+      
       // Validate payment
       const handler = PaymentMethodRegistry.get(CartState.payment.method);
       if (handler && handler.validate) {
         handler.validate();
       }
       
-      // Show loading state
+      // Show loading state on button only (not full overlay)
       this._setLoading(true);
       
       // Get payment data from handler
@@ -179,18 +315,36 @@ const PaymentModal = {
         // Fallback for methods without handler
         paymentData = {
           method: CartState.payment.method,
-          amountPaid: Number(document.getElementById("payment-amount").value) || 0,
+          amountPaid: Number(document.getElementById("payment-amount")?.value) || 0,
           customerId: null
         };
       }
       
       await CheckoutService.process(paymentData);
       
+      // Show success briefly before closing
+      const confirmBtn = document.getElementById("confirm-payment-btn");
+      const btnText = confirmBtn?.querySelector('.btn-text');
+      if (btnText) btnText.textContent = "✓ Sale Complete!";
+      
+      // Brief delay to show success
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       Modal.close();
       
     } catch (error) {
       this._setLoading(false);
-      Toast.error(error.message || "Payment failed");
+      
+      // Show inline error if it's a validation error
+      if (error.message.includes('phone') || error.message.includes('Phone')) {
+        this._showFieldError('mpesa-phone', error.message);
+      } else if (error.message.includes('customer') || error.message.includes('Customer')) {
+        this._showFieldError('credit-customer-select', error.message);
+      } else if (error.message.includes('amount') || error.message.includes('Amount') || error.message.includes('payment')) {
+        this._showFieldError('payment-amount', error.message);
+      } else {
+        Toast.error(error.message || "Payment failed");
+      }
     }
   }
 };
@@ -205,24 +359,18 @@ PaymentMethodRegistry.register('cash', {
   requiresAmount: true,
   
   onSelect() {
-    const cashSection = document.getElementById("cash-input-section");
-    const creditSection = document.getElementById("credit-section");
-    const splitSection = document.getElementById("split-section");
     const amountInput = document.getElementById("payment-amount");
     const total = CartState.summary.total;
-    
-    if (cashSection) cashSection.style.display = "block";
-    if (creditSection) creditSection.style.display = "none";
-    if (splitSection) splitSection.style.display = "none";
     
     if (amountInput) {
       amountInput.value = total.toFixed(2);
       amountInput.disabled = false;
+      amountInput.focus();
     }
   },
   
   validate() {
-    const amount = Number(document.getElementById("payment-amount").value) || 0;
+    const amount = Number(document.getElementById("payment-amount")?.value) || 0;
     const total = CartState.summary.total;
     
     if (amount < total) {
@@ -233,7 +381,7 @@ PaymentMethodRegistry.register('cash', {
   getPaymentData() {
     return {
       method: 'cash',
-      amountPaid: Number(document.getElementById("payment-amount").value) || 0,
+      amountPaid: Number(document.getElementById("payment-amount")?.value) || 0,
       customerId: null
     };
   }
@@ -249,34 +397,32 @@ PaymentMethodRegistry.register('mpesa', {
   requiresAmount: false,
   
   onSelect() {
-    const cashSection = document.getElementById("cash-input-section");
-    const creditSection = document.getElementById("credit-section");
-    const splitSection = document.getElementById("split-section");
-    const amountInput = document.getElementById("payment-amount");
     const total = CartState.summary.total;
     
-    if (cashSection) cashSection.style.display = "none";
-    if (creditSection) creditSection.style.display = "none";
-    if (splitSection) splitSection.style.display = "none";
+    // Update amount display
+    const amountDisplay = document.getElementById("mpesa-amount-display");
+    if (amountDisplay) amountDisplay.textContent = PricingService.formatCurrency(total);
     
-    // Auto-set amount to total
+    // Auto-set amount
     CartState.payment.amountPaid = total;
-    if (amountInput) {
-      amountInput.value = total.toFixed(2);
-      amountInput.disabled = true;
+    
+    // Focus phone input
+    const phoneInput = document.getElementById("mpesa-phone");
+    if (phoneInput) {
+      phoneInput.value = '';
+      setTimeout(() => phoneInput.focus(), 400);
     }
     
-    // Show M-Pesa phone input
-    const mpesaSection = document.getElementById("mpesa-input-section");
-    if (mpesaSection) mpesaSection.style.display = "block";
+    // Hide any previous status
+    const statusArea = document.getElementById("mpesa-status-area");
+    if (statusArea) statusArea.style.display = "none";
   },
   
   validate() {
     const phoneInput = document.getElementById("mpesa-phone");
-    if (!phoneInput || !phoneInput.value) {
+    if (!phoneInput || !phoneInput.value.trim()) {
       throw new Error("Please enter M-Pesa phone number");
     }
-    // Basic validation: must start with 254 or 07...
     const phone = phoneInput.value.replace(/\s/g, '');
     if (!/^(254|0)[17]\d{8}$/.test(phone)) {
       throw new Error("Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX");
@@ -289,7 +435,7 @@ PaymentMethodRegistry.register('mpesa', {
       method: 'mpesa',
       amountPaid: CartState.summary.total,
       customerId: null,
-      phone: phoneInput ? phoneInput.value : ''
+      phone: phoneInput ? phoneInput.value.trim() : ''
     };
   }
 });
@@ -297,55 +443,62 @@ PaymentMethodRegistry.register('mpesa', {
 /**
  * Credit Payment Handler
  */
-PaymentMethodRegistry.register('credit', {
+const creditHandler = {
   id: 'credit',
   label: 'Credit',
   icon: '📋',
   requiresAmount: false,
   
   onSelect() {
-    const cashSection = document.getElementById("cash-input-section");
-    const creditSection = document.getElementById("credit-section");
-    const splitSection = document.getElementById("split-section");
-    const amountInput = document.getElementById("payment-amount");
     const total = CartState.summary.total;
     
-    if (cashSection) cashSection.style.display = "none";
-    if (creditSection) creditSection.style.display = "block";
-    if (splitSection) splitSection.style.display = "none";
+    // Update amount display
+    const amountDisplay = document.getElementById("credit-amount-display");
+    if (amountDisplay) amountDisplay.textContent = PricingService.formatCurrency(total);
     
-    // Auto-set amount to total
+    // Auto-set amount
     CartState.payment.amountPaid = total;
-    if (amountInput) {
-      amountInput.value = total.toFixed(2);
-      amountInput.disabled = true;
-    }
     
+    // Load customers
     this._loadCustomers();
   },
   
   async _loadCustomers() {
     const select = document.getElementById("credit-customer-select");
+    const spinner = document.getElementById("credit-loading-spinner");
+    const errorEl = document.getElementById("credit-load-error");
+    const balanceEl = document.getElementById("credit-balance");
+    
     if (!select) return;
     
+    // Show loading state
     select.innerHTML = '<option value="">Loading customers...</option>';
+    if (spinner) spinner.style.display = "inline-block";
+    if (errorEl) errorEl.style.display = "none";
+    if (balanceEl) balanceEl.style.display = "none";
     
     try {
       const raw = await api("GET_CUSTOMERS");
       const response = typeof raw === "string" ? JSON.parse(raw) : raw;
       
-      if (response.success && Array.isArray(response.data)) {
-        select.innerHTML = '<option value="">Select customer</option>' +
+      if (spinner) spinner.style.display = "none";
+      
+      if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+        select.innerHTML = '<option value="">-- Select a customer --</option>' +
           response.data.map(c => `
             <option value="${c.id}" data-balance="${c.balance || 0}">
-              ${c.name} ${c.phone ? '- ' + c.phone : ''} ${Number(c.balance) > 0 ? '(Balance: KES ' + Number(c.balance).toFixed(2) + ')' : ''}
+              ${c.name}${c.phone ? ' (' + c.phone + ')' : ''}${Number(c.balance) > 0 ? ' - Balance: KES ' + Number(c.balance).toFixed(2) : ''}
             </option>
           `).join("");
+      } else if (response.success && Array.isArray(response.data) && response.data.length === 0) {
+        select.innerHTML = '<option value="">No customers found</option>';
       } else {
-        select.innerHTML = '<option value="">No customers available</option>';
+        throw new Error(response.error || "Failed to load customers");
       }
     } catch (error) {
       console.error("Failed to load customers:", error);
+      if (spinner) spinner.style.display = "none";
+      if (errorEl) errorEl.style.display = "flex";
       select.innerHTML = '<option value="">Error loading customers</option>';
     }
   },
@@ -368,7 +521,9 @@ PaymentMethodRegistry.register('credit', {
       notes: notesInput ? notesInput.value : ''
     };
   }
-});
+};
+
+PaymentMethodRegistry.register('credit', creditHandler);
 
 /**
  * Split Payment Handler
@@ -380,29 +535,14 @@ PaymentMethodRegistry.register('split', {
   requiresAmount: false,
   
   onSelect() {
-    const cashSection = document.getElementById("cash-input-section");
-    const creditSection = document.getElementById("credit-section");
-    const splitSection = document.getElementById("split-section");
-    const amountInput = document.getElementById("payment-amount");
-    
-    if (cashSection) cashSection.style.display = "none";
-    if (creditSection) creditSection.style.display = "none";
-    if (splitSection) splitSection.style.display = "block";
-    
-    // Disable the single amount input
-    if (amountInput) {
-      amountInput.value = "0.00";
-      amountInput.disabled = true;
-    }
-    
     // Initialize split ledger
     SplitLedger.init();
   },
   
   validate() {
     const remaining = CartState.getRemaining();
-    if (remaining > 0) {
-      throw new Error(`Remaining amount: ${PricingService.formatCurrency(remaining)}. Add more splits.`);
+    if (remaining > 0.01) { // Allow tiny rounding errors
+      throw new Error(`Remaining amount: ${PricingService.formatCurrency(remaining)}. Add more splits to cover the total.`);
     }
   },
   
@@ -417,7 +557,7 @@ PaymentMethodRegistry.register('split', {
 });
 
 /**
- * SplitLedger — Manages split payment entries
+ * SplitLedger — Manages split payment entries with visual feedback
  */
 const SplitLedger = {
   
@@ -426,16 +566,26 @@ const SplitLedger = {
    */
   init() {
     this._renderSplits();
-    this._updateRemaining();
+    this._updateProgress();
     
     const addBtn = document.getElementById("split-add-btn");
     if (addBtn) {
       addBtn.onclick = () => this._addSplit();
     }
+    
+    // Enter key on amount input
+    const amountInput = document.getElementById("split-amount-input");
+    if (amountInput) {
+      amountInput.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          this._addSplit();
+        }
+      };
+    }
   },
   
   /**
-   * Render current splits list
+   * Render current splits list with animation
    */
   _renderSplits() {
     const list = document.getElementById("split-list");
@@ -449,34 +599,72 @@ const SplitLedger = {
     }
     
     list.innerHTML = splits.map((split, index) => `
-      <div class="split-item" data-index="${index}">
-        <span class="split-method">${split.method}</span>
-        <span class="split-amount">${PricingService.formatCurrency(split.amount)}</span>
-        <button class="split-remove-btn" onclick="SplitLedger._removeSplit(${index})">&times;</button>
+      <div class="split-item" data-index="${index}" style="animation: slideIn 0.3s ease ${index * 0.05}s both;">
+        <div class="split-item-info">
+          <span class="split-item-icon">${this._getMethodIcon(split.method)}</span>
+          <span class="split-item-method">${split.method.charAt(0).toUpperCase() + split.method.slice(1)}</span>
+        </div>
+        <span class="split-item-amount">${PricingService.formatCurrency(split.amount)}</span>
+        <button class="split-remove-btn" onclick="SplitLedger._removeSplit(${index})" title="Remove split">
+          <span class="split-remove-icon">&times;</span>
+        </button>
       </div>
     `).join("");
   },
   
   /**
-   * Update remaining amount display
+   * Get icon for payment method
    */
-  _updateRemaining() {
-    const remaining = CartState.getRemaining();
-    const remainingEl = document.getElementById("split-remaining");
-    if (remainingEl) {
-      remainingEl.textContent = PricingService.formatCurrency(remaining);
-      remainingEl.style.color = remaining > 0 ? 'var(--color-danger)' : 'var(--color-success)';
-    }
-    
-    // Enable/disable confirm button
-    const confirmBtn = document.getElementById("confirm-payment-btn");
-    if (confirmBtn) {
-      confirmBtn.disabled = remaining > 0;
-    }
+  _getMethodIcon(method) {
+    const icons = {
+      cash: '💰',
+      mpesa: '📱',
+      credit: '📋'
+    };
+    return icons[method] || '💳';
   },
   
   /**
-   * Add a new split payment
+   * Update progress bar and remaining amount
+   */
+  _updateProgress() {
+    const total = CartState.summary.total;
+    const paid = CartState.payment.ledger;
+    const remaining = Math.max(0, total - paid);
+    const percentage = total > 0 ? Math.min(100, (paid / total) * 100) : 0;
+    
+    // Update progress bar
+    const fill = document.getElementById("split-progress-fill");
+    if (fill) {
+      fill.style.width = percentage + '%';
+      fill.style.transition = 'width 0.5s ease';
+      
+      // Change color based on progress
+      if (percentage >= 100) {
+        fill.style.background = 'var(--color-success)';
+      } else if (percentage >= 50) {
+        fill.style.background = 'var(--color-warning)';
+      } else {
+        fill.style.background = 'var(--color-primary)';
+      }
+    }
+    
+    // Update amounts
+    const paidEl = document.getElementById("split-paid-amount");
+    const remainingEl = document.getElementById("split-remaining-amount");
+    
+    if (paidEl) paidEl.textContent = PricingService.formatCurrency(paid);
+    if (remainingEl) {
+      remainingEl.textContent = PricingService.formatCurrency(remaining);
+      remainingEl.className = remaining > 0 ? 'split-remaining-danger' : 'split-remaining-success';
+    }
+    
+    // Update confirm button
+    PaymentModal._updateConfirmButton();
+  },
+  
+  /**
+   * Add a new split payment with validation
    */
   _addSplit() {
     const methodSelect = document.getElementById("split-method-select");
@@ -488,28 +676,34 @@ const SplitLedger = {
     const amount = Number(amountInput.value) || 0;
     
     if (amount <= 0) {
-      Toast.warning("Please enter a valid amount");
+      Toast.warning("Please enter a valid amount greater than 0");
+      amountInput.focus();
       return;
     }
     
     const remaining = CartState.getRemaining();
-    if (amount > remaining) {
+    if (amount > remaining + 0.01) { // Allow tiny rounding
       Toast.warning(`Amount exceeds remaining balance of ${PricingService.formatCurrency(remaining)}`);
+      amountInput.focus();
       return;
     }
     
     CartState.addSplit(method, amount);
     
-    // Clear input
+    // Clear input and focus
     amountInput.value = "";
+    amountInput.focus();
     
-    // Re-render
+    // Re-render with animation
     this._renderSplits();
-    this._updateRemaining();
+    this._updateProgress();
+    
+    // Show brief success feedback
+    Toast.success(`Added ${method} split of ${PricingService.formatCurrency(amount)}`);
   },
   
   /**
-   * Remove a split payment
+   * Remove a split payment with animation
    */
   _removeSplit(index) {
     const splits = CartState.payment.splits;
@@ -518,8 +712,20 @@ const SplitLedger = {
     const removed = splits.splice(index, 1)[0];
     CartState.payment.ledger -= removed.amount;
     
-    this._renderSplits();
-    this._updateRemaining();
+    // Animate removal
+    const item = document.querySelector(`.split-item[data-index="${index}"]`);
+    if (item) {
+      item.style.animation = 'slideOut 0.3s ease forwards';
+      setTimeout(() => {
+        this._renderSplits();
+        this._updateProgress();
+      }, 300);
+    } else {
+      this._renderSplits();
+      this._updateProgress();
+    }
+    
+    Toast.info(`Removed ${removed.method} split of ${PricingService.formatCurrency(removed.amount)}`);
   }
 };
 
@@ -532,16 +738,24 @@ const MpesaHandler = {
    * Initiate STK push
    */
   async initiatePayment(phone, amount) {
+    // Show status area
+    const statusArea = document.getElementById("mpesa-status-area");
+    const statusText = document.getElementById("mpesa-status-text");
+    if (statusArea) statusArea.style.display = "flex";
+    if (statusText) statusText.textContent = "Sending payment request to " + phone + "...";
+    
     try {
       const result = await MpesaService.initiateSTK(phone, amount);
       
       if (result && result.checkoutRequestId) {
+        if (statusText) statusText.textContent = "Waiting for customer to enter PIN on their phone...";
         // Start polling
         return await this._pollStatus(result.checkoutRequestId);
       }
       
       return result;
     } catch (error) {
+      if (statusArea) statusArea.style.display = "none";
       console.error("M-Pesa payment initiation failed:", error);
       throw error;
     }
@@ -551,29 +765,37 @@ const MpesaHandler = {
    * Poll transaction status
    */
   async _pollStatus(checkoutRequestId) {
-    const maxAttempts = 30; // 30 seconds
-    const interval = 1000; // 1 second
+    const maxAttempts = 30;
+    const interval = 1000;
+    const statusText = document.getElementById("mpesa-status-text");
     
     for (let i = 0; i < maxAttempts; i++) {
       try {
         const status = await MpesaService.pollStatus(checkoutRequestId);
         
         if (status && status.status === "completed") {
+          if (statusText) statusText.textContent = "✓ Payment received!";
           return status;
         }
         
         if (status && status.status === "failed") {
+          if (statusText) statusText.textContent = "✗ Payment failed: " + (status.message || "Unknown error");
           throw new Error(status.message || "M-Pesa transaction failed");
         }
         
-        // Still pending, wait
+        // Update status with elapsed time
+        if (statusText) {
+          const elapsed = i + 1;
+          statusText.textContent = `Waiting for customer to enter PIN... (${elapsed}s)`;
+        }
+        
         await new Promise(resolve => setTimeout(resolve, interval));
       } catch (error) {
         throw error;
       }
     }
     
-    throw new Error("M-Pesa transaction timed out");
+    throw new Error("M-Pesa transaction timed out after 30 seconds");
   }
 };
 </script>
