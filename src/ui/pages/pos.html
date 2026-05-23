@@ -429,7 +429,15 @@
       // next attempt can recover without a page reload.
       console.error('openPaymentModal: #paymentModalContent not found — resetting state.');
       _setPaymentModalOpen(false);
-      return;  // <-- ADD THIS RETURN
+      return;
+    }
+
+    // ADD THIS CHECK: If the node is already in the modal body, it means
+    // the modal is already open but the guard was reset incorrectly.
+    if (paymentNode.parentNode && paymentNode.parentNode.id === 'modal-body') {
+      console.warn('openPaymentModal: paymentNode already in modal body — resetting guard.');
+      _setPaymentModalOpen(false);
+      return;
     }
 
     _setPaymentModalOpen(true);

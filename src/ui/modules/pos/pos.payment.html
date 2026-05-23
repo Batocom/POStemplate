@@ -362,7 +362,10 @@ const PaymentModal = {
       // This ensures the guard is reset before any receipt modal opens,
       // preventing the timing conflict described in Issue 3.
       Modal.close();
-      
+
+      // Small delay to ensure modal close animation starts before processing
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const saleResult = await CheckoutService.process(paymentData);
 
       // Show success toast instead of button text change

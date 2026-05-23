@@ -79,6 +79,10 @@ const POSPage = {
         CartTable.render();
         TotalsPanel.render();
       });
+
+      EventBus.on("checkoutFailed", () => {
+        this.updateCheckoutButton();
+      });
       
       // ── Receipt modal ───────────────────────────────────────────
       // saleCompleted is emitted by CheckoutService BEFORE CartService.clear()
@@ -97,6 +101,19 @@ const POSPage = {
 
       POSPage._onSaleCompleted = function(saleData) {
         const d = saleData || {};
+
+        // Store receipt data for printing
+        window._currentReceiptData = {
+          sale: {
+            invoice_no: d.invoiceNumber || d.saleId || d.id || '',
+            customer_name: d.customerName || d.customer_name || 'Walk-in',
+            created_at: d.date || d.createdAt || d.created_at || new Date().toISOString(),
+            payment_method: d.paymentMethod || d.payment_method || CartState.payment.method || '',
+            total_amount: d.total || d.grandTotal || CartState.summary.total || 0
+          },
+          items: (Array.isArray(d.items) && d.items.length > 0) ? d.items : CartState.items || [],
+          productMap: {}
+        };
 
         // Helper: set text on a receipt field by id
         const setField = (id, val) => {
