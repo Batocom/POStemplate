@@ -358,18 +358,15 @@ const PaymentModal = {
         };
       }
       
+      // Close the payment modal FIRST, before processing.
+      // This ensures the guard is reset before any receipt modal opens,
+      // preventing the timing conflict described in Issue 3.
+      Modal.close();
+      
       const saleResult = await CheckoutService.process(paymentData);
 
-      // Show success state on button briefly
-      const confirmBtn = document.getElementById("confirm-payment-btn");
-      const btnText = confirmBtn?.querySelector('.btn-text');
-      if (btnText) btnText.textContent = "✓ Sale Complete!";
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      // Close the payment modal.
-      // The onClose callback in openPaymentModal() will reset the DOM guard
-      // flag and return #paymentModalContent to its home wrapper.
-      Modal.close();
+      // Show success toast instead of button text change
+      Toast.success("Sale completed successfully!");
 
       // CheckoutService.process() already emitted saleCompleted and set
       // saleResult._saleCompletedEmitted = true. Only emit here as a
